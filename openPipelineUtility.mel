@@ -1,0 +1,171 @@
+global proc string openPipelineGetPath(string $inputMode)
+{
+	global string $openPipeline_menuCurrentState;
+	global string $openPipeline_menuCurrentSelection;	
+	string $outputString;
+	string $projString = `workspace -q -fn`;
+	
+	switch($inputMode)
+	{
+		case "proj":
+			$outputString = ($projString+"/");
+		break;
+		
+		case "lib":
+			$outputString = ($projString + "/lib/");	
+		break;
+		
+		case "scenes":
+			$outputString = ($projString + "/scenes/");	
+		break;
+
+		case "archive":
+			$outputString = ($projString + "/archive/");
+		break;
+		
+		case "state":
+			$outputString = ($projString + "/lib/" + $openPipeline_menuCurrentState + "/");	
+		break;
+		
+		case "asset":
+			string $selectedItem = $openPipeline_menuCurrentSelection;
+			$outputString = $projString + "/lib/" +$openPipeline_menuCurrentState + "/" + $selectedItem + "/";	
+		break;
+		
+		case "note":
+			string $selectedItem = `openPipelineGetItemSelected`;
+			string $notesPath;
+			if(($openPipeline_menuCurrentState == "model") || ($openPipeline_menuCurrentState == "rig"))
+			{
+				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentState + "/" + $selectedItem + "/notes/";
+			} else if (($openPipeline_menuCurrentState == "anim") || ($openPipeline_menuCurrentState == "light")){
+				$notesPath = $projString + "/scenes/" + $selectedItem  + "/" + $openPipeline_menuCurrentState + "/notes/";
+			}
+			
+			string $outputString = $notesPath + $selectedItem + "_AssetNote.txt"; 
+		break;
+		
+		case "newnote":
+			string $notesPath;
+			if(($openPipeline_menuCurrentState == "model") || ($openPipeline_menuCurrentState == "rig"))
+			{
+				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentState + "/" + $openPipeline_menuCurrentSelection + "/notes/";
+			} else if (($openPipeline_menuCurrentState == "anim") || ($openPipeline_menuCurrentState == "light")){
+				$notesPath = $projString + "/scenes/" + $openPipeline_menuCurrentSelection  + "/" + $openPipeline_menuCurrentState + "/notes/";
+			}
+			
+			string $outputString = $notesPath + $openPipeline_menuCurrentSelection + "_AssetNote.txt"; 
+		break;
+	}
+	return $outputString;
+}
+
+global proc string openPipelineGetProjList(string $inputMode,int $input_Index)
+{
+	global string $openPipeline_projListDir;
+	global string $openPipeline_projListName;
+	
+	int $debug = 0;
+	
+		
+		string $projListPath = $openPipeline_projListDir + $openPipeline_projListName;
+		//print $projListPath;
+		string $projList[] = `openPipelineReadTxt $projListPath "clean"`;
+		
+		string $out_String="";
+
+			switch($inputMode)
+			{
+				case "projName":
+					string $projName =`substitute "ProjName:" $projList[$input_Index] ""`;
+					$projName =strip(`substitute ("ProjPath:.*") $projName ""`);
+					$out_String=$projName;
+				break;
+				
+				case "projPath":
+					string $projPath =strip(`substitute "ProjName:.*ProjPath:" $projList[$input_Index] ""`);
+					$out_String=$projPath;
+				break;
+				
+				case "size":
+					$out_String = `size($projList)`;
+				break;
+			}
+		return $out_String;
+}
+
+
+global proc openPipelineImportRefs()
+{
+	// list all references in scene
+	string $referencedFiles[] = `file -q -reference`;
+	string $eachReference;
+	
+	if (`size($referencedFiles)` >= 0)
+	{
+		warning ("openPipeline: no references to import\n");
+	}
+	
+	for ($eachReference in $referencedFiles)
+	{
+		file -importReference $eachReference;
+		print ("openPipeline: " + $eachReference + " imported into current scene file\n");
+	}
+}
+
+global proc string openPipelineGetItemSelected()
+{
+	global string $openPipeline_menuCurrentState;
+	global string $openPipeline_menuCurrentSelection;
+	
+	string $temp[] = `textScrollList -q -si ($openPipeline_menuCurrentState + "ScrollList")`;
+	$openPipeline_menuCurrentSelection = $temp[0];
+	string $regex = " [+-]";
+ 	$openPipeline_menuCurrentSelection = `substitute $regex $openPipeline_menuCurrentSelection ""`;
+	return $openPipeline_menuCurrentSelection;
+}
+
+
+global proc string openPipelineGetAssetSelected()
+{
+//	string $temp[] = `textScrollList -q -si assetInventory`;
+	string $temp = `iconTextRadioCollection -q -sl assetInventory`;
+	$currentSelection = $temp;
+	string $regex = " [+-]";
+ 	$currentAsset = `substitute $regex $currentSelection ""`;
+	return $currentAsset;
+}
+
+
+global proc string openPipelineGetAssetComponentSelected()
+{
+//	string $temp[] = `textScrollList -q -si assetComponentInventory`;
+	string $temp = `iconTextRadioCollection -q -sl assetComponentInventory`;
+	$currentSelection = $temp;
+	string $regex = " [+-]";
+ 	$currentAssetComponent = `substitute $regex $currentSelection ""`;
+	return $currentAssetComponent;
+}
+
+
+global proc string[] openPipelineGetAssetList(string $type)
+{
+
+	string $allListItems[];
+	if($type == "asset")
+	{
+		$allListItems = `iconTextRadioCollection -q -collectionItemArray assetInventory`;
+	}else if($type == "component") {
+		$allListItems = `iconTextRadioCollection -q -collectionItemArray assetComponentInventory`;
+	}
+	 
+	string $eachListItem;
+	$i=0;
+	for($eachListItem in $allListItems)
+	{
+		string $regex = " [+-]";
+ 		$allListItems[$i] = `substitute $regex $eachListItem ""`;
+ 		$i++;
+	}
+	return $allListItems;
+}

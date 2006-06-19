@@ -1,0 +1,215 @@
+// add revision control notes
+
+global proc openPipelineSaveMasterNoteGUI()
+{
+	if(`window -exists masterNoteUI`) deleteUI masterNoteUI;
+	
+	window -t "Add Master File Comment" -w 300 -h 70 masterNoteUI;
+
+	columnLayout;
+	rowLayout -numberOfColumns 2 -cw2 60 230 -cl2 "center" "center";
+		text -l "comment: " -w 60 -h 20;
+		textField -w 230 -h 20 masterCommentField;
+	setParent..;
+
+	rowLayout -numberOfColumns 2 -cw2 145 145 -cl2 "center" "center";
+		button -w 145 -l "save" -c "openPipelineSaveMasterFileWrapper";
+		button -w 145 -l "cancel" -c "deleteUI masterNoteUI;";
+	setParent..;
+
+	showWindow masterNoteUI;
+}
+
+
+global proc openPipelineLoadAssetNote()
+{
+	global string $openPipeline_menuCurrentState;	
+	
+	string $notePath = `openPipelineGetPath "note"`;
+
+	string $assetNoteTextArray[] = `openPipelineReadTxt $notePath "everything"`;
+	string $assetNoteText = stringArrayToString($assetNoteTextArray, "");
+		
+	scrollField -edit -text $assetNoteText noteField;
+}
+
+
+global proc openPipelineAssetNoteWriter(string $inputMode)
+{
+	global string $openPipeline_menuCurrentState;
+	global string $openPipeline_menuCurrentSelection;
+	global string $openPipeline_userName;	
+	
+	//boolean value for preventing the user entering nothing while adding comment
+	int $emptyCommentAdded = 0;	
+	
+	string $eventContent;
+	string $commentContent;
+	
+	//get the date and time
+	string $dateNow = `system("date /t")`;
+	string $timeNow = `system("time /t")`;
+	string $dateStrip = `strip $dateNow`;
+	string $timeStrip = `strip $timeNow`;
+		
+	$dateStrip = `match "[A-Za-z][A-Za-z][A-Za-z] [0-9]+/[0-9]+/[0-9]+" $dateStrip`;
+	$timeStrip = `match "[0-9]+:[0-9]+ [AP]M" $timeStrip`;
+
+	string $time_Date = ("Time: " + $timeStrip + "   Date: " + $dateStrip);	
+	string $proj_Path = `openPipelineGetPath "proj"`;
+
+	string $pathLocation;
+	if(($openPipeline_menuCurrentState == "model") || ($openPipeline_menuCurrentState == "rig"))
+	{
+		$pathLocation = "lib/";
+	} else if (($openPipeline_menuCurrentState == "anim") || ($openPipeline_menuCurrentState == "light")){
+		$pathLocation = "scenes/";	
+	}
+	
+	if($inputMode=="creation")
+	{	
+		string $newAssetName = `textField -q -text assetNameField`;
+		string $currentType =`optionMenuGrp -q -v assetTypeMenu`;
+		string $creationPath = `openPipelineGetPath "newnote"`;
+		
+		$fileId=`fopen $creationPath "w"`;
+		fprint $fileId "Asset Created: ";
+ 		fprint $fileId $time_Date;
+		fprint $fileId "\n";
+
+ 		fclose $fileId;
+
+ 		openPipelineFilePermisson "+R" $creationPath;
+
+	}else if($inputMode == "missing")
+	{
+		string $newAssetName = $openPipeline_menuCurrentSelection;
+		string $currentType =$openPipeline_menuCurrentState;
+		string $creationPath = `openPipelineGetPath "note"`;			
+		$fileId=`fopen $creationPath "w"`;
+		fprint $fileId "Asset Note was missing, recreated: ";
+ 		fprint $fileId $time_Date;
+ 		fclose $fileId;
+ 		openPipelineFilePermisson "+R" $creationPath;
+
+	}else{
+		switch($inputMode)
+		{	
+			case "master":
+				string $commentAdd = `textField -q -text masterCommentField`;
+				$eventContent = "\nEVENT: File mastered by " + $openPipeline_userName + ".";
+				string $tempComment = `strip $commentAdd`;
+				if(size($tempComment)>0)
+				{
+					$commentContent = ("\nCOMMENT: " + $commentAdd);	
+				}else{
+					$commentContent = "";	
+				}
+			deleteUI masterNoteUI;
+			break;
+		
+			case "add":
+				$eventContent = ("\nEVENT: comment added by "+ $openPipeline_userName+". version: ");
+				string $commentAdd = `textField -q -text commentField`;	
+				$commentContent = ("\nCOMMENT: " + $commentAdd);
+				
+				//get rid of space from commentField and size it.
+				//if nothing is there, trun the $emptyCommentAdded into 1 
+				string $tempComment = `strip $commentAdd`;
+				if(size($tempComment)==0)
+				{
+					$emptyCommentAdded = 1;
+				}else
+				{
+					$emptyCommentAdded = 0;
+				}
+			break;
+		}
+			
+		//do follow if it's not added empty comment 
+		//or it's file mastered
+		if(!$emptyCommentAdded)
+		{		
+
+			string $notePath = `openPipelineGetPath "note"`;
+			int $fileId;
+			
+			if(`filetest -f $notePath`)
+			{
+				openPipelineFilePermisson "-R" $notePath;
+				$fileId=`fopen $notePath "a"`;
+			}else{
+				$fileId=`fopen $notePath "w"`;
+			}
+						
+			fprint $fileId "\n";
+		 	fprint $fileId $time_Date;
+		 	fprint $fileId $eventContent;
+		 	fprint $fileId $commentContent;
+		 	fprint $fileId "\n";
+		 	fclose $fileId;
+		 	
+		 	openPipelineFilePermisson "+R" $notePath;
+		 	
+		 	//reload the note
+		 	openPipelineLoadAssetNote;
+		}
+	}
+}
+
+
+//
+//change the file permission in Window
+//
+// + set
+// - clean
+// R read-Only
+// H Hidden
+//
+global proc openPipelineFilePermisson(string $inputMode, string $input_Path)
+{
+	string $exeCommand = "ATTRIB " + $inputMode + " " + $input_Path;
+	system($exeCommand);
+}
+
+//
+//This Proc reads TXT file.
+//It will return an string[] without the empty lines and the comments.
+//
+global proc string[] openPipelineReadTxt(string $inputPath, string $inputMode)
+{
+	int $i=0;
+	string $outputString[]={};
+		
+	if(`filetest -r $inputPath`)
+	{
+		$fileId = `fopen $inputPath "r"`;
+		string $nextLine = `fgetline $fileId`;
+		
+		while(size($nextLine)>0)
+		{
+			switch($inputMode)
+			{
+				case "clean":
+					string $stripNextLine = `strip $nextLine`;
+					if(size($stripNextLine)>0 && startString($stripNextLine, 2)!="//" )
+					{
+						$outputString[$i] = $nextLine;
+						$i++;
+					}
+					$nextLine = `fgetline $fileId`;				
+					break;
+					
+				case "everything":
+					$outputString[$i] = $nextLine;
+					$i++;
+					$nextLine = `fgetline $fileId`;
+					break;
+			}
+		}
+		fclose $fileId;		
+	}else{
+		warning ("No file exists in " + $inputPath);
+	}
+	return $outputString;
+}

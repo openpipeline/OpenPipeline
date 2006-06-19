@@ -1,0 +1,391 @@
+//
+//
+global proc openPipelineRefreshCurrentRefList(){
+					string $allRef[] = `openPipelineGetRefFileName "sort"`;
+					int $sizeRef = size($allRef);
+						textScrollList -e -ra currentRefList;
+						textScrollList -e -sc "openPipelineCurrentRefListExpand;" currentRefList;
+					for($i=0; $i<$sizeRef;$i++)
+					{
+						textScrollList -e -append $allRef[$i] currentRefList;	
+					}		
+			}
+//
+//Not Done
+//
+global proc openPipelineCurrentRefListExpand()
+{
+	string $refPath[] = `file -q -r`;
+	string $selItem[]=`textScrollList -q -si currentRefList`;
+	int $selItemIdx[]=`textScrollList -q -sii currentRefList`;
+	string $refList[]= `openPipelineGetRefFileName "sort"`;
+	string $refExist[] = `openPipelineGetRefFileName "all"`;
+	$selItem[0] = `substitute "\\*.*" $selItem[0] ""`;
+	int $tempID = ($selItemIdx[0]-1);
+	string $me[] = `reference -f $refPath[$tempID] -q -node`;
+	select -r $me;
+	string $he[] = `ls -sl -dag -transforms`;
+}
+//
+//
+//
+
+	
+global proc string[] openPipelineGetRefFileName(string $inputMode)
+{
+	string $refPath[] = `file -q -r`;
+	string $refName[];
+	string $outRefName[];
+	int $refSize = size($refPath);
+	
+	for($i = 0 ; $i <$refSize; $i++)
+	{
+		string $tempRef[];
+		$refName[$i] = `substitute ".*/" $refPath[$i] ""`;
+		$tempRef = `stringToStringArray $refName[$i] "{"`;
+		$refName[$i] = $tempRef[0];
+	}
+	switch($inputMode)
+	{
+		case "all":
+		$outRefName = $refName;
+		break;
+		
+		case "sort":
+		string $noDup[] = sort(stringArrayRemoveDuplicates($refName));
+	
+	int $sizeNoDup = `size $noDup`;
+	for($i = 0;$i<$sizeNoDup; $i++)
+	{		
+		string $whoAmI = $noDup[$i];
+		//print ("****"+$whoAmI+"\n");
+		string $assetName = `substitute "\\..*" $whoAmI ""`;
+		int $countMe = stringArrayCount($whoAmI, $refName);
+		$outRefName[$i] = ($assetName + "  *  " + $countMe);
+	}
+	break;
+}	
+	
+return $outRefName;
+}
+
+//
+//
+
+global proc openPipelineGrabFileList(string $input_menuName, string $input_listName)
+{
+	global int $openPipeline_currentProjIndex;
+	string $currentProject = `textFieldGrp -q -text projPath`;
+	string $libPath = ($currentProject + "/lib/");
+	string $scenePath = ($currentProject + "/scenes/");
+	string $input_Type = `optionMenuGrp -q -v availableRefMenu`;
+	string $assetPath;
+	string $assetFiles[]={};
+	switch($input_Type)
+	{
+		case "model":
+		$assetPath = ($libPath + "model/");
+		$assetFiles = `getFileList -folder ($libPath + "model/")`;
+		
+		print $assetFiles;
+		break;
+		
+		case "rig":
+		$assetPath = ($libPath + "rig/");
+		$assetFiles = `getFileList -folder ($libPath + "rig/")`;
+		break;
+		
+		case "animation":
+		string $sceneFiles[] = `getFileList -folder $scenePath`;
+		for($file in $sceneFiles)
+		{
+			$assetPath = ($scenePath + $file + "/anim");
+			if(`filetest -d ($scenePath + $file + "/anim")`)
+			{
+				int $tempFoo = `size($assetFiles)`;				
+				$assetFiles[$tempFoo] = $file;
+			}	   
+		}
+		break;
+		
+		case "lighting":
+		string $sceneFiles[] = `getFileList -folder $scenePath`;
+		for($file in $sceneFiles)
+		{
+			if(`filetest -d ($scenePath + $file + "/light")`)
+			{
+				$assetPath = ($scenePath + $file + "/light");
+				int $tempFoo = `size($assetFiles)`;				
+				$assetFiles[$tempFoo] = $file;
+			}	   
+		}
+		break;
+	}
+	 
+	int $numAssets = `size($assetFiles)`;	
+	
+	textScrollList -e -ra $input_listName;
+	
+	for($i = $numAssets-1; $i >=0; $i--)
+	{
+		string $chomp = `match "^[a-zA-Z_0-9]+" $assetFiles[$i]`;
+		
+		print $chomp;
+		//check if the master files exist for ref in
+		//print ($assetPath+$assetFiles[$i]+"/"+$assetFiles[$i]+"_"+$input_Type+".mb\n");
+		if(`filetest -f ($assetPath+$assetFiles[$i]+"/"+$assetFiles[$i]+"_"+$input_Type+".mb")`)
+		{
+			textScrollList -e -append $chomp $input_listName;
+			}	 	
+		
+	}
+	
+}
+	
+global proc openPipelineClearRefMenu(string $input_SelectedMenu)
+{
+	string $removeMe[];
+	string $allList[] = {"currentRefList", "newRefList","availableAssetList"};
+	$removeMe[0] = $input_SelectedMenu;
+	string $disableList[] = stringArrayRemove($removeMe, $allList);
+	
+	for($thisList in $disableList)
+	{
+		textScrollList -e -da $thisList;
+	} 	
+}
+
+
+global proc string[] openPipelineAddRefContent(string $inputString[], string $inputSelection[])
+{
+	string $input_Type = `optionMenuGrp -q -v availableRefMenu`;
+	string $space = "  *  ";
+	string $outputArray[];
+	int $exist=0;
+	int $sizeArray = `size $inputString`;
+	string $nameInSel = ($input_Type+"::"+$inputSelection[0]);
+	if($sizeArray!=0)
+	{
+		for($i=0; $i<$sizeArray; $i++)
+		{
+			
+			string $tempArray[] = stringToStringArray($inputString[$i], $space);
+	    string $tempName = `strip $tempArray[0]`;
+
+				if($tempArray[0] == $nameInSel)
+				{	
+							$exist = 1;
+							$tempArray[1] = string(int($tempArray[1])+1);
+							$outputArray[0] = ($tempArray[0]+$space + $tempArray[1]);
+							textScrollList -e -rii ($i+1) newRefList;
+							textScrollList -e -ap ($i+1) $outputArray[0] newRefList;
+							break;							
+				}
+		}
+		if($exist == 0)
+		{
+		$outputArray[0] = ($nameInSel+$space + "1");
+		$outputArray[1] = $sizeArray;
+		textScrollList -e -append $outputArray[0] newRefList;	
+			}
+		
+	}else{
+		$outputArray[0] = ($nameInSel+$space + "1");
+		$outputArray[1] = $sizeArray;
+		textScrollList -e -append $outputArray[0] newRefList;	
+		}
+		
+		return $outputArray;
+}
+
+global proc string[] openPipelineRemoveRefContent(string $inputString[], string $inputSelection[])
+{
+	string $space = "  *  ";
+	string $outputArray[];
+	int $exist=0;
+	int $sizeArray = `size $inputString`;
+	
+	if($sizeArray!=0)
+	{
+		for($i=0; $i<$sizeArray; $i++)
+		{
+			
+			string $tempArray[] = `stringToStringArray $inputString[$i] $space`;
+	    string $tempName = `strip $tempArray[0]`;
+			$tempArray[1] = string(int($tempArray[1])-1);
+			
+				if($inputString[$i] == $inputSelection[0])
+				{	
+					
+					if($tempArray[1]==0)
+					{
+						$outputArray[0] = ($tempArray[0]+$space+$tempArray[1]);
+						textScrollList -e -rii ($i+1) newRefList;	
+					}else{
+							$outputArray[0] = ($tempArray[0]+$space+$tempArray[1]);
+							$outputArray[1] = $i;	
+							textScrollList -e -rii ($i+1) newRefList;							
+							textScrollList -e -ap ($i+1) $outputArray[0] newRefList;	
+							break;							
+					}
+				}
+		 }
+	}
+		
+		
+		return $outputArray;
+}
+
+global proc openPipelineRefIn()
+{
+	global int $openPipeline_currentProjIndex;
+	string $currentProject = `textFieldGrp -q -text projPath`;
+	string $libPath = ($currentProject + "/lib/");
+	//print ($libPath+"\n");
+	string $assetPath;
+	string $scenePath = ($currentProject + "/scenes/");
+	
+string $selItem[] = `textScrollList -q -ai newRefList`;
+for($eachSel in $selItem)
+{
+	string $refObj[] = stringToStringArray($eachSel, "::");
+	string $typeAndNum[] = stringToStringArray($refObj[1], " * ");
+	//print ("typeMe \n");
+	//print $typeAndNum;
+	switch($refObj[0])
+	{
+		case "model":
+		$assetPath = ($libPath + "model/");
+		//print ("asset = "+$assetPath+"\n");
+		break;
+		
+		case "rig":
+		$assetPath = ($libPath + "rig/");
+		break;
+		
+		/*not yet
+		case "animation":
+		string $sceneFiles[] = `getFileList -folder $scenePath`;
+		for($file in $sceneFiles)
+		{
+			$assetPath = ($scenePath + $file + "/anim");
+			if(`filetest -d ($scenePath + $file + "/anim")`)
+			{
+				int $tempFoo = `size($assetFiles)`;				
+				$assetFiles[$tempFoo] = $file;
+			}	   
+		}
+		break;
+		
+		case "lighting":
+		string $sceneFiles[] = `getFileList -folder $scenePath`;
+		for($file in $sceneFiles)
+		{
+			if(`filetest -d ($scenePath + $file + "/light")`)
+			{
+				$assetPath = ($scenePath + $file + "/light");
+				int $tempFoo = `size($assetFiles)`;				
+				$assetFiles[$tempFoo] = $file;
+			}	   
+		}
+		break;
+		*/
+		
+	}
+	//ref in
+	string $refPath = ($assetPath+$typeAndNum[0]+"/"+$typeAndNum[0]+"_"+$refObj[0]+".mb");
+	//print ("ref path = "+$refPath+"\n");
+	for($i=0;$i<int($typeAndNum[1]);$i++)
+	{
+  file -r -type "mayaBinary" -gl -namespace $refObj[0] -options "v=0" $refPath;
+	}
+	}
+	textScrollList -e -ra newRefList;
+	openPipelineRefreshCurrentRefList;	
+}
+
+/*	
+global openPipelineRefOut()
+{
+		
+}
+*/
+global proc string[] openPipelineGetNewRefListInfo(string $inputMode, string $inputString[],string $inputSel[], string $space)
+{
+	string $space = "  *  ";
+	string $outVal;
+	string $outputArray[];
+	int $sizeArray = `size $inputString`;	
+	if($sizeArray!=0)
+	{
+		for($i=0; $i<$sizeArray; $i++)
+		{
+			
+			string $tempArray[] = `stringToStringArray $inputString[$i] $space`; 
+					switch($inputMode)			
+					{
+						case "refName":
+							string $tempName = `strip $tempArray[0]`;
+							$outputArray[$i] = $tempName;
+						break;
+						case "refAmount":
+							string $tempNum = `strip $tempArray[1]`;
+							$outputArray[$i] = $tempNum;
+						break;
+					}							
+			}
+	}
+		
+		return $outputArray;
+}
+
+
+global proc openPipelineRefManagement(string $inputMode)
+{
+	string $space = "  *  ";
+	switch($inputMode)
+	{
+		case "addSel":
+		//
+		//check if exists, if yes do follow else create one.
+		//
+			int $numSelItem = `textScrollList -q -nsi availableAssetList`;
+			if($numSelItem>0){
+				string $selItem[] = `textScrollList -q -si availableAssetList`;				
+				string $oriItem[] = `textScrollList -q -ai newRefList`;			
+				//string $allItem[] = `openPipelineClearSpecificString $oriItem $space`;
+				openPipelineAddRefContent $oriItem $selItem; 
+			}
+		break;
+		
+		case "removeSel":
+		//
+		//check amount if ==0 do follow else decrease the amount
+		//
+			int $numSelItem = `textScrollList -q -nsi newRefList`;
+			if($numSelItem>0)
+			{
+				int $selItemIndex[] = `textScrollList -q -sii newRefList`;
+				string $oriItem[] = `textScrollList -q -ai newRefList`;
+				string $selItem[] = `textScrollList -q -si newRefList`;
+				openPipelineRemoveRefContent $oriItem $selItem; 
+			
+				//textScrollList -e -rii $selItemIndex[0] newRefList;
+				
+				
+					//selItem in newRefList
+					int $totalItem = `textScrollList -q -ni newRefList`;			
+			
+					if($totalItem>0){
+						if($totalItem<$selItemIndex[0])
+						{
+							textScrollList -e -sii $totalItem newRefList;
+						}else{
+							textScrollList -e -sii $selItemIndex[0] newRefList;
+						}
+					}
+			}
+		
+		break;
+	} 
+}
