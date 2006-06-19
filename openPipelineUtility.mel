@@ -1,7 +1,11 @@
 global proc string openPipelineGetPath(string $inputMode)
 {
-	global string $openPipeline_menuCurrentState;
-	global string $openPipeline_menuCurrentSelection;	
+	global string $openPipeline_menuCurrentAsset;	
+	global string $openPipeline_menuCurrentAssetComponent;
+
+global string $openPipeline_menuCurrentState;	
+global string $openPipeline_menuCurrentSelection;
+	
 	string $outputString;
 	string $projString = `workspace -q -fn`;
 	
@@ -33,16 +37,16 @@ global proc string openPipelineGetPath(string $inputMode)
 		break;
 		
 		case "note":
-			string $selectedItem = `openPipelineGetItemSelected`;
+			string $selectedItem = `openPipelineGetAssetSelected`;
 			string $notesPath;
-			if(($openPipeline_menuCurrentState == "model") || ($openPipeline_menuCurrentState == "rig"))
+			if($openPipeline_menuCurrentAssetComponent == "")
 			{
-				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentState + "/" + $selectedItem + "/notes/";
-			} else if (($openPipeline_menuCurrentState == "anim") || ($openPipeline_menuCurrentState == "light")){
-				$notesPath = $projString + "/scenes/" + $selectedItem  + "/" + $openPipeline_menuCurrentState + "/notes/";
+				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAsset + "/notes/";
+				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_AssetNote.txt";
+			}else{
+				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAsset  + "/components/" + $openPipeline_menuCurrentAssetComponent + "/notes/";
+				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_AssetNote.txt";
 			}
-			
-			string $outputString = $notesPath + $selectedItem + "_AssetNote.txt"; 
 		break;
 		
 		case "newnote":
@@ -59,6 +63,7 @@ global proc string openPipelineGetPath(string $inputMode)
 	}
 	return $outputString;
 }
+
 
 global proc string openPipelineGetProjList(string $inputMode,int $input_Index)
 {
@@ -112,6 +117,7 @@ global proc openPipelineImportRefs()
 		print ("openPipeline: " + $eachReference + " imported into current scene file\n");
 	}
 }
+
 
 global proc string openPipelineGetItemSelected()
 {

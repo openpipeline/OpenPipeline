@@ -158,7 +158,7 @@ global proc openPipelineUI()
 				separator -style "double" -w 410;
 			
 				// workflow frame
-				frameLayout -label "Workflow" -collapsable 0;
+				frameLayout -label "Current Asset" -collapsable 0;
 					gridLayout -numberOfRowsColumns 2 4 -cellWidthHeight 100 25;
 					
 						//proc openPipelineOpenFile and prc openPipelineSaveFile
@@ -177,24 +177,28 @@ global proc openPipelineUI()
 					
 				setParent ..;
 				//end of framelayout:Workflow
-			
+				
+				rowLayout -numberOfColumns 2 -w 400;
+				columnLayout -h 100 -w 100 -bgc 1 1 1 workflowColumn;
+					button -label "Save Workshop" -width 100 -command "openPipelineSaveFile workshop";
+					button -label "MASTER FILE" -width 100 -command "openPipelineSaveMasterNoteGUI";
+					setParent ..;
+
+						
 				// Asset note frame
-				frameLayout -label "Asset Notes" -collapsable 1 -collapse 1;
+//				frameLayout -label "Asset Notes" -collapsable 1 -collapse 1;
 					columnLayout;		
 					
 						rowLayout -numberOfColumns 5;
-							scrollField -w 400 -h 100 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "Nothing here!" noteField;
+							scrollField -w 300 -h 100 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "Nothing here!" noteField;
 						setParent ..;
 						
-						rowLayout -numberOfColumns 5 -cw5 10 50 280 10 40 -cl5 "center" "center" "center" "center" "center";
-							text -w 10 -h 20 -l "";
-							text -w 50 -h 20 -l "comment : ";		
-							textField -w 290 -h 20 commentField;
-							text -w 10 -h 20 -l "  ";
+						rowLayout -numberOfColumns 2 -cw2 250 55 -cl2 "left" "right";
+							textField -w 245 -h 20 commentField;
 							
 							//proc openPipelineAssetNoteWriter
 							//located in openPipelineNotes.mel 
-							button -w 40 -h 20 -l "add" -c "openPipelineAssetNoteWriter add";
+							button -w 55 -h 20 -l "comment" -c "openPipelineAssetNoteWriter add";
 						setParent ..;
 								
 					setParent ..;
@@ -430,7 +434,6 @@ global proc openPipelineUI()
 
 global proc openPipelineAssetPopUpMenus(string $elementName, string $list)
 {
-
 	// robo wip	(figure out how to right click within textscroll list)			
 	popupMenu -parent $list; //-postMenuCommand; //("textScrollList -e -selectItem " + $elementName + " " +  $listassetIn);
 	menuItem -label "open Workshop" -command "openPipelineOpenFile workshop";
@@ -442,8 +445,7 @@ global proc openPipelineAssetPopUpMenus(string $elementName, string $list)
 	
 	// FIX add reference commands
 	menuItem -label "reference Workshop" -command "openPipelineImportFile workshop";
-	menuItem -label "reference Master" -command "openPipelineImportFile master";
-	
+	menuItem -label "reference Master" -command "openPipelineImportFile master";	
 }
 
 
@@ -490,12 +492,12 @@ global proc openPipelineSelectAsset(string $selectedAsset)
 	openPipelineAssetInformation;
 	openPipelineExpandAssetInventory;
 
-
-	
 	//proc openPipelineLoadAssetNote
 	//located in openPipelineNotes.mel
 	//
-//	openPipelineLoadAssetNote;
+
+print "this!";
+	openPipelineLoadAssetNote;
 	
 //	openPipelineUpdateRevisionUI;
 }
@@ -508,14 +510,13 @@ global proc openPipelineSelectAssetComponent(string $selectedAssetComponent)
 	$openPipeline_menuCurrentAssetComponent = $selectedAssetComponent;
 
 	openPipelineAssetInformation;
-
 	
 	//proc openPipelineLoadAssetNote
 	//located in openPipelineNotes.mel
 	//
-//	openPipelineLoadAssetNote;
+	openPipelineLoadAssetNote;
 	
-	openPipelineUpdateRevisionUI;
+//	openPipelineUpdateRevisionUI;
 }
 
 global proc openPipelineExpandAssetInventory()
@@ -570,9 +571,9 @@ global proc openPipelineExpandAssetInventory()
 	//proc openPipelineLoadAssetNote
 	//located in openPipelineNotes.mel
 	//
-//	openPipelineLoadAssetNote;
+	openPipelineLoadAssetNote;
 	
-	openPipelineUpdateRevisionUI;
+//	openPipelineUpdateRevisionUI;
 }
 
 global proc	openPipelineAssetInformation()

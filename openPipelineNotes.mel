@@ -23,8 +23,9 @@ global proc openPipelineSaveMasterNoteGUI()
 
 global proc openPipelineLoadAssetNote()
 {
-	global string $openPipeline_menuCurrentState;	
-	
+	global string $openPipeline_menuCurrentAsset;	
+	global string $openPipeline_menuCurrentAssetComponent;	
+
 	string $notePath = `openPipelineGetPath "note"`;
 
 	string $assetNoteTextArray[] = `openPipelineReadTxt $notePath "everything"`;
