@@ -1,3 +1,5 @@
+//test comment
+
 global proc openPipelineProjectUI()
 {
 	string $projList[] = openPipelineGetProjectList();
