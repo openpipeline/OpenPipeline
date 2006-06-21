@@ -60,7 +60,7 @@ global proc string openPipelineMakeNewAsset(string $libPath, string $name)
 	
 	//---Clear and Fix-----//
 	// let Proc openPipeline_AssetNoteWriter writes the note
-//	openPipelineAssetNoteWriter "creation";
+	openPipelineAssetNoteWriter "creation";
 	
 	return $assetPath;
 }
@@ -94,7 +94,7 @@ global proc string openPipelineMakeNewAssetComponent(string $libPath, string $co
 	
 	//---Clear and Fix-----//
 	// let Proc openPipeline_AssetNoteWriter writes the note
-//	openPipelineAssetNoteWriter "creation";
+	openPipelineAssetNoteWriter "creation";
 
 	return $assetPath;
 }
@@ -136,8 +136,18 @@ global proc openPipelineOpenFile(string $openType)
 	global string $openPipeline_menuCurrentAsset;
 	global string $openPipeline_menuCurrentAssetComponent;
 
-//	$openPipeline_menuCurrentAssetComponent = `openPipelineGetAssetComponentSelected`;
+	global string $openPipeline_currentOpenAsset;
+	global string $openPipeline_currentOpenAssetComponent;
+	global string $openPipeline_currentOpenAssetComponentString;
 
+	$openPipeline_currentOpenAsset = $openPipeline_menuCurrentAsset;
+	$openPipeline_currentOpenAssetComponent = $openPipeline_menuCurrentAssetComponent;
+	$openPipeline_currentOpenAssetComponentString = ($openPipeline_currentOpenAsset + " " + $openPipeline_currentOpenAssetComponent + " " + $openType);
+	
+	text -e 
+		-label $openPipeline_currentOpenAssetComponentString 
+		currentFileText;
+		
 	openPipelineProcessAssetOpen $openType $openPipeline_menuCurrentAsset $openPipeline_menuCurrentAssetComponent;		
 }
 
@@ -148,7 +158,7 @@ global proc openPipelineImportFile(string $openType)
 	global string $openPipeline_menuCurrentAsset;
 	global string $openPipeline_menuCurrentAssetComponent;
 
-	$openPipeline_menuCurrentAssetComponent = `openPipelineGetAssetComponentSelected`;
+//	$openPipeline_menuCurrentAssetComponent = `openPipelineGetAssetComponentSelected`;
 
 	openPipelineProcessAssetImport $openType $openPipeline_menuCurrentAsset $openPipeline_menuCurrentAssetComponent;	
 }
@@ -307,7 +317,7 @@ global proc int openPipelineImportMaster(string $assetName, string $assetCompone
 
 global proc openPipelineSaveMasterFileWrapper()
 {
-//	openPipelineAssetNoteWriter master; 
+	openPipelineAssetNoteWriter master; 
 	openPipelineSaveFile master;
 }
 
@@ -319,6 +329,8 @@ global proc openPipelineSaveFile(string $saveType)
 	global string $openPipeline_menuCurrentAssetComponent;
 
 	$openPipeline_menuCurrentAssetComponent = `openPipelineGetAssetComponentSelected`;
+
+print $openPipeline_menuCurrentAssetComponent;
 	
 	string $confirmText;
 	if($openPipeline_menuCurrentAssetComponent == "")

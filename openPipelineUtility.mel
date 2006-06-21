@@ -134,22 +134,36 @@ global proc string openPipelineGetItemSelected()
 
 global proc string openPipelineGetAssetSelected()
 {
-//	string $temp[] = `textScrollList -q -si assetInventory`;
-	string $temp = `iconTextRadioCollection -q -sl assetInventory`;
-	$currentSelection = $temp;
+	string $currentSelection = `iconTextRadioCollection -q -sl assetInventory`;
+
 	string $regex = " [+-]";
  	$currentAsset = `substitute $regex $currentSelection ""`;
+ 	$regex = "AssetButton";
+ 	$currentAssetComponent = `substitute $regex $currentSelection ""`;
+ 
+ 	if($currentAsset == "NONE")
+ 	{
+ 		$currentAsset = "";	
+ 	}
+
 	return $currentAsset;
 }
 
 
 global proc string openPipelineGetAssetComponentSelected()
 {
-//	string $temp[] = `textScrollList -q -si assetComponentInventory`;
-	string $temp = `iconTextRadioCollection -q -sl assetComponentInventory`;
-	$currentSelection = $temp;
+	string $currentSelection = `iconTextRadioCollection -q -sl assetComponentInventory`;
+	
 	string $regex = " [+-]";
  	$currentAssetComponent = `substitute $regex $currentSelection ""`;
+ 	$regex = "AssetComponentButton";
+ 	$currentAssetComponent = `substitute $regex $currentSelection ""`;
+ 	
+ 	if($currentAssetComponent == "NONE")
+ 	{
+ 		$currentAssetComponent = "";	
+ 	}
+
 	return $currentAssetComponent;
 }
 

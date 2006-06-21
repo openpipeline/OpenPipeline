@@ -12,8 +12,10 @@ global proc openPipelineUI()
 
 	global string $openPipeline_menuCurrentAsset;
 	global string $openPipeline_menuCurrentAssetComponent;
-
-
+	global string $openPipeline_currentOpenAsset;
+	global string $openPipeline_currentOpenAssetComponent;
+	global string $openPipeline_currentOpenAssetComponentString;
+	
 	global string $openPipeline_userName;
 	global int $openPipeline_currentProjIndex;
 	global int $openPipeline_winPos[];
@@ -154,11 +156,9 @@ global proc openPipelineUI()
 				separator -style "double" -w 410;
 				rowLayout -numberOfColumns 2 -w 410 -cw2 120 290;
 					text -label "CURRENT OPEN FILE:";
-					text -label ($openPipeline_menuCurrentAsset + " " + $openPipeline_menuCurrentAssetComponent);
+					text -l $openPipeline_currentOpenAssetComponentString currentFileText;
 				setParent ..;
 
-	
-	
 				//----------------------------
 				//UI of Pipeline Tools starts
 				//
@@ -472,6 +472,7 @@ global proc openPipelineSelectAsset(string $selectedAsset)
 	global string $openPipeline_menuCurrentAssetComponent;
 
 	$openPipeline_menuCurrentAsset = $selectedAsset;
+	$openPipeline_menuCurrentAssetComponent = "";
 
 	openPipelineAssetInformation;
 	openPipelineExpandAssetInventory;
@@ -480,7 +481,6 @@ global proc openPipelineSelectAsset(string $selectedAsset)
 	//located in openPipelineNotes.mel
 	//
 
-print "this!";
 	openPipelineLoadAssetNote;
 	
 //	openPipelineUpdateRevisionUI;
@@ -492,6 +492,8 @@ global proc openPipelineSelectAssetComponent(string $selectedAssetComponent)
 	global string $openPipeline_menuCurrentAssetComponent;
 
 	$openPipeline_menuCurrentAssetComponent = $selectedAssetComponent;
+
+print $openPipeline_menuCurrentAssetComponent;
 
 	openPipelineAssetInformation;
 	
