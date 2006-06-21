@@ -148,6 +148,16 @@ global proc openPipelineUI()
 					assetInformation;
 				setParent ..;
 
+				// Currently *opened* file printed here...
+				// robo prototype
+				separator -style "double" -w 410;
+				separator -style "double" -w 410;
+				rowLayout -numberOfColumns 2 -w 410 -cw2 120 290;
+					text -label "CURRENT OPEN FILE:";
+					text -label ($openPipeline_menuCurrentAsset + " " + $openPipeline_menuCurrentAssetComponent);
+				setParent ..;
+
+	
 	
 				//----------------------------
 				//UI of Pipeline Tools starts
@@ -157,103 +167,75 @@ global proc openPipelineUI()
 				text -label "PIPELINE TOOLS";
 				separator -style "double" -w 410;
 			
-				// workflow frame
-				frameLayout -label "Current Asset" -collapsable 0;
-					gridLayout -numberOfRowsColumns 2 4 -cellWidthHeight 100 25;
-					
-						//proc openPipelineOpenFile and prc openPipelineSaveFile
-						//located in openPipelineFile.mel
-						button -label "Open Workshop" -width 100 -command "openPipelineOpenFile workshop";
-						button -label "Save Workshop" -width 100 -command "openPipelineSaveFile workshop";
-						button -label "Open Master" -width 100 -command "openPipelineOpenFile master";
-						//located in openPipelineNotes.mel
-						button -label "MASTER FILE" -width 100 -command "openPipelineSaveMasterNoteGUI";
-
-						button -label "Import Workshop" -width 100 -command "openPipelineImportFile workshop";
-						button -label " " -width 100 -enable 0;
-						button -label " " -width 100 -enable 0;
-						button -label "Import Master" -width 100 -command "openPipelineImportFile master";
-					setParent ..;
-					
-				setParent ..;
-				//end of framelayout:Workflow
-				
-				rowLayout -numberOfColumns 2 -w 400;
-				columnLayout -h 100 -w 100 -bgc 1 1 1 workflowColumn;
-					button -label "Save Workshop" -width 100 -command "openPipelineSaveFile workshop";
-					button -label "MASTER FILE" -width 100 -command "openPipelineSaveMasterNoteGUI";
-					setParent ..;
-
+				rowLayout -numberOfColumns 2 -w 410 -cw2 120 290;
+					columnLayout -w 120 -adjustableColumn 1 workflowColumn;
+						button -label "Save Workshop" -width 120 -command "openPipelineSaveFile workshop";
+						button -label "MASTER FILE" -width 120 -command "openPipelineSaveMasterNoteGUI";
 						
-				// Asset note frame
-//				frameLayout -label "Asset Notes" -collapsable 1 -collapse 1;
-					columnLayout;		
-					
-						rowLayout -numberOfColumns 5;
-							scrollField -w 300 -h 100 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "Nothing here!" noteField;
-						setParent ..;
+						separator -style "double" -w 120;		
+
+						optionMenu -label "Revive:";
+			 				menuItem -label "Workshop";
+			 				menuItem -label "Master";
+//			 			setParent ..;
+
+//			 			text -label $openPipeline_menuCurrentSelection -width 60 revItemLabel;
+//						text -label "Current Version: " -width 75;
+//						text -label "master" -width 40 currentVersion;
+
+//						rowLayout -w 120 -numberOfColumns 3 -cw3 40 40 40 -cl3 "left" "center" "right";
+						optionMenu -label "Version:" -w 40 reviveVerMenu;	
+						button -label "Revive" -width 40 -command "openPipelineReviveAsset";
+//					setParent ..;
+					setParent ..;
 						
-						rowLayout -numberOfColumns 2 -cw2 250 55 -cl2 "left" "right";
-							textField -w 245 -h 20 commentField;
+					// Asset note frame
+					columnLayout -w 290 -columnAlign "right" -adjustableColumn 1;		
+					rowLayout -numberOfColumns 1 -cw1 290 -cl1 "right";
+						scrollField -w 290 -h 100 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "Nothing here!" noteField;
+					setParent ..;
+						
+					rowLayout -numberOfColumns 2 -cw2 230 60 -cl2 "left" "right";
+						textField -w 230 -h 20 commentField;
 							
-							//proc openPipelineAssetNoteWriter
-							//located in openPipelineNotes.mel 
-							button -w 55 -h 20 -l "comment" -c "openPipelineAssetNoteWriter add";
-						setParent ..;
-								
-					setParent ..;
+						//proc openPipelineAssetNoteWriter
+						//located in openPipelineNotes.mel 
+						button -w 60 -h 20 -l "comment" -c "openPipelineAssetNoteWriter add";
+					setParent ..;		
 				setParent ..;
+			setParent ..;
 				//end of framlayout:Asset Notes
 			
-				// New asset frame
-				frameLayout -label "New Asset/Component" -collapsable 0 -collapse 0;	
-				columnLayout -w 400;
-					rowLayout -numberOfColumns 5 -w 400;
-					text -label "Asset Name:" -width 70;
-					string $nameField = `textField -width 100 assetNameField`;	
-					button -label "New Asset" -width 80 -command "openPipelineNewAssetProcess asset";
+			// New asset frame
+			frameLayout -label "New Asset/Component" -w 410 -collapsable 1 -collapse 1 newAssetLayout;	
+				columnLayout -w 400 -adjustableColumn 1;
+					rowLayout -numberOfColumns 3 -cw3 125 200 75 -cl3 "left" "center" "right";
+						text -label "Asset Name:" -width 125;
+						string $nameField = `textField -width 200 assetNameField`;	
+						button -label "New Asset" -width 75 -command "openPipelineNewAssetProcess asset";
 					setParent ..;
-					
-					optionMenuGrp -label "Component Type:" -columnWidth2 100 100 assetComponentTypeMenu;
-						menuItem -label "model";
-						menuItem -label "rig";
-						menuItem -label "shade";						
-						menuItem -label "other..." -command "sphere";
-					button -label "New Component" -width 60 -command "openPipelineNewAssetProcess component";					
-
-					setParent ..;						
+						
+					rowLayout -numberOfColumns 4 -cw4 125 150 25 100 -cl4 "center" "center" "right" "center";
+						optionMenuGrp -label "Component Type:" -cw2 125 150 -columnAlign2 "left" "left" assetComponentTypeMenu;
+							menuItem -label "model";
+							menuItem -label "rig";
+							menuItem -label "shade";						
+							menuItem -label "other..." -command "sphere";
+						text -l "" -w 25 -align "left";
+						button -label "New Component" -width 100 -h 20 -command "openPipelineNewAssetProcess component";					
+					setParent ..;
 				setParent ..;	
+			setParent ..;
 
-				//Revision control frame
-				frameLayout -label "ADVANCED: Version Control" -collapsable 1 -collapse 1;
-				columnLayout;
-					rowLayout -cat 1 "left" 6 -numberOfColumns 6 -cw6 50 60 80 50 100 60;
-						text -label "REVIVE: " -width 45;
-				 		text -label $openPipeline_menuCurrentSelection -width 60 revItemLabel;
-						text -label "Current Version: " -width 75;
-						text -label "master" -width 40 currentVersion;
-						optionMenu -label "version:" reviveVerMenu;	
-						button -label "Open" -width 50 -command "openPipelineReviveAsset";
-					setParent ..;
-					columnLayout;
-						button -label "DELETE" -width 410 -backgroundColor 1 0 0 -command "openPipelineDeleteAsset";
-					setParent ..; 
-					setParent ..;
-				setParent ..;
-
-				//end of framlayout:Revision Control	
-
-
-				//end of framlayout:New Asset	
-				//---------------------------
-				
-				//UI of Pipeline Tools ends
-				//-------------------------	
+			//end of framlayout:New Asset	
+			//---------------------------
 		
-			setParent ..;		
-			//
-			//end of main column: Project Tab
-			//--------------------------------
+		setParent ..;		
+		//UI of Pipeline Tools ends
+		//-------------------------	
+		//
+		//end of main column: Project Tab
+		//--------------------------------
 
 	
 			//------------------------
@@ -289,10 +271,10 @@ global proc openPipelineUI()
 								//proc openPipelineGetProjList
 								//located in openPipelineUtility.mel
 								optionMenuGrp -label "assets:" -columnWidth2 45 80 -columnAlign2 "right" "left" -cc "openPipelineGrabFileList availableRefMenu availableAssetList;" availableRefMenu;
-								menuItem -label "model";
-								menuItem -label "rig";
-								menuItem -label "animation";
-								menuItem -label "lighting";
+									menuItem -label "model";
+									menuItem -label "rig";
+									menuItem -label "animation";
+									menuItem -label "lighting";
 							setParent ..;
 								columnLayout  -columnAttach "left" 5 -cw 20;
 							setParent ..;
@@ -438,14 +420,16 @@ global proc openPipelineAssetPopUpMenus(string $elementName, string $list)
 	popupMenu -parent $list; //-postMenuCommand; //("textScrollList -e -selectItem " + $elementName + " " +  $listassetIn);
 	menuItem -label "open Workshop" -command "openPipelineOpenFile workshop";
 	menuItem -label "open Master" -command "openPipelineOpenFile master";
-	menuItem -label "---";
+	menuItem -label "---" -boldFont 1;
 	menuItem -label "import Workshop" -command "openPipelineImportFile workshop";
 	menuItem -label "import Master" -command "openPipelineImportFile master";
-	menuItem -label "---";
-	
+	menuItem -label "---" -boldFont 1;
+
 	// FIX add reference commands
 	menuItem -label "reference Workshop" -command "openPipelineImportFile workshop";
 	menuItem -label "reference Master" -command "openPipelineImportFile master";	
+	menuItem -label "---" -boldFont 1;
+	menuItem -label "delete Asset" -command "openPipelineDeleteAsset";
 }
 
 
