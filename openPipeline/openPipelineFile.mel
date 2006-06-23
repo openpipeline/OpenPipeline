@@ -17,6 +17,26 @@ global proc openPipelineMakeNewAssetTree(string $type, string $name)
 			
 		case "component":
 			$component = `optionMenuGrp -q -v assetComponentTypeMenu`;
+
+			while($component == "other...")
+			{
+				// pop up window
+ 				string $result = `promptDialog 
+ 					-title "Custom Component"
+ 					-message "component name:"
+ 					-button "create" -button "cancel"
+ 					-defaultButton "create" -cancelButton "cancel"
+ 					-dismissString "cancel"`;
+ 
+ 				if($result == "create")
+ 				{
+ 					$component = `promptDialog -query -text`;
+ 					if($component == "")
+ 					{
+ 						$component = "other...";
+ 					}
+ 				}
+			}
 			openPipelineMakeNewAssetComponent($libPath, $component, $name);		
 			break;
 			
@@ -34,12 +54,17 @@ global proc openPipelineMakeNewAssetTree(string $type, string $name)
 	}
 }
 
+
+
 global proc string openPipelineMakeNewAsset(string $libPath, string $name)
 {
 
 	global string $openPipeline_menuCurrentAsset;
+	global string $openPipeline_menuCurrentAssetComponent;
+	
 	$openPipeline_menuCurrentAsset = $name;
-
+	$openPipeline_menuCurrentAssetComponent = "";
+	
 	string $assetPath = ($libPath + $name);
 	if(`filetest -d ($assetPath)` == 0)
 	{
@@ -178,6 +203,64 @@ global proc openPipelineProcessAssetImport(string $openType, string $assetName, 
 }
 
 
+global proc int openPipelineImportWorkshop(string $assetName, string $assetComponentName)
+{
+	string $libPath = `openPipelineGetPath "lib"`;
+
+	string $workshop;
+	string $workshopFile;
+	int $workshopNum;
+
+	if($assetComponentName == "")
+	{
+		$workshop = ($libPath + $assetName + "/workshop/");
+		string $workshopFiles[] = `getFileList -folder $workshop -filespec ($assetName + "_workshop_*.mb")`;
+		$workshopNum = `size($workshopFiles)`; 
+		$workshopFile = ($workshop + $assetName + "_workshop_" + $workshopNum + ".mb");
+	} else {
+		$workshop = ($libPath + $assetName + "/components/" + $assetComponentName + "/workshop/");
+		string $workshopFiles[] = `getFileList -folder $workshop -filespec ($assetName + "_" + $assetComponentName + "_workshop_*.mb")`;
+		$workshopNum = `size($workshopFiles)`; 
+		$workshopFile = ($workshop + $assetName + "_" + $assetComponentName + "_workshop_" + $workshopNum + ".mb");
+	}
+	
+	if(`filetest -r $workshopFile`)
+	{
+		file -import $workshopFile;
+		print ("openPipeline: Imported Workshop: " + $workshopFile + "\n");
+		return 1; // success
+	}else{
+		warning ("openPipeline: No Workshop File: " + $workshopFile + " Exists \n");
+		return 0; // failure
+	}
+}
+
+
+global proc int openPipelineImportMaster(string $assetName, string $assetComponentName)
+{
+	string $libPath = `openPipelineGetPath "lib"`;
+	
+	string $masterFile;
+	
+	if($assetComponentName == "")
+	{
+		$masterFile = ($libPath + $assetName + "/" + $assetName + "_asset.mb");
+	} else {
+		$masterFile = ($libPath + $assetName + "/" + $assetComponentName + "/" + $assetName + "_" + $assetComponentName + ".mb");
+	}
+
+	if(`filetest -r $masterFile`)
+	{
+		file -import $masterFile;
+		print ("openPipeline: Imported Master: " + $masterFile + "\n");
+		return 1; // success
+	}else{
+		warning ("openPipeline: No Master File Exists In " + $masterFile + "\n");
+		return 0; // failure
+	}
+}
+
+
 global proc openPipelineProcessAssetOpen(string $openType, string $assetName, string $assetComponentName)
 {
 	switch($openType)
@@ -226,39 +309,6 @@ global proc int openPipelineOpenWorkshop(string $assetName, string $assetCompone
 }
 
 
-global proc int openPipelineImportWorkshop(string $assetName, string $assetComponentName)
-{
-	string $libPath = `openPipelineGetPath "lib"`;
-
-	string $workshop;
-	string $workshopFile;
-	int $workshopNum;
-
-	if($assetComponentName == "")
-	{
-		$workshop = ($libPath + $assetName + "/workshop/");
-		string $workshopFiles[] = `getFileList -folder $workshop -filespec ($assetName + "_workshop_*.mb")`;
-		$workshopNum = `size($workshopFiles)`; 
-		$workshopFile = ($workshop + $assetName + "_workshop_" + $workshopNum + ".mb");
-	} else {
-		$workshop = ($libPath + $assetName + "/components/" + $assetComponentName + "/workshop/");
-		string $workshopFiles[] = `getFileList -folder $workshop -filespec ($assetName + "_" + $assetComponentName + "_workshop_*.mb")`;
-		$workshopNum = `size($workshopFiles)`; 
-		$workshopFile = ($workshop + $assetName + "_" + $assetComponentName + "_workshop_" + $workshopNum + ".mb");
-	}
-	
-	if(`filetest -r $workshopFile`)
-	{
-		file -import $workshopFile;
-		print ("openPipeline: Imported Workshop: " + $workshopFile + "\n");
-		return 1; // success
-	}else{
-		warning ("openPipeline: No Workshop File: " + $workshopFile + " Exists \n");
-		return 0; // failure
-	}
-}
-
-
 global proc int openPipelineOpenMaster(string $assetName, string $assetComponentName)
 {
 	string $libPath = `openPipelineGetPath "lib"`;
@@ -291,29 +341,6 @@ global proc int openPipelineOpenMaster(string $assetName, string $assetComponent
 }
 
 
-global proc int openPipelineImportMaster(string $assetName, string $assetComponentName)
-{
-	string $libPath = `openPipelineGetPath "lib"`;
-	
-	string $masterFile;
-	
-	if($assetComponentName == "")
-	{
-		$masterFile = ($libPath + $assetName + "/" + $assetName + "_asset.mb");
-	} else {
-		$masterFile = ($libPath + $assetName + "/" + $assetComponentName + "/" + $assetName + "_" + $assetComponentName + ".mb");
-	}
-
-	if(`filetest -r $masterFile`)
-	{
-		file -import $masterFile;
-		print ("openPipeline: Imported Master: " + $masterFile + "\n");
-		return 1; // success
-	}else{
-		warning ("openPipeline: No Master File Exists In " + $masterFile + "\n");
-		return 0; // failure
-	}
-}
 
 global proc openPipelineSaveMasterFileWrapper()
 {
@@ -445,6 +472,7 @@ global proc openPipelineSaveMaster(string $assetName, string $assetComponentName
 	text -e -label "master" currentVersion;
 }
 
+
 global proc openPipelineDeleteAsset()
 {
 	// query the asset state
@@ -466,7 +494,7 @@ global proc openPipelineDeleteAsset()
 		$path = ($libPath + $openPipeline_menuCurrentAsset);
 		$destinationPath = ($archivePath + $openPipeline_menuCurrentAsset + "_asset");
 	} else {	
-		$path = ($libPath + $openPipeline_menuCurrentAsset + "/" + $openPipeline_menuCurrentAssetComponent);
+		$path = ($libPath + $openPipeline_menuCurrentAsset + "/components/" + $openPipeline_menuCurrentAssetComponent);
 		$destinationPath = ($archivePath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent);
 	}
 	
@@ -477,5 +505,87 @@ global proc openPipelineDeleteAsset()
 	
 	system($cleanCmd);
 	
-	openPipelineUI;
+//	openPipelineUI;
+}
+
+
+global proc openPipelineReferenceFile(string $openType)
+{
+	// query the asset state
+	global string $openPipeline_menuCurrentAsset;
+	global string $openPipeline_menuCurrentAssetComponent;
+
+	openPipelineProcessAssetReference $openType $openPipeline_menuCurrentAsset $openPipeline_menuCurrentAssetComponent;	
+}
+
+
+global proc openPipelineProcessAssetReference(string $openType, string $assetName, string $assetComponentName)
+{
+	switch($openType)
+	{
+		case "workshop":
+			openPipelineReferenceWorkshop $assetName $assetComponentName;
+			break;
+		case "master":
+			openPipelineReferenceMaster $assetName $assetComponentName;
+			break;
+	}
+}
+
+
+global proc int openPipelineReferenceWorkshop(string $assetName, string $assetComponentName)
+{
+	string $libPath = `openPipelineGetPath "lib"`;
+
+	string $workshop;
+	string $workshopFile;
+	int $workshopNum;
+
+	if($assetComponentName == "")
+	{
+		$workshop = ($libPath + $assetName + "/workshop/");
+		string $workshopFiles[] = `getFileList -folder $workshop -filespec ($assetName + "_workshop_*.mb")`;
+		$workshopNum = `size($workshopFiles)`; 
+		$workshopFile = ($workshop + $assetName + "_workshop_" + $workshopNum + ".mb");
+	} else {
+		$workshop = ($libPath + $assetName + "/components/" + $assetComponentName + "/workshop/");
+		string $workshopFiles[] = `getFileList -folder $workshop -filespec ($assetName + "_" + $assetComponentName + "_workshop_*.mb")`;
+		$workshopNum = `size($workshopFiles)`; 
+		$workshopFile = ($workshop + $assetName + "_" + $assetComponentName + "_workshop_" + $workshopNum + ".mb");
+	}
+	
+	if(`filetest -r $workshopFile`)
+	{
+		file -reference $workshopFile;
+		print ("openPipeline: Referenced Workshop: " + $workshopFile + "\n");
+		return 1; // success
+	}else{
+		warning ("openPipeline: No Workshop File: " + $workshopFile + " Exists \n");
+		return 0; // failure
+	}
+}
+
+
+global proc int openPipelineReferenceMaster(string $assetName, string $assetComponentName)
+{
+	string $libPath = `openPipelineGetPath "lib"`;
+	
+	string $masterFile;
+	
+	if($assetComponentName == "")
+	{
+		$masterFile = ($libPath + $assetName + "/" + $assetName + "_asset.mb");
+	} else {
+		$masterFile = ($libPath + $assetName + "/" + $assetComponentName + "/" + $assetName + "_" + $assetComponentName + ".mb");
+	}
+
+	if(`filetest -r $masterFile`)
+	{
+		file -reference $masterFile;
+		print ("openPipeline: Referenced Master: " + $masterFile + "\n");
+		return 1; // success
+	}else{
+		warning ("openPipeline: No Master File Exists In " + $masterFile + "\n");
+		return 0; // failure
+	}
 }

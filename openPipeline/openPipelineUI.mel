@@ -125,12 +125,20 @@ global proc openPipelineUI()
 					}else{
 						$font = "obliqueLabelFont";			
 					}
+					
+					if($chomp == $openPipeline_currentOpenAsset)
+					{
+						print "opened!";
+						$font = "smallBoldLabelFont";
+					}
 
 					iconTextRadioButton 
-						-w 100 -h 20 -bgc 1 1 1 -style "textOnly"  
+						-w 100 -h 20 -style "textOnly"  
 						-l $chomp
 						-font $font
 						-onc ("openPipelineSelectAsset " + $chomp)
+						-ofc ("openPipelineDeSelectAsset " + $chomp)
+						-bgc 1 1 1
 						-collection assetInventory
 						($chomp + "AssetButton");
 
@@ -220,7 +228,7 @@ global proc openPipelineUI()
 							menuItem -label "model";
 							menuItem -label "rig";
 							menuItem -label "shade";						
-							menuItem -label "other..." -command "sphere";
+							menuItem -label "other...";
 						text -l "" -w 25 -align "left";
 						button -label "New Component" -width 100 -h 20 -command "openPipelineNewAssetProcess component";					
 					setParent ..;
@@ -420,15 +428,15 @@ global proc openPipelineAssetPopUpMenus(string $elementName, string $list)
 	popupMenu -parent $list; //-postMenuCommand; //("textScrollList -e -selectItem " + $elementName + " " +  $listassetIn);
 	menuItem -label "open Workshop" -command "openPipelineOpenFile workshop";
 	menuItem -label "open Master" -command "openPipelineOpenFile master";
-	menuItem -label "---" -boldFont 1;
+	menuItem -label "---";
 	menuItem -label "import Workshop" -command "openPipelineImportFile workshop";
 	menuItem -label "import Master" -command "openPipelineImportFile master";
-	menuItem -label "---" -boldFont 1;
+	menuItem -label "---";
 
 	// FIX add reference commands
-	menuItem -label "reference Workshop" -command "openPipelineImportFile workshop";
-	menuItem -label "reference Master" -command "openPipelineImportFile master";	
-	menuItem -label "---" -boldFont 1;
+	menuItem -label "reference Workshop" -command "openPipelineReferenceFile workshop";
+	menuItem -label "reference Master" -command "openPipelineReferenceFile master";	
+	menuItem -label "---";
 	menuItem -label "delete Asset" -command "openPipelineDeleteAsset";
 }
 
@@ -477,6 +485,11 @@ global proc openPipelineSelectAsset(string $selectedAsset)
 	openPipelineAssetInformation;
 	openPipelineExpandAssetInventory;
 
+	iconTextRadioButton -e
+		-bgc 1 1 0
+		-collection assetInventory
+		($selectedAsset + "AssetButton");
+
 	//proc openPipelineLoadAssetNote
 	//located in openPipelineNotes.mel
 	//
@@ -486,6 +499,22 @@ global proc openPipelineSelectAsset(string $selectedAsset)
 //	openPipelineUpdateRevisionUI;
 }
 
+global proc openPipelineDeSelectAsset(string $selectedAsset)
+{
+	iconTextRadioButton -e 
+		-bgc 1 1 1 
+		($selectedAsset + "AssetButton");
+}
+
+
+global proc openPipelineDeSelectAssetComponent(string $selectedAsset)
+{
+	iconTextRadioButton -e 
+		-bgc 1 1 1 
+		($selectedAsset + "AssetComponentButton");
+}
+
+
 global proc openPipelineSelectAssetComponent(string $selectedAssetComponent)
 {
 	global string $openPipeline_menuCurrentAsset;	
@@ -493,9 +522,13 @@ global proc openPipelineSelectAssetComponent(string $selectedAssetComponent)
 
 	$openPipeline_menuCurrentAssetComponent = $selectedAssetComponent;
 
-print $openPipeline_menuCurrentAssetComponent;
-
 	openPipelineAssetInformation;
+
+	iconTextRadioButton -e
+		-bgc 1 1 0
+		-collection assetInventory
+		($selectedAssetComponent + "AssetComponentButton");
+
 	
 	//proc openPipelineLoadAssetNote
 	//located in openPipelineNotes.mel
@@ -510,6 +543,9 @@ global proc openPipelineExpandAssetInventory()
 
 	global string $openPipeline_menuCurrentAsset;
 	global string $openPipeline_menuCurrentAssetComponent;
+
+	global string $openPipeline_currentOpenAssetComponent;
+
 
 	string $libPath = `openPipelineGetPath "lib"`;
 
@@ -541,11 +577,17 @@ global proc openPipelineExpandAssetInventory()
 		}else{
 			$font = "obliqueLabelFont";			
 		}
+		if($chomp == $openPipeline_currentOpenAssetComponent)
+		{
+			$font = "smallBoldLabelFont";
+		}
 		
 		iconTextRadioButton  
-			-w 100 -h 20 -bgc 1 1 1 -style "textOnly"  
+			-w 100 -h 20 -style "textOnly"  
 			-l $chomp
 			-onc ("openPipelineSelectAssetComponent " + $chomp)
+			-ofc ("openPipelineDeSelectAssetComponent " + $chomp)
+			-bgc 1 1 1
 			-font $font
 			-collection assetComponentInventory
 			-parent assetComponentColumn

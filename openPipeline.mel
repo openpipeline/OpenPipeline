@@ -6,36 +6,40 @@
 // Paris Mavroidis (pmavroid@pratt.edu)
 //
 
-global proc sourceModule(string $path)
-{
-	// find all the files in that path (and potentially subpath) and source
-	//
-	string $melFiles[] = `getFileList -folder $path -filespec "*.mel"`;
-	string $eachFile;
-
-	print ("----- Sourcing " + $path + "------\n");
-	print ("//////////////////////////////////////////////////////\n");
-
-	for ($eachFile in $melFiles)
-	{
-		string $scriptFile = ($path + $eachFile);
-	
-		string $cmdString = ("source \"" + $scriptFile + "\"");
-			
-		print ("//// Source: " + $cmdString + "\n");
-
-		catch(`eval $cmdString`);
-	}
-
-}
+//global proc sourceModule(string $path)
+//{
+//
+//	// find all the files in that path (and potentially subpath) and source
+//	//
+//	string $melFiles[] = `getFileList -folder $path -filespec "*.mel"`;
+//	string $eachFile;
+//
+//	print ("----- Sourcing " + $path + "------\n");
+//	print ("//////////////////////////////////////////////////////\n");
+//
+//	for ($eachFile in $melFiles)
+//	{
+//		string $scriptFile = ($path + $eachFile);
+//	
+//		string $cmdString = ("source \"" + $scriptFile + "\"");
+//			
+//		print ("//// Source: " + $cmdString + "\n");
+//
+//		catch(`eval $cmdString`);
+//	}
+//}
 
 
 global proc openPipeline()
 {
 	global string $openPipeline_ntPath;
-	$openPipeline_ntPath = "C:/BIN/scripts/openPipeline";
+	$openPipeline_ntPath = "C:/BIN/scripts/openPipeline/openPipeline";
 	if (!endsWith($openPipeline_ntPath,"/"))
-		$openPipeline_ntPath+="/";
+		$openPipeline_ntPath += "/";
+		
 	sourceModule($openPipeline_ntPath);
-	openPipelineUI();
+
+	catch(`eval "openPipelineUI"`);
 }
+
+openPipeline;

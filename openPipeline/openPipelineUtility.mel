@@ -51,14 +51,14 @@ global string $openPipeline_menuCurrentSelection;
 		
 		case "newnote":
 			string $notesPath;
-			if(($openPipeline_menuCurrentState == "model") || ($openPipeline_menuCurrentState == "rig"))
+			if($openPipeline_menuCurrentAssetComponent == "")
 			{
-				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentState + "/" + $openPipeline_menuCurrentSelection + "/notes/";
-			} else if (($openPipeline_menuCurrentState == "anim") || ($openPipeline_menuCurrentState == "light")){
-				$notesPath = $projString + "/scenes/" + $openPipeline_menuCurrentSelection  + "/" + $openPipeline_menuCurrentState + "/notes/";
+				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAsset + "/notes/";
+				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_AssetNote.txt";
+			}else{
+				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAsset  + "/components/" + $openPipeline_menuCurrentAssetComponent + "/notes/";
+				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_AssetNote.txt";
 			}
-			
-			string $outputString = $notesPath + $openPipeline_menuCurrentSelection + "_AssetNote.txt"; 
 		break;
 	}
 	return $outputString;

@@ -28,6 +28,11 @@ global proc openPipelineLoadAssetNote()
 
 	string $notePath = `openPipelineGetPath "note"`;
 
+	if(`filetest -f $notePath` == 0)
+	{
+		openPipelineAssetNoteWriter "missing";
+	}
+
 	string $assetNoteTextArray[] = `openPipelineReadTxt $notePath "everything"`;
 	string $assetNoteText = stringArrayToString($assetNoteTextArray, "");
 		
@@ -58,19 +63,9 @@ global proc openPipelineAssetNoteWriter(string $inputMode)
 
 	string $time_Date = ("Time: " + $timeStrip + "   Date: " + $dateStrip);	
 	string $proj_Path = `openPipelineGetPath "proj"`;
-
-	string $pathLocation;
-	if(($openPipeline_menuCurrentState == "model") || ($openPipeline_menuCurrentState == "rig"))
-	{
-		$pathLocation = "lib/";
-	} else if (($openPipeline_menuCurrentState == "anim") || ($openPipeline_menuCurrentState == "light")){
-		$pathLocation = "scenes/";	
-	}
 	
 	if($inputMode=="creation")
 	{	
-		string $newAssetName = `textField -q -text assetNameField`;
-		string $currentType =`optionMenuGrp -q -v assetTypeMenu`;
 		string $creationPath = `openPipelineGetPath "newnote"`;
 		
 		$fileId=`fopen $creationPath "w"`;
@@ -84,11 +79,9 @@ global proc openPipelineAssetNoteWriter(string $inputMode)
 
 	}else if($inputMode == "missing")
 	{
-		string $newAssetName = $openPipeline_menuCurrentSelection;
-		string $currentType =$openPipeline_menuCurrentState;
 		string $creationPath = `openPipelineGetPath "note"`;			
 		$fileId=`fopen $creationPath "w"`;
-		fprint $fileId "Asset Note was missing, recreated: ";
+		fprint $fileId "Asset note missing: recreated: ";
  		fprint $fileId $time_Date;
  		fclose $fileId;
  		openPipelineFilePermisson "+R" $creationPath;

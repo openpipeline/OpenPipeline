@@ -15,6 +15,7 @@
 // CUSTOMIZATION AND SETUP (edit paths to suit needs...) /////////////////
 
 global string $openPipeline_projList_nt = "openPipeline_projects.txt";
+
 global string $openPipeline_projList_mac = "openPipeline_projects_mac.txt";
 global string $openPipeline_macPath = "/Volumes/MID/BIN/scripts/openPipeline/";
 
