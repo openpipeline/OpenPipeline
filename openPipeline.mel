@@ -3,77 +3,39 @@
 // Developed by:
 // Rob O'Neill (roneill@dal.pratt.edu)
 // Meng-Han Ho (mho@pratt.edu)
-
-// to do
-// -fix revision control
-// -scene inventory
+// Paris Mavroidis (pmavroid@pratt.edu)
 //
 
-
-
-//
-// CUSTOMIZATION AND SETUP (edit paths to suit needs...) /////////////////
-
-global string $openPipeline_projList_nt = "openPipeline_projects_nt.txt";
-global string $openPipeline_projList_mac = "openPipeline_projects_mac.txt";
-global string $openPipeline_ntPath = "c:/BIN/scripts/openPipeline/";
-global string $openPipeline_macPath = "/Volumes/MID/BIN/scripts/openPipeline/";
-
-///////////////////////////////////////////////////////////////////////////
-//
-
-
-
-// DYNAMIC GLOBAL VARS (edit at own risk)
-///////////////////////////////////////////////////////////////////////////
-global string $openPipeline_projListName;
-if(`about -os` == "nt")
+global proc sourceModule(string $path)
 {
-	$openPipeline_projListName = $openPipeline_projList_nt;
-} 
-//else if (`about -os` == "mac")
-//{
-//	$openPipeline_projListName = $openPipeline_projList_mac;
-//}
+	// find all the files in that path (and potentially subpath) and source
+	//
+	string $melFiles[] = `getFileList -folder $path -filespec "*.mel"`;
+	string $eachFile;
 
-global string $openPipeline_projListDir;
-if(`about -os` == "nt")
-{
-	$openPipeline_projListDir = $openPipeline_ntPath;
-} 
-//else if (`about -os` == "mac")
-//{
-//	$openPipeline_projListDir = $openPipeline_macPath;
-//}
+	print ("----- Sourcing " + $path + "------\n");
+	print ("//////////////////////////////////////////////////////\n");
 
+	for ($eachFile in $melFiles)
+	{
+		string $scriptFile = ($path + $eachFile);
+	
+		string $cmdString = ("source \"" + $scriptFile + "\"");
+			
+		print ("//// Source: " + $cmdString + "\n");
 
-// Current file name
-global string $openPipeline_currentOpenFile; 
+		catch(`eval $cmdString`);
+	}
 
-// Current scrollList in use in Proj Inventory :: model, rig,animation, light
-global string $openPipeline_menuCurrentState;
+}
 
-// Current selection in the scrollList in Proj Inventory.
-global string $openPipeline_menuCurrentSelection;
-
-// Current selection in the asset scrollList.
-global string $openPipeline_menuCurrentAsset;
-
-// Current selection in the component scrollList.
-global string $openPipeline_menuCurrentAssetComponent;
-
-// Current Proj Name
-global int $openPipeline_currentProjIndex=0;
-
-// Store the GUI's position.
-global int $openPipeline_winPos[];
-
-// Username from system login name
-global string $openPipeline_userName;
-$openPipeline_userName = `getenv USER`;
 
 global proc openPipeline()
 {
-	// run the graphical user interface	located in openPipelineUI.mel
-	openPipelineUI;		
+	global string $openPipeline_ntPath;
+	$openPipeline_ntPath = "C:/BIN/scripts/openPipeline";
+	if (!endsWith($openPipeline_ntPath,"/"))
+		$openPipeline_ntPath+="/";
+	sourceModule($openPipeline_ntPath);
+	openPipelineUI();
 }
