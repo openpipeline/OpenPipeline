@@ -246,7 +246,7 @@ global proc int openPipelineImportMaster(string $assetName, string $assetCompone
 	{
 		$masterFile = ($libPath + $assetName + "/" + $assetName + "_asset.mb");
 	} else {
-		$masterFile = ($libPath + $assetName + "/" + $assetComponentName + "/" + $assetName + "_" + $assetComponentName + ".mb");
+		$masterFile = ($libPath + $assetName + "/components/" + $assetComponentName + "/" + $assetName + "_" + $assetComponentName + ".mb");
 	}
 
 	if(`filetest -r $masterFile`)
@@ -576,7 +576,7 @@ global proc int openPipelineReferenceMaster(string $assetName, string $assetComp
 	{
 		$masterFile = ($libPath + $assetName + "/" + $assetName + "_asset.mb");
 	} else {
-		$masterFile = ($libPath + $assetName + "/" + $assetComponentName + "/" + $assetName + "_" + $assetComponentName + ".mb");
+		$masterFile = ($libPath + $assetName + "/components/" + $assetComponentName + "/" + $assetName + "_" + $assetComponentName + ".mb");
 	}
 
 	if(`filetest -r $masterFile`)
