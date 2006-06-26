@@ -161,19 +161,31 @@ global proc openPipelineOpenFile(string $openType)
 	global string $openPipeline_menuCurrentAsset;
 	global string $openPipeline_menuCurrentAssetComponent;
 
+	openPipelineUpdateCurrentFileText($openType, "latest");
+	
+	openPipelineProcessAssetOpen $openType $openPipeline_menuCurrentAsset $openPipeline_menuCurrentAssetComponent;		
+}
+
+
+global proc openPipelineUpdateCurrentFileText(string $openType, string $version)
+{
+	global string $openPipeline_menuCurrentAsset;
+	global string $openPipeline_menuCurrentAssetComponent;
+
 	global string $openPipeline_currentOpenAsset;
 	global string $openPipeline_currentOpenAssetComponent;
 	global string $openPipeline_currentOpenAssetComponentString;
 
 	$openPipeline_currentOpenAsset = $openPipeline_menuCurrentAsset;
 	$openPipeline_currentOpenAssetComponent = $openPipeline_menuCurrentAssetComponent;
-	$openPipeline_currentOpenAssetComponentString = ($openPipeline_currentOpenAsset + " " + $openPipeline_currentOpenAssetComponent + " " + $openType);
+	$openPipeline_currentOpenAssetComponentString = 
+				($openPipeline_currentOpenAsset + 
+				" " + $openPipeline_currentOpenAssetComponent + 
+				" " + $openType + " revision : " + $version);
 	
 	text -e 
 		-label $openPipeline_currentOpenAssetComponentString 
 		currentFileText;
-		
-	openPipelineProcessAssetOpen $openType $openPipeline_menuCurrentAsset $openPipeline_menuCurrentAssetComponent;		
 }
 
 
@@ -182,8 +194,6 @@ global proc openPipelineImportFile(string $openType)
 	// query the asset state
 	global string $openPipeline_menuCurrentAsset;
 	global string $openPipeline_menuCurrentAssetComponent;
-
-//	$openPipeline_menuCurrentAssetComponent = `openPipelineGetAssetComponentSelected`;
 
 	openPipelineProcessAssetImport $openType $openPipeline_menuCurrentAsset $openPipeline_menuCurrentAssetComponent;	
 }
@@ -586,6 +596,59 @@ global proc int openPipelineReferenceMaster(string $assetName, string $assetComp
 		return 1; // success
 	}else{
 		warning ("openPipeline: No Master File Exists In " + $masterFile + "\n");
+		return 0; // failure
+	}
+}
+
+
+global proc int openPipelineReviveAsset()
+{
+	global string $openPipeline_menuCurrentAsset;	
+	global string $openPipeline_menuCurrentAssetComponent;
+
+	string $libPath = `openPipelineGetPath "lib"`;
+	
+	int $versionNumber = `optionMenu -q -v reviveVerMenu`;
+	string $reviveTypeMenu = `optionMenu -q -value reviveTypeMenu`;
+	string $reviveFile;
+	string $workshop;
+	string $version;
+
+	if($openPipeline_menuCurrentAssetComponent == "")
+	{
+		if($reviveTypeMenu == "workshop")
+		{
+			$workshop = ($libPath + $openPipeline_menuCurrentAsset + "/workshop/");
+			$reviveFile = ($workshop + $openPipeline_menuCurrentAsset + "_workshop_" + $versionNumber + ".mb");
+		}
+		else if($reviveTypeMenu == "master")
+		{
+			$version = ($libPath + $openPipeline_menuCurrentAsset + "/version/");
+			$reviveFile = ($version + $openPipeline_menuCurrentAsset + "_version_" + $versionNumber + ".mb");
+		}
+	} else {
+		if($reviveTypeMenu == "workshop")
+		{	
+			$workshop = ($libPath + $openPipeline_menuCurrentAsset + "/components/" + $openPipeline_menuCurrentAssetComponent + "/workshop/");
+			$reviveFile = ($workshop + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_workshop_" + $versionNumber + ".mb");
+		}
+		else if($reviveTypeMenu == "master")
+		{
+			$version = ($libPath + $openPipeline_menuCurrentAsset + "/components/" + $openPipeline_menuCurrentAssetComponent + "/version/");
+			$reviveFile = ($version + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_version_" + $versionNumber + ".mb");
+		}
+	}
+
+	if(`filetest -r $reviveFile`)
+	{
+		NewScene;
+		file -open $reviveFile;
+
+		openPipelineUpdateCurrentFileText($reviveTypeMenu, $versionNumber);
+
+		return 1; // success
+	}else{
+		warning ("openPipeline: No Version " + $versionNumber + " Found\n");
 		return 0; // failure
 	}
 }

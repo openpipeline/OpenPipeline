@@ -60,7 +60,7 @@ global proc openPipelineUI()
 			
 	textFieldGrp -label "Login User : " -text $openPipeline_userName -editable false userName;
 	rowColumnLayout -numberOfColumns 2 -cw 1 280 -cw 2 100;
-	optionMenuGrp -label "Project Name : " -cl2 "right" "left" -columnWidth2 140 200 -cc "openPipelineProjSeleced" projNameMenu;
+	optionMenuGrp -label "Project Name : " -cl2 "right" "left" -columnWidth2 140 200 -cc "openPipelineProjSelected" projNameMenu;
 			
 	//call proc openPipelineGetProjList to get the existed proj size and name one by one
 	//proc located in openPipelineUtility.mel
@@ -182,19 +182,16 @@ global proc openPipelineUI()
 						
 						separator -style "double" -w 120;		
 
-						optionMenu -label "Revive:";
-			 				menuItem -label "Workshop";
-			 				menuItem -label "Master";
-//			 			setParent ..;
+						optionMenu 
+							-label "Revive:" 
+							-changeCommand openPipelineUpdateRevisionUI
+							reviveTypeMenu;
+							
+			 				menuItem -label "workshop";
+			 				menuItem -label "master";
 
-//			 			text -label $openPipeline_menuCurrentSelection -width 60 revItemLabel;
-//						text -label "Current Version: " -width 75;
-//						text -label "master" -width 40 currentVersion;
-
-//						rowLayout -w 120 -numberOfColumns 3 -cw3 40 40 40 -cl3 "left" "center" "right";
 						optionMenu -label "Version:" -w 40 reviveVerMenu;	
 						button -label "Revive" -width 40 -command "openPipelineReviveAsset";
-//					setParent ..;
 					setParent ..;
 						
 					// Asset note frame
@@ -463,10 +460,6 @@ global proc openPipelineNewAssetProcess(string $type)
 		}		
 	}
 
- 	// build the file heirarchy
- 	// proc openPipelineMakeNewAssetTree
- 	// located in openPipelineFile.mel
-
  	openPipelineMakeNewAssetTree $type $name;
  	
  	// refresh UI
@@ -490,14 +483,30 @@ global proc openPipelineSelectAsset(string $selectedAsset)
 		-collection assetInventory
 		($selectedAsset + "AssetButton");
 
-	//proc openPipelineLoadAssetNote
-	//located in openPipelineNotes.mel
-	//
+	openPipelineLoadAssetNote;
+	
+	openPipelineUpdateRevisionUI;
+}
+
+global proc openPipelineSelectAssetComponent(string $selectedAssetComponent)
+{
+	global string $openPipeline_menuCurrentAsset;	
+	global string $openPipeline_menuCurrentAssetComponent;
+
+	$openPipeline_menuCurrentAssetComponent = $selectedAssetComponent;
+
+	openPipelineAssetInformation;
+
+	iconTextRadioButton -e
+		-bgc 1 1 0
+		-collection assetInventory
+		($selectedAssetComponent + "AssetComponentButton");
 
 	openPipelineLoadAssetNote;
 	
-//	openPipelineUpdateRevisionUI;
+	openPipelineUpdateRevisionUI;
 }
+
 
 global proc openPipelineDeSelectAsset(string $selectedAsset)
 {
@@ -515,29 +524,6 @@ global proc openPipelineDeSelectAssetComponent(string $selectedAsset)
 }
 
 
-global proc openPipelineSelectAssetComponent(string $selectedAssetComponent)
-{
-	global string $openPipeline_menuCurrentAsset;	
-	global string $openPipeline_menuCurrentAssetComponent;
-
-	$openPipeline_menuCurrentAssetComponent = $selectedAssetComponent;
-
-	openPipelineAssetInformation;
-
-	iconTextRadioButton -e
-		-bgc 1 1 0
-		-collection assetInventory
-		($selectedAssetComponent + "AssetComponentButton");
-
-	
-	//proc openPipelineLoadAssetNote
-	//located in openPipelineNotes.mel
-	//
-	openPipelineLoadAssetNote;
-	
-//	openPipelineUpdateRevisionUI;
-}
-
 global proc openPipelineExpandAssetInventory()
 {
 
@@ -545,7 +531,6 @@ global proc openPipelineExpandAssetInventory()
 	global string $openPipeline_menuCurrentAssetComponent;
 
 	global string $openPipeline_currentOpenAssetComponent;
-
 
 	string $libPath = `openPipelineGetPath "lib"`;
 
@@ -596,26 +581,23 @@ global proc openPipelineExpandAssetInventory()
 		openPipelineAssetPopUpMenus($chomp, "assetComponentColumn");	
 	}
 
-	//proc openPipelineLoadAssetNote
-	//located in openPipelineNotes.mel
-	//
 	openPipelineLoadAssetNote;
 	
 //	openPipelineUpdateRevisionUI;
 }
 
+// fill the asset information box with the collected info
 global proc	openPipelineAssetInformation()
 {
-	// fill the asset information box with the collected info
 	global string $openPipeline_menuCurrentAsset;	
 	global string $openPipeline_menuCurrentAssetComponent;
-//	$openPipeline_menuCurrentAsset = `openPipelineGetAssetSelected`;
 
 	string $libPath = `openPipelineGetPath "lib"`;
 
 	int $workshopNum;	
 	int $versionNum;
 	int $masterExists;
+	int $currentVersion;
 	string $expectedMasterFile;
 	
 	if($openPipeline_menuCurrentAssetComponent == "")
@@ -654,13 +636,24 @@ global proc	openPipelineAssetInformation()
 	} else {
 		$fileMastered = ("File Mastered: No \n");
 	}
+
+	// current version
+	if($versionNum > 0)
+	{
+		$currentVersion = ($versionNum + 1);
+	}else{
+		$currentVersion = 0;	
+	}
 	
 	// format information
-	string $assetInfoHeader = ($openPipeline_menuCurrentAsset + " : " + $openPipeline_menuCurrentAssetComponent + "\n-------------------\n");
-	string $workshopTotal = ("Workshop Files: " + $workshopNum + "\n");		
-	string $versionTotal = ("Version Number: " + $versionNum + "\n");	
+	string $assetInfoHeader = ($openPipeline_menuCurrentAsset + " : " + 
+			$openPipeline_menuCurrentAssetComponent + "\n-------------------\n\n");
 
-	string $outputText = ($assetInfoHeader + $workshopTotal + $versionTotal + $fileMastered);
+	string $current = ("Latest Version: " + $currentVersion + "\n\n");
+	string $workshopTotal = ("Workshop Files: " + $workshopNum + "\n");		
+	string $versionTotal = ("Version Files: " + $versionNum + "\n");	
+
+	string $outputText = ($assetInfoHeader + $current + $workshopTotal + $versionTotal + $fileMastered);
 	
 	// fill box
 	scrollField -e -text $outputText assetInformation;
@@ -669,9 +662,8 @@ global proc	openPipelineAssetInformation()
 
 global proc openPipelineUpdateRevisionUI()
 {
-	global string $openPipeline_menuCurrentState;
-	global string $openPipeline_menuCurrentSelection;
-	
+	global string $openPipeline_menuCurrentAsset;	
+	global string $openPipeline_menuCurrentAssetComponent;
 	
 	//proc openPipelineGetPath to get all path
 	//located in openPipelineUtility.mel
@@ -680,9 +672,47 @@ global proc openPipelineUpdateRevisionUI()
 	string $scenePath = `openPipelineGetPath "scenes"`;
 	string $assetPath;	
 	string $revMenuItems;
-	
-	text -e -label $openPipeline_menuCurrentSelection revItemLabel;
-	
+
+	string $reviveMenuItems[] = `optionMenu -q -itemListLong reviveVerMenu`;
+	for($each in $reviveMenuItems)
+	{
+		deleteUI $each;
+	}
+
+	string $reviveTypeMenu = `optionMenu -q -value reviveTypeMenu`;
+	int $reviveMenuSize = `optionMenu -q -ni reviveVerMenu`;
+
+	int $fileCount;
+
+	if($openPipeline_menuCurrentAssetComponent == "")
+	{
+		if($reviveTypeMenu == "workshop")
+		{
+			$workshop = ($libPath + $openPipeline_menuCurrentAsset + "/workshop/");
+			$workshopFiles = `getFileList -folder $workshop -filespec ($openPipeline_menuCurrentAsset + "_workshop_*.mb")`;
+			$fileCount = `size($workshopFiles)`;
+		}
+		else if($reviveTypeMenu == "master")
+		{
+			$version = ($libPath + $openPipeline_menuCurrentAsset + "/version/");
+			$versionFiles = `getFileList -folder $version -filespec ($openPipeline_menuCurrentAsset + "_version_*.mb")`;
+			$fileCount = `size($versionFiles)`;
+		}
+	} else {
+		if($reviveTypeMenu == "workshop")
+		{	
+			$workshop = ($libPath + $openPipeline_menuCurrentAsset + "/components/" + $openPipeline_menuCurrentAssetComponent + "/workshop/");
+			$workshopFiles = `getFileList -folder $workshop -filespec ($openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_workshop_*.mb")`;
+			$fileCount = `size($workshopFiles)`;
+		}
+		else if($reviveTypeMenu == "master")
+		{
+			$version = ($libPath + $openPipeline_menuCurrentAsset + "/components/" + $openPipeline_menuCurrentAssetComponent + "/version/");
+			$versionFiles = `getFileList -folder $version -filespec ($openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_version_*.mb")`;
+			$fileCount = `size($versionFiles)`;		
+		}
+	}
+
 	//bug: current selection of the menuItem will not refresh while there is no any early vision.
 	//get the full pathname of optionMenu : reviveVerMenu
 	string $allControlsUIFullath[] =`lsUI -ctl -l`;
@@ -693,52 +723,34 @@ global proc openPipelineUpdateRevisionUI()
 		{
 			$reviveVerMenuPath = $me;
 		}
-	}	
-	switch($openPipeline_menuCurrentState)
+	}
+
+	int $loopSize;
+	if($fileCount < $reviveMenuSize)
 	{
-		case "model":
-		case "rig":
-			$assetPath = ($libPath + $openPipeline_menuCurrentState + "/" + $openPipeline_menuCurrentSelection + "/version/");
-			string $versionFiles[] = `getFileList -folder $assetPath -filespec "*.m*"`;
-			int $fileNum = `size($versionFiles)`;
-			int $revMenuSize = `optionMenu -q -ni reviveVerMenu`;
-			int $loopSize;
-
-			if($fileNum<$revMenuSize)
+		$loopSize = $reviveMenuSize;
+	}else{
+		$loopSize = $fileCount;
+	}
+	
+	for($i=0; $i<$loopSize; $i++)
+	{	
+		if(`menuItem -exists ("revMenuItem" + $i)`)
+		{
+			if($i < $fileCount)
 			{
-				$loopSize = $revMenuSize;
-			}else{
-				$loopSize = $fileNum;
+				$revMenuItems += ("menuItem -e -label " + $i +" revMenuItem"+ $i + ";");
+			}else{				
+				deleteUI -mi ("revMenuItem" + $i);
 			}
-			
-			for($i=0; $i<$loopSize; $i++)
-			{	
-				if(`menuItem -exists ("revMenuItem" + $i)`)
-				{
-					if($i<$fileNum)
-					{
-						$revMenuItems += ("menuItem -e -label " + $i +" revMenuItem"+ $i + ";");
-					}else{				
-						deleteUI -mi ("revMenuItem" + $i);
-					}
-				}else{
-					$revMenuItems += ("menuItem -p "+$reviveVerMenuPath+" -label " + $i +" revMenuItem"+ $i + ";");
-				}				
-			}
-			break;
-
-		case "anim":
-			print "openPipeline: UI";
-			break;
-			
-		case "light":
-			print "openPipeline: Shot Manipulation Coming Soon";
-			break;
-	}	
+		}else{
+			$revMenuItems += ("menuItem -p " + $reviveVerMenuPath + " -label " + $i +" revMenuItem" + $i + ";");
+		}				
+	}
 
 	eval($revMenuItems);
 	
-	//reselect the menu item, set it to the lattest vision by default.
+	//reselect the menu item, set it to the latest version by default.
 	int $itemSize = `optionMenu -q -ni reviveVerMenu`;
 	if($itemSize>0)
 	{
@@ -747,37 +759,10 @@ global proc openPipelineUpdateRevisionUI()
 }
 
 
-global proc int openPipelineReviveAsset()
-{
-	global string $openPipeline_menuCurrentState;
-	global string $openPipeline_menuCurrentSelection;
-
-	string $currentProject = `workspace -q -fn`;
-	string $libPath = ($currentProject + "/lib");
-
-	string $versionPath = ($libPath + "/" + $openPipeline_menuCurrentState + "/" + $openPipeline_menuCurrentSelection + "/version/");
-	
-	string $versionFiles[] = `getFileList -folder $versionPath -filespec "*.m*"`;
-	int $versionNumber = `optionMenu -q -v reviveVerMenu`;
-	string $versionFile = ($versionPath + $openPipeline_menuCurrentSelection + "_" + $openPipeline_menuCurrentState + "_version_" + $versionNumber + ".mb");
-
-	if(`filetest -r $versionFile`)
-	{
-		NewScene;
-		file -open $versionFile;
-		text -e -label $versionNumber currentVersion;		
-		return 1; // success
-	}else{
-		warning ("openPipeline: No Version " + $versionNumber + " Found\n");
-		return 0; // failure
-	}
-}
-
-
 
 //--- New Added---//
 //For Proj Set up 
-global proc openPipelineProjSeleced()
+global proc openPipelineProjSelected()
 {
 	global int $openPipeline_currentProjIndex;
 	
