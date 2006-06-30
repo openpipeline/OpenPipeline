@@ -47,7 +47,12 @@ global proc openPipelineUI()
 	setProject $currentProject;
 	
 	//window setup
-	string $window = `window -w 410 -h 600 -mxb 0 -rtf 0 -title ("openPipeline: " + $currentProjectShort) openPipelineUI`;
+	string $window = `window -w 410 -h 650 -mxb 0 -rtf 0 -menuBar true -title ("openPipeline v0.1: " + $currentProjectShort) openPipelineUI`;
+
+	// menu (more can go here)
+ 	menu -label "Help" -helpMenu true -parent $window;
+ 		menuItem -label "About openPipeline..." -command openPipelineAboutDialog;
+ 		menuItem -label "Help..." -command openPipelineHelpLaunch;
 
 	//starting formlayout
 	string $form = `formLayout`;	
@@ -128,7 +133,6 @@ global proc openPipelineUI()
 					
 					if($chomp == $openPipeline_currentOpenAsset)
 					{
-						print "opened!";
 						$font = "smallBoldLabelFont";
 					}
 
@@ -209,10 +213,40 @@ global proc openPipelineUI()
 					setParent ..;		
 				setParent ..;
 			setParent ..;
-				//end of framlayout:Asset Notes
+			//end of framlayout:Asset Notes
 			
 			// New asset frame
-			frameLayout -label "New Asset/Component" -w 410 -collapsable 1 -collapse 1 newAssetLayout;	
+			frameLayout -label "New Asset/Component" -w 410 -collapsable 1 -collapse 0 newAssetLayout;
+
+//				string $newAssetFormLayout = `formLayout -numberOfDivisions 100`;
+//					string $newAssetRow1 = `rowLayout -numberOfColumns 3 -cw3 125 200 75 -cl3 "left" "center" "right" -parent $newAssetFormLayout`;
+//						string $newAssetText = `text -label "Asset Name:" -width 125`;
+//						string $newAssetNameField = `textField -width 200 assetNameField`;	
+//						string $newAssetButton = `button -label "New Asset" -width 75 -command "openPipelineNewAssetProcess asset"`;
+//					setParent ..;
+//	
+//					string $newAssetRow2 = `rowLayout -numberOfColumns 4 -cw4 125 150 25 100 -cl4 "center" "center" "right" "center" -parent $newAssetFormLayout`;
+//						string $newComponentMenuGrp = `optionMenuGrp -label "Component Type:" -cw2 125 150 -columnAlign2 "left" "left" -parent $newAssetFormLayout assetComponentTypeMenu`;
+//							menuItem -label "model";
+//							menuItem -label "rig";
+//							menuItem -label "shade";						
+//							menuItem -label "other...";
+//							setParent ..;
+//						string $newComponentMenuButton = `button -label "New Component" -width 100 -h 20 -parent $newAssetFormLayout -command "openPipelineNewAssetProcess component"`;					
+//					setParent ..;
+//				setParent ..;
+//			 	formLayout -edit
+//			 		-attachForm     $newAssetRow1	"top"    5
+//			 		-attachForm     $newAssetRow1	"left"   5
+//			 		-attachForm		$newAssetRow1	"right"	 5 
+//			 		-attachControl	$newAssetRow1	"bottom" 5 $newAssetRow2
+//
+//			 		-attachControl	$newAssetRow2	"top"    5 $newAssetRow1
+//			 		-attachForm     $newAssetRow2	"left"   5
+//			 		-attachForm		$newAssetRow2	"right"	 5 
+//			 		-attachForm		$newAssetRow2	"bottom" 5 
+//			 	$newAssetFormLayout;
+
 				columnLayout -w 400 -adjustableColumn 1;
 					rowLayout -numberOfColumns 3 -cw3 125 200 75 -cl3 "left" "center" "right";
 						text -label "Asset Name:" -width 125;
@@ -226,11 +260,13 @@ global proc openPipelineUI()
 							menuItem -label "rig";
 							menuItem -label "shade";						
 							menuItem -label "other...";
+						setParent ..;
 						text -l "" -w 25 -align "left";
 						button -label "New Component" -width 100 -h 20 -command "openPipelineNewAssetProcess component";					
 					setParent ..;
 				setParent ..;	
-			setParent ..;
+
+//			setParent ..;
 
 			//end of framlayout:New Asset	
 			//---------------------------
@@ -253,7 +289,7 @@ global proc openPipelineUI()
 				//Scene Inventory starts
 				//
 				separator -style "double" -w 410;
-				text -label "SCENE INVENTORY";
+				text -label "SCENE INVENTORY (NOT WORKING...YET)";
 				separator -style "double" -w 410;
 					
 			
@@ -394,13 +430,8 @@ global proc openPipelineUI()
 
 
 	// display final window, window position is depending on Global Var $openPipeline_winPos[]
-	window -e -w 430 -h 600 -tlc $openPipeline_winPos[0] $openPipeline_winPos[1] openPipelineUI;
+	window -e -w 430 -h 650 -tlc $openPipeline_winPos[0] $openPipeline_winPos[1] openPipelineUI;
 	showWindow $window;
-
-
-// FIX
-//	openPipelineUpdateRevisionUI;
-
 	
 	}else{
 		if (`window -q -exists openPipelineUI`)
@@ -413,10 +444,37 @@ global proc openPipelineUI()
 		$openPipeline_currentProjIndex=-1;
 		openPipelineProjectUI();
 	}
-
-
-
 }
+
+
+global proc openPipelineAboutDialog()
+{
+	if (`window -q -exists infoWindow`)
+	{
+		deleteUI infoWindow;	
+	}
+	
+	string $infoWindow = `window 
+			-title "About openPipeline"
+			-widthHeight 300 200
+			infoWindow`;
+
+	columnLayout -adjustableColumn true;
+		scrollField -wordWrap true -width 300 -height 150
+			-text "openPipeline\nUsage: LOAD \"*\",8,1\n" -editable false;
+ 	    button -label "Close" -command ("deleteUI -window " + $infoWindow);
+ 	setParent ..;
+ 	window -e -widthHeight 300 200 $infoWindow;
+ 	showWindow $infoWindow;		
+}
+
+
+global proc openPipelineHelpLaunch()
+{
+	string $URL = "\"http://openpipeline.sourceforge.net/\"";
+	showHelp -absolute $URL;	
+}	
+
 
 
 global proc openPipelineAssetPopUpMenus(string $elementName, string $list)
@@ -649,7 +707,7 @@ global proc	openPipelineAssetInformation()
 	string $assetInfoHeader = ($openPipeline_menuCurrentAsset + " : " + 
 			$openPipeline_menuCurrentAssetComponent + "\n-------------------\n\n");
 
-	string $current = ("Latest Version: " + $currentVersion + "\n\n");
+	string $current = ("Latest Mastered Version: " + $currentVersion + "\n\n");
 	string $workshopTotal = ("Workshop Files: " + $workshopNum + "\n");		
 	string $versionTotal = ("Version Files: " + $versionNum + "\n");	
 

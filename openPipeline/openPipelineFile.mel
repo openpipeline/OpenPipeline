@@ -477,9 +477,12 @@ global proc openPipelineSaveMaster(string $assetName, string $assetComponentName
 	// save the current file to the master location
 	file -rename $masterFile;     
 	file -save -type "mayaBinary";
+
+	// open the latest workshop (so no one actually works in the master!)
+	openPipelineOpenFile("workshop");
 	
 	//after save master, change the current version in Revision Layout from whatever to master
-	text -e -label "master" currentVersion;
+//	text -e -label "master" currentVersion;
 }
 
 
