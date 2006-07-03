@@ -389,3 +389,52 @@ global proc openPipelineRefManagement(string $inputMode)
 		break;
 	} 
 }
+
+global proc string[] openPipelineExistedSceneOrAsset(string $inputType, string $inputMode)
+{ 
+		string $validation[];
+		string $chomp[];
+		string $currentProject = `textFieldGrp -q -text projPath`;
+		string $thePath;
+		string $extension;
+		
+		switch($inputType){
+		case "scene":
+		$thePath = ($currentProject + "/scenes/");
+		$extension = ".mb";
+		break;
+		case "asset":
+		$thePath = ($currentProject + "/lib/");
+		$extension = "_asset.mb";
+		break;		
+		}
+		
+		string $theFiles[] = `getFileList -folder $thePath`;
+		string $outStr[];
+				
+		for($i = 0; $i < `size $theFiles`; $i++)
+			{
+				$chomp[$i]= `match "^[a-zA-Z_0-9]+" $theFiles[$i]`;
+				string $expectedMasterFile = ($thePath + $chomp[$i] + "/" + $chomp[$i] + $extension);
+				int $masterExists = `filetest -f $expectedMasterFile`;
+					if($masterExists)
+					{
+						$validation[$i] = "true";
+					}else{
+						$validation[$i] = "false";	
+					}			 
+			}
+
+		switch($inputMode)
+		{
+			case "list":
+			$outStr = $chomp;
+			break;
+			
+			case "validation":
+			$outStr = $validation;
+			break;
+		}
+		
+			 return $outStr;
+	}

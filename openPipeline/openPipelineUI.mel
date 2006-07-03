@@ -299,76 +299,123 @@ global proc openPipelineUI()
 				//located in openPipelineUtility.mel
 				frameLayout -label "Reference Creator" -collapsable 1 -collapse 0 -w 410 -ec "openPipelineGrabFileList availableRefMenu availableAssetList;";
 					columnLayout;
-						rowLayout -numberOfColumns 4 -w 410 -cw4 125 20 125 130 -cl4 "center" "center" "center" "center";
-							text -l "available asset" -w 125;
-							text -l "" -w 20;
-							text -l "new reference" -w 120;
-							text -l "current reference" -w 120;				
+						rowLayout -numberOfColumns 3 -w 410 -cw3 115 115 180 -cl3 "left" "left" "left";
+							text -l "  Scenes" -w 115 ;
+							text -l "  Assets" -w 115 ;
+							text -l "  Infomation" -w 180;				
 						setParent..;
+												
+						rowLayout -numberOfColumns 3 -w 410 -h 165 -cw3 115 115 180;		
 						
-						rowLayout -numberOfColumns 5 -w 410 -cw5 125 20 125 65 65;	
-							columnLayout -columnAttach "left" 5 -cw 120;
-							
-								//proc openPipelineGetProjList
-								//located in openPipelineUtility.mel
-								optionMenuGrp -label "assets:" -columnWidth2 45 80 -columnAlign2 "right" "left" -cc "openPipelineGrabFileList availableRefMenu availableAssetList;" availableRefMenu;
-									menuItem -label "model";
-									menuItem -label "rig";
-									menuItem -label "animation";
-									menuItem -label "lighting";
-							setParent ..;
-								columnLayout  -columnAttach "left" 5 -cw 20;
-							setParent ..;
-							columnLayout  -columnAttach "left" 5 -cw 125;
-								button -l "clear all" -align "center" -w 120 -c "textScrollList -e -ra newRefList";
-							setParent ..;
-							columnLayout -cal "left" -columnAttach "left" 5;
-								
-								//proc openPipelineRefIn
-								//located in openPipelineSceneInventory.mel
-								button -l "ref in" -align "center" -w 55 -c "openPipelineRefIn";	
-							setParent ..;
-							columnLayout -cal "left" -columnAttach "left" 5;
-								button -l "ref out" -align "center" -w 55;	
-							setParent ..;
-						setParent ..;
-						
-						rowLayout -numberOfColumns 4 -w 410 -cw4 125 20 125 130;		
-						
-							columnLayout -columnAttach "left" 5 -cw 125;	
-								textScrollList -numberOfRows 10 -allowMultiSelection false -showIndexedItem 4 -w 120 -sc "openPipelineClearRefMenu availableAssetList;" availableAssetList;		
+							columnLayout -columnAttach "left" 5 -cw 115 -h 165;	
+								scrollLayout -backgroundColor 1 1 1 -w 110 -hst 0 -vst 0 allSceneScroll;
+									columnLayout -cw 110 -h 165 ;
+										iconTextRadioCollection allSceneInventory;
+										string $allScenes[]= `openPipelineExistedSceneOrAsset scene list`;
+										string $scenesValidation[] = `openPipelineExistedSceneOrAsset scene validation`;
+										for($i =0;$i<`size $allScenes`; $i++)
+										{
+											
+											string $font;
+											if($scenesValidation[$i]=="true")
+											{
+											$font = "plainLabelFont";
+											}else{
+											$font ="obliqueLabelFont";			
+											}
+											
+											iconTextRadioButton 
+												-w 110 -h 20 -style "textOnly"  							
+												-l $allScenes[$i]
+												-font $font
+												-onc ""
+												-ofc ""
+												-bgc 1 1 1
+												-collection allSceneInventory
+												($allScenes[$i]+"SelButton");
+										
+											if($scenesValidation[$i] == "true")
+											{
+											iconTextRadioButton -e -en true ($allScenes[$i]+"SelButton");
+											}else{
+											iconTextRadioButton -e -en false ($allScenes[$i]+"SelButton");
+											}
+											
+										}
+										
+										scrollLayout -e -h 165 allSceneScroll;
+										
+									setParent..;		 
+								setParent..;
+							setParent..;
+														
+							columnLayout -columnAttach "left" 5 -cw 115 -h 165;	
+								scrollLayout -backgroundColor 1 1 1 -w 110 -hst 0 -vst 0 allAssetScroll;
+									columnLayout -cw 110 -h 165 ;
+										iconTextRadioCollection allAssetInventory;
+										string $allAssets[]= `openPipelineExistedSceneOrAsset asset list`;
+										string $assetsValidation[] = `openPipelineExistedSceneOrAsset asset validation`;
+										for($i =0;$i<`size $allAssets`; $i++)
+										{
+											
+											string $font;
+											if($assetsValidation[$i]=="true")
+											{
+											$font = "plainLabelFont";
+											}else{
+											$font ="obliqueLabelFont";			
+											}
+											
+											iconTextRadioButton 
+												-w 110 -h 20 -style "textOnly"  							
+												-l $allAssets[$i]
+												-font $font
+												-onc ""
+												-ofc ""
+												-bgc 1 1 1
+												-collection allAssetInventory
+												($allAssets[$i]+"SelButton");
+										
+											if($assetsValidation[$i] == "true")
+											{
+											iconTextRadioButton -e -en true ($allAssets[$i]+"SelButton");
+											}else{
+											iconTextRadioButton -e -en false ($allAssets[$i]+"SelButton");
+											}
+											
+										}
+										
+										scrollLayout -e -h 165 allAssetScroll;
+										
+									setParent..;		 
+								setParent..;
 							setParent..;
 							
-							columnLayout -columnAttach "left" 5 -rowSpacing 10 -cw 20;
-								text -l "" -w 15 -h 10;
+							
+							columnLayout -columnAttach "both" 5 -cw 180;
+								scrollField -w 175 -height 165 -enable 1 -editable 0 -wordWrap 1 
+								-backgroundColor 1 1 1 -font "smallPlainLabelFont" 
+								-text "" 
+								sceneInformation;
+								setParent ..;
 								
-								//proc openPipelineRefManagement
-								//located in openPipelineSceneInventory.mel
-								button -l "+" -w 15 -h 40 -c "openPipelineRefManagement addSel";
-								button -l "-" -w 15 -h 40 -c "openPipelineRefManagement removeSel";
-								text -l "" -w 15 -h 10;
-							setParent..;
-							
-							columnLayout -columnAttach "left" 5 -cw 125;
-							
-								//proc openPipelineClearRefMenu
-								//located in openPipelineSceneInventory.mel
-								textScrollList -numberOfRows 10 -allowMultiSelection false -showIndexedItem 4 -w 120 -sc "openPipelineClearRefMenu newRefList;" newRefList;			
-							setParent..;
-							
-							columnLayout -columnAttach "both" 5 -cw 130;
-							
-								//proc openPipelineClearRefMenu
-								//located in openPipelineSceneInventory.mel
-								textScrollList -numberOfRows 10 -allowMultiSelection false -showIndexedItem 4 -w 120 -sc "openPipelineClearRefMenu currentRefList;" currentRefList;
-								
-								//proc openPipelineRefreshCurrentRefList
-								//located in openPipelineSceneInventory.mel
-								openPipelineRefreshCurrentRefList;
 							setParent..;			
 						setParent ..;	
 						
-					setParent..;		
+					setParent..;
+					columnLayout;
+					
+					//commands we should have 
+//				button -l "Ref In";
+//				button -l "Ref Out";
+//        button -l "open";
+//				button -l "master";
+//				button -l "workshop";
+//				button -l "createScene";
+//				button -l "delScene";
+
+				button -l "ref Editor" -c "ReferenceEditor;";
+				setParent..;
 				setParent ..;	
 				//end of Reference Editor frame 
 					
