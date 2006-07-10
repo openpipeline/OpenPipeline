@@ -390,6 +390,17 @@ global proc openPipelineRefManagement(string $inputMode)
 	} 
 }
 
+// 07/03/2006
+// proc name: openPipelineExistedSceneOrAsset
+// function: return a string array which can be
+//						1. the whole asset/scene list(can be the asset/scene name only, or the full path of the master file)
+//						2. only valid asset/scene list(master file existed)
+//						3. only invalid asset/scene list(no master file existed)
+//						4. array of boolean values that represents the vlidation of the asset or scene
+//
+// Need to improve: master file check for scene.
+//
+
 global proc string[] openPipelineExistedSceneOrAsset(string $inputType, string $inputMode)
 { 
 		string $validation[];
@@ -398,6 +409,9 @@ global proc string[] openPipelineExistedSceneOrAsset(string $inputType, string $
 		string $thePath;
 		string $extension;
 		
+		//
+		//need to be fixed depends on the structure of the scenes
+		//
 		switch($inputType){
 		case "scene":
 		$thePath = ($currentProject + "/scenes/");
@@ -411,11 +425,14 @@ global proc string[] openPipelineExistedSceneOrAsset(string $inputType, string $
 		
 		string $theFiles[] = `getFileList -folder $thePath`;
 		string $outStr[];
+		string $fullPath[];
 				
 		for($i = 0; $i < `size $theFiles`; $i++)
 			{
 				$chomp[$i]= `match "^[a-zA-Z_0-9]+" $theFiles[$i]`;
 				string $expectedMasterFile = ($thePath + $chomp[$i] + "/" + $chomp[$i] + $extension);
+				$fullPath[$i] = $expectedMasterFile;
+				
 				int $masterExists = `filetest -f $expectedMasterFile`;
 					if($masterExists)
 					{
@@ -427,8 +444,40 @@ global proc string[] openPipelineExistedSceneOrAsset(string $inputType, string $
 
 		switch($inputMode)
 		{
+			case "fullPath":
+			$outStr = $fullPath;
+			break;
+			
 			case "list":
 			$outStr = $chomp;
+			break;
+			
+			case "validList":
+				string $tempList[];
+				int $k = 0;
+				for($i=0;$i<`size $validation`;$i++)
+				{
+					if($validation[$i] == "true")
+					{
+						$tempList[$k] = $chomp[$i];
+						$k++;
+						}
+					}
+				$outStr = $tempList;
+			break;
+			
+			case "invalidList":
+				string $tempList[];
+				int $k = 0;
+				for($i=0;$i<`size $validation`;$i++)
+				{
+					if($validation[$i] == "false")
+					{
+						$tempList[$k] = $chomp[$i];
+						$k++;
+						}
+					}
+				$outStr = $tempList;
 			break;
 			
 			case "validation":
@@ -438,3 +487,68 @@ global proc string[] openPipelineExistedSceneOrAsset(string $inputType, string $
 		
 			 return $outStr;
 	}
+
+// 07/09/2006
+// proc name: openPipelineExistedRefAsset
+// function: get the existed refence info that are related to assets
+//           can return filename, shortname, or loadingcheck 
+//
+global proc string[] openPipelineExistedRefAsset(string $inputMode)
+{
+	 string $outStr[];
+	 string $allRefAsset[],$refAssetLoaded[];
+	 string $allRefOthers[],$refOthersLoaded[];
+   int $m = $n = $k = $j = 0;
+	 string $assetShortName[], $otherShortName[];
+   string $allRef[] = `file -q -r -rfn`;
+	 string $allAssetPath[] = `openPipelineExistedSceneOrAsset asset fullPath`;
+   
+   
+   for ( $i = 0; $i<`size $allAssetPath`; $i++)
+   {   		
+   		for($me in $allRef){
+   			string $tempMe = `match "[^{]*" $me`;
+   			
+//   			print "\n*********************\n";
+//   			print ("In1 : "+$me+"\n");
+//	   		print ("In2 : "+$tempMe+"\n");
+//	   		print ("Path : "+$allAssetPath[$i]+"\n");
+//	   		print `gmatch $tempMe $allAssetPath[$i]`;
+//	   		print "\n*********************\n";
+	   		
+	   		 if(`gmatch $tempMe $allAssetPath[$i]`){
+	   		
+	   			$allRefAsset[$m] = $me;
+	   			string $tempAssetName = `match "[^/]*$" $tempMe`;
+		      $tempAssetName = `match "[^.]*" $tempAssetName`;
+		      $assetShortName[$m++] = $tempAssetName;
+	   			 
+	   		  if( !`file -q -dr $me` )
+	   			{
+	         $refAssetLoaded[$n++] = "true";
+	        }else{
+	         $refAssetLoaded[$n++] = "false";
+	        }
+	        
+	   		}
+   	}
+  }
+     
+   switch($inputMode)
+   {   	
+   	case "loadingCheck":
+   		$outStr = $refAssetLoaded;
+   	break;
+   	
+   	case "fileName":   	  
+   		$outStr = $allRefAsset;   		
+   	break;  
+   	
+   	case "shortName":
+	   $outStr = $assetShortName;
+   	break; 	   	
+   }
+   	
+
+   return $outStr;
+}

@@ -348,43 +348,50 @@ global proc openPipelineUI()
 									setParent..;		 
 								setParent..;
 							setParent..;
-														
+													
 							columnLayout -columnAttach "left" 5 -cw 115 -h 165;	
 								scrollLayout -backgroundColor 1 1 1 -w 110 -hst 0 -vst 0 allAssetScroll;
 									columnLayout -cw 110 -h 165 ;
 										iconTextRadioCollection allAssetInventory;
 										string $allAssets[]= `openPipelineExistedSceneOrAsset asset list`;
-										string $assetsValidation[] = `openPipelineExistedSceneOrAsset asset validation`;
-										for($i =0;$i<`size $allAssets`; $i++)
+										string $validAsset[] = `openPipelineExistedSceneOrAsset asset validList`;
+										string $invalidAsset[] = `openPipelineExistedSceneOrAsset asset invalidList`;
+										for($i =0;$i<`size $validAsset`; $i++)
 										{
+												string $font = "plainLabelFont";
 											
-											string $font;
-											if($assetsValidation[$i]=="true")
-											{
-											$font = "plainLabelFont";
-											}else{
-											$font ="obliqueLabelFont";			
-											}
-											
-											iconTextRadioButton 
+												iconTextRadioButton 
 												-w 110 -h 20 -style "textOnly"  							
-												-l $allAssets[$i]
+												-l $validAsset[$i]
 												-font $font
 												-onc ""
 												-ofc ""
 												-bgc 1 1 1
 												-collection allAssetInventory
-												($allAssets[$i]+"SelButton");
+												($validAsset[$i]+"SelButton");
 										
-											if($assetsValidation[$i] == "true")
-											{
-											iconTextRadioButton -e -en true ($allAssets[$i]+"SelButton");
-											}else{
-											iconTextRadioButton -e -en false ($allAssets[$i]+"SelButton");
-											}
+												iconTextRadioButton -e -en true ($validAsset[$i]+"SelButton");
 											
 										}
+											
+										for($i =0;$i<`size $invalidAsset`; $i++)
+										{
+											string $font ="obliqueLabelFont";
+											
+												iconTextRadioButton 
+												-w 110 -h 20 -style "textOnly"  							
+												-l $invalidAsset[$i]
+												-font $font
+												-onc ""
+												-ofc ""
+												-bgc 1 1 1
+												-collection allAssetInventory
+												($invalidAsset[$i]+"SelButton");
 										
+												iconTextRadioButton -e -en false ($invalidAsset[$i]+"SelButton");
+											
+										}		
+														
 										scrollLayout -e -h 165 allAssetScroll;
 										
 									setParent..;		 
@@ -393,10 +400,61 @@ global proc openPipelineUI()
 							
 							
 							columnLayout -columnAttach "both" 5 -cw 180;
-								scrollField -w 175 -height 165 -enable 1 -editable 0 -wordWrap 1 
-								-backgroundColor 1 1 1 -font "smallPlainLabelFont" 
-								-text "" 
-								sceneInformation;
+								scrollLayout -backgroundColor 1 1 1 -w 180 -hst 0 -vst 0 allAssetScroll;
+									rowLayout -numberOfColumns 3 -cw3 20 180 1 -h 165 ;
+										
+										
+										string $loadingCheck[] = `openPipelineExistedRefAsset loadingCheck`;
+										string $fileName[] = `openPipelineExistedRefAsset fileName`;
+										string $shortName[] = `openPipelineExistedRefAsset shortName`; 
+									  int $num = `size $loadingCheck`;		
+										print $num;
+
+										columnLayout;
+											for($i=0; $i<$num;$i++)
+											{
+												 if($loadingCheck[$i]=="true"){
+												 checkBox -v 1 -w 20 ("loadingBox"+$i);
+												}else{
+												checkBox -v 0 -w 20 ("loadingBox"+$i);
+												}
+											}
+										setParent..;
+										
+										columnLayout;
+											iconTextRadioCollection allRefAssetList;
+											
+											for($i =0;$i<$num; $i++)
+											{
+													string $font = "plainLabelFont";
+												
+													iconTextRadioButton 
+													-w 110 -h 20 -style "textOnly"  							
+													-l ($shortName[$i] +" ("+($i+1)+")")
+													-font $font
+													-onc ""
+													-ofc ""
+													-bgc 1 1 1
+													-collection allRefAssetList
+													("ref"+$i+"SelButton");
+											
+													iconTextRadioButton -e -en true ("ref"+$i+"SelButton");
+												
+											}	
+												setParent..;	
+												
+											columnLayout -w 1 ;
+												textField -vis false -text $fileName[$i] ("refFileNameTextField"+$i);
+											setParent..;
+															
+											scrollLayout -e -h 165 allAssetScroll;
+											
+													 
+											setParent..;
+										setParent..;
+										
+										
+										
 								setParent ..;
 								
 							setParent..;			
@@ -406,13 +464,14 @@ global proc openPipelineUI()
 					columnLayout;
 					
 					//commands we should have 
-//				button -l "Ref In";
-//				button -l "Ref Out";
-//        button -l "open";
-//				button -l "master";
-//				button -l "workshop";
+//				button -l "Create Ref";
+//				button -l "Remove Ref";
+//        button -l "open scene";
 //				button -l "createScene";
 //				button -l "delScene";
+//				button -l "save master";
+//				button -l "save workshop";
+
 
 				button -l "ref Editor" -c "ReferenceEditor;";
 				setParent..;
