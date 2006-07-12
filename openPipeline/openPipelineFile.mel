@@ -40,12 +40,37 @@ global proc openPipelineMakeNewAssetTree(string $type, string $name)
 			openPipelineMakeNewAssetComponent($libPath, $component, $name);		
 			break;
 			
-		case "scene":
-			openPipelineMakeNewScene($scenePath, "scene", $name);
+		case "sequence":
+			openPipelineMakeNewSequence($scenePath, $name);
 			break;
 			
-		case "scenetype":
-			openPipelineMakeNewScene($scenePath, "scenetype", $name);		
+		case "shot":
+			openPipelineMakeNewShot($scenePath, $name);
+			break;
+
+		case "shottype":
+			$name = `optionMenuGrp -q -v assetComponentTypeMenu`;
+
+			while($name == "other...")
+			{
+				// pop up window
+ 				string $result = `promptDialog 
+ 					-title "Custom Component"
+ 					-message "component name:"
+ 					-button "create" -button "cancel"
+ 					-defaultButton "create" -cancelButton "cancel"
+ 					-dismissString "cancel"`;
+ 
+ 				if($result == "create")
+ 				{
+ 					$name = `promptDialog -query -text`;
+ 					if($name == "")
+ 					{
+ 						$name = "other...";
+ 					}
+ 				}
+			}
+			openPipelineMakeNewShotType($scenePath, $name);		
 			break;
 
 		case "default":
@@ -124,34 +149,94 @@ global proc string openPipelineMakeNewAssetComponent(string $libPath, string $co
 	return $assetPath;
 }
 
-
-global proc string openPipelineMakeNewScene(string $scenePath, string $type, string $name)
+global proc string openPipelineMakeNewSequence(string $scenePath, string $name)
 {
 
-	string $newScenePath = ($scenePath + "/" + $name + "/" + $type);
+	global string $openPipeline_menuCurrentSequence;
 
-	if(`filetest -d ($scenePath + "/" + $name)` == 0)
+	string $sequencePath = ($scenePath + $name);
+
+	if(`filetest -d ($sequencePath)` == 0)
 	{
-		sysFile -makeDir ($scenePath + "/" + $name);
+		sysFile -makeDir ($sequencePath);
+	}else if(`filetest -d $sequencePath` == 1){
+		warning ("openPipeline: " + $sequencePath + " exists.\n");
+		return $sequencePath;
+	}else{}
 
-	}else if(`filetest -d $newScenePath` == 1){
-		warning ("openPipeline: " + $name + " Scene : " + $type + " exists.\n");
-		return $newScenePath;
-	}else{
+// temp!
+$openPipeline_menuCurrentSequence = $name;
+
 		
-	}
+	return $sequencePath;
+}
 
-	sysFile -makeDir $newScenePath;
-	sysFile -makeDir ($newScenePath + "/" + "workshop");
-	sysFile -makeDir ($newScenePath + "/" + "version");	
+
+global proc string openPipelineMakeNewShot(string $scenePath, string $name)
+{
+
+	global string $openPipeline_menuCurrentSequence;
+	global string $openPipeline_menuCurrentShot;
 	
+	string $shotPath = ($scenePath + $openPipeline_menuCurrentSequence + "/" + $name);
+
+	if(`filetest -d ($shotPath)` == 0)
+	{
+		sysFile -makeDir ($shotPath);
+	}else if(`filetest -d $shotPath` == 1){
+		warning ("openPipeline: " + $shotPath + " exists.\n");
+		return $shotPath;
+	}else{}
+
+	sysFile -makeDir $shotPath;
+	sysFile -makeDir ($shotPath + "/" + "workshop");
+	sysFile -makeDir ($shotPath + "/" + "version");	
+			
 	// asset notes
-	sysFile -makeDir ($newScenePath + "/" + "notes");
-	$noteFile = ($newScenePath + "/" + "notes" + "/" + $name + "_AssetNote.txt");
-	// let Proc openPipelineAssetNoteWriter writes the note
-	openPipelineAssetNoteWriter "creation";
- 	
-	return $newScenePath;
+	sysFile -makeDir ($shotPath + "/" + "notes");
+	$noteFile = ($shotPath + "/" + "notes" + "/" + $name + "_AssetNote.txt");
+	
+	//---Clear and Fix-----//
+	// let Proc openPipeline_AssetNoteWriter writes the note
+	openPipelineShotNoteWriter "creation";
+
+// temp!
+$openPipeline_menuCurrentShot = $name;
+		
+	return $shotPath;
+}
+
+
+global proc string openPipelineMakeNewShotType(string $scenePath, string $name)
+{
+
+	global string $openPipeline_menuCurrentSequence;
+	global string $openPipeline_menuCurrentShot;
+
+	string $shotTypePath = ($scenePath + $openPipeline_menuCurrentSequence + 
+		"/" + $openPipeline_menuCurrentShot + "/components/" + $name);
+
+	if(`filetest -d ($shotTypePath)` == 0)
+	{
+		sysFile -makeDir ($shotTypePath);
+	}else if(`filetest -d $shotTypePath` == 1){
+		warning ("openPipeline: " + $shotTypePath + " exists.\n");
+		return $shotTypePath;
+	}else{}
+
+	sysFile -makeDir $shotTypePath;
+	sysFile -makeDir ($shotTypePath + "/" + "workshop");
+	sysFile -makeDir ($shotTypePath + "/" + "version");	
+			
+	// asset notes
+	sysFile -makeDir ($shotTypePath + "/" + "notes");
+	$noteFile = ($shotTypePath + "/" + "notes" + "/" + $name + "_AssetNote.txt");
+	
+	//---Clear and Fix-----//
+	// let Proc openPipeline_AssetNoteWriter writes the note
+	openPipelineShotNoteWriter "creation";
+		
+	return $shotTypePath;
 }
 
 
@@ -366,8 +451,6 @@ global proc openPipelineSaveFile(string $saveType)
 	global string $openPipeline_menuCurrentAssetComponent;
 
 	$openPipeline_menuCurrentAssetComponent = `openPipelineGetAssetComponentSelected`;
-
-print $openPipeline_menuCurrentAssetComponent;
 	
 	string $confirmText;
 	if($openPipeline_menuCurrentAssetComponent == "")

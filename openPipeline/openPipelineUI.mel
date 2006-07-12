@@ -54,6 +54,10 @@ global proc openPipelineUI()
  		menuItem -label "About openPipeline..." -command openPipelineAboutDialog;
  		menuItem -label "Help..." -command openPipelineHelpLaunch;
 
+ 	menu -label "Maya Tools" -helpMenu true -parent $window;
+ 		menuItem -label "Maya Reference Editor" -command "ReferenceEditor";
+ 		menuItem -label "Maya Project Manager" -command "projectSetup 2";
+
 	//starting formlayout
 	string $form = `formLayout`;	
 
@@ -111,50 +115,57 @@ global proc openPipelineUI()
 				rowLayout -numberOfColumns 3 -h 200 -w 400 -bgc 1 1 1;
 				
 				// Asset List
-				columnLayout -h 100 -w 100 -bgc 1 1 1 assetColumn;
-				iconTextRadioCollection assetInventory;
+				scrollLayout -backgroundColor 1 1 1 -w 100 -h 130 -hst 0 assetScrollLayout;
+					columnLayout -h 100 -w 100 -bgc 1 1 1 assetColumn;
+					iconTextRadioCollection assetInventory;
 							
-				// Asset Inventory  
-				string $libFiles[] = `getFileList -folder $libPath`;
-				int $numLib = `size($libFiles)`;
-
-				for($i = 0; $i < $numLib; $i++)
-				{
-					string $font;
-					string $chomp = `match "^[a-zA-Z_0-9]+" $libFiles[$i]`;
-					string $expectedMasterFile = ($libPath + $chomp + "/" + $chomp + "_asset.mb");
-					int $masterExists = `filetest -f $expectedMasterFile`;
-					if($masterExists)
+					// Asset Inventory  
+					string $libFiles[] = `getFileList -folder $libPath`;
+					int $numLib = `size($libFiles)`;
+	
+					for($i = 0; $i < $numLib; $i++)
 					{
-						$font = "plainLabelFont";
-					}else{
-						$font = "obliqueLabelFont";			
+						string $font;
+						string $chomp = `match "^[a-zA-Z_0-9]+" $libFiles[$i]`;
+						string $expectedMasterFile = ($libPath + $chomp + "/" + $chomp + "_asset.mb");
+						int $masterExists = `filetest -f $expectedMasterFile`;
+						if($masterExists)
+						{
+							$font = "plainLabelFont";
+						}else{
+							$font = "obliqueLabelFont";			
+						}
+						
+						if($chomp == $openPipeline_currentOpenAsset)
+						{
+							$font = "smallBoldLabelFont";
+						}
+	
+						iconTextRadioButton 
+							-w 100 -h 20 
+							-style "textOnly"  
+							-l $chomp
+							-font $font
+							-align "left"
+							-onc ("openPipelineSelectAsset " + $chomp)
+							-ofc ("openPipelineDeSelectAsset " + $chomp)
+							-bgc 1 1 1
+							-collection assetInventory
+							($chomp + "AssetButton");
+	
+						openPipelineAssetPopUpMenus($chomp, "assetScrollLayout");
 					}
-					
-					if($chomp == $openPipeline_currentOpenAsset)
-					{
-						$font = "smallBoldLabelFont";
-					}
-
-					iconTextRadioButton 
-						-w 100 -h 20 -style "textOnly"  
-						-l $chomp
-						-font $font
-						-onc ("openPipelineSelectAsset " + $chomp)
-						-ofc ("openPipelineDeSelectAsset " + $chomp)
-						-bgc 1 1 1
-						-collection assetInventory
-						($chomp + "AssetButton");
-
-					openPipelineAssetPopUpMenus($chomp, "assetColumn");
-				}
+					scrollLayout -e -h 130 assetScrollLayout;
+					setParent ..;
 				setParent ..;
 				
 				// Asset Component List
-				columnLayout -h 100 -w 100 -bgc 1 1 1 assetComponentColumn;
-				iconTextRadioCollection assetComponentInventory;			
+				scrollLayout -backgroundColor 1 1 1 -w 100 -h 130 -hst 0 assetComponentScrollLayout;
+					columnLayout -h 100 -w 100 -bgc 1 1 1 assetComponentColumn;
+					iconTextRadioCollection assetComponentInventory;		
+					setParent ..;
 				setParent ..;
-
+				
 				// Asset Information field
 				scrollField -w 210 -height 130 -enable 1 -editable 0 -wordWrap 1 
 					-backgroundColor 1 1 1 -font "smallPlainLabelFont" 
@@ -261,7 +272,6 @@ global proc openPipelineUI()
 							menuItem -label "shade";						
 							menuItem -label "other...";
 						setParent ..;
-						text -l "" -w 25 -align "left";
 						button -label "New Component" -width 100 -h 20 -command "openPipelineNewAssetProcess component";					
 					setParent ..;
 				setParent ..;	
@@ -472,9 +482,34 @@ global proc openPipelineUI()
 //				button -l "save master";
 //				button -l "save workshop";
 
-
-				button -l "ref Editor" -c "ReferenceEditor;";
 				setParent..;
+
+				columnLayout -w 400 -adjustableColumn 1;
+					rowLayout -numberOfColumns 3 -cw3 125 200 75 -cl3 "left" "center" "right";
+						text -label "Sequence Name:" -width 125;
+						string $nameField = `textField -width 200 sequenceNameField`;	
+						button -label "New Seq" -width 75 -command "openPipelineNewSceneProcess sequence sequenceNameField";
+					setParent ..;
+
+					rowLayout -numberOfColumns 3 -cw3 125 200 75 -cl3 "left" "center" "right";
+						text -label "Shot Name:" -width 125;
+						string $nameField = `textField -width 200 shotNameField`;	
+						button -label "New Shot" -width 75 -command "openPipelineNewSceneProcess shot shotNameField";
+					setParent ..;
+		
+					rowLayout -numberOfColumns 4 -cw4 125 150 25 100 -cl4 "center" "center" "right" "center";
+						optionMenuGrp -label "Shot Type:" -cw2 125 150 -columnAlign2 "left" "left" assetComponentTypeMenu;
+							menuItem -label "anim";
+							menuItem -label "light";
+							menuItem -label "effects";						
+							menuItem -label "other...";
+						setParent ..;
+						button 
+							-label "New Shot Type" -width 100 -h 20 
+							-command "openPipelineNewSceneProcess shottype assetComponentTypeMenu";					
+					setParent ..;
+				setParent ..;	
+
 				setParent ..;	
 				//end of Reference Editor frame 
 					
@@ -506,7 +541,7 @@ global proc openPipelineUI()
 		//tabLayout editing, giving tabs diff names
 		//
 		tabLayout -edit
-		  			-tabLabel mainColumnLayout "Assets" -tabLabel secColumnLayout "Scenes" $tabs;
+		  			-tabLabel mainColumnLayout "Asset Management" -tabLabel secColumnLayout "Scene Management" $tabs;
 		//
 		//end of tabLayou editing
 		//-----------------------
@@ -602,11 +637,6 @@ global proc openPipelineAssetPopUpMenus(string $elementName, string $list)
 }
 
 
-
-//
-//proc openPipelineNewAssetProcess
-//function : run proc openPipelineMakeNewAssetTree and refresh UI
-//
 global proc openPipelineNewAssetProcess(string $type)
 {
 	// query ui for data
@@ -629,6 +659,39 @@ global proc openPipelineNewAssetProcess(string $type)
  	// refresh UI
 	openPipelineUI;	
 }
+
+
+global proc openPipelineNewSceneProcess(string $type, string $field)
+{
+	
+	string $name;
+	
+	// query ui for data
+	if($type == "shottype")
+	{
+		$name = "hold";
+	}else{
+		$name = `textField -q -text $field`;
+	}
+	
+	// test to see if asset exists
+	string $currentListItems[] = `openPipelineGetSceneList $type`;
+	string $eachItem;
+	for	($eachItem in $currentListItems)
+	{
+		if($eachItem == $name)
+		{	
+			 error("openPipeline: " + $type + " : " + $name + " exists.\n");
+			 return;
+		}		
+	}
+
+ 	openPipelineMakeNewAssetTree $type $name;
+ 	
+ 	// refresh UI (should just refresh the needed lists)
+	openPipelineUI;	
+}
+
 
 
 global proc openPipelineSelectAsset(string $selectedAsset)
@@ -708,7 +771,7 @@ global proc openPipelineExpandAssetInventory()
 	{
 		deleteUI $button;
 	}
-
+	scrollLayout -e -h 130 assetComponentScrollLayout;
 	int $numAsset = `size($assetFiles)`;
 
 	for($i = 0; $i < $numAsset; $i++)
@@ -742,9 +805,8 @@ global proc openPipelineExpandAssetInventory()
 			-parent assetComponentColumn
 			($chomp + "AssetComponentButton");		
 
-		openPipelineAssetPopUpMenus($chomp, "assetComponentColumn");	
+		openPipelineAssetPopUpMenus($chomp, "assetComponentScrollLayout");	
 	}
-
 	openPipelineLoadAssetNote;
 	
 //	openPipelineUpdateRevisionUI;
@@ -923,8 +985,6 @@ global proc openPipelineUpdateRevisionUI()
 }
 
 
-
-//--- New Added---//
 //For Proj Set up 
 global proc openPipelineProjSelected()
 {
@@ -942,4 +1002,3 @@ global proc openPipelineRefreshUIPos()
 	
 	$openPipeline_winPos = `window -q -tlc openPipelineUI`;
 }
-//-------------//

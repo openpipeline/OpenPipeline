@@ -152,6 +152,15 @@ global proc openPipelineAssetNoteWriter(string $inputMode)
 }
 
 
+global proc openPipelineShotNoteWriter(string $inputMode)
+{
+	
+// nothing.
+	
+	
+}
+
+
 //
 //change the file permission in Window
 //

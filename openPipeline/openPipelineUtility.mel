@@ -189,3 +189,27 @@ global proc string[] openPipelineGetAssetList(string $type)
 	}
 	return $allListItems;
 }
+
+
+global proc string[] openPipelineGetSceneList(string $type)
+{
+
+	string $allListItems[];
+	if($type == "asset")
+	{
+		$allListItems = `iconTextRadioCollection -q -collectionItemArray assetInventory`;
+	}else if($type == "component") {
+		$allListItems = `iconTextRadioCollection -q -collectionItemArray assetComponentInventory`;
+	}
+	 
+	string $eachListItem;
+	$i=0;
+	for($eachListItem in $allListItems)
+	{
+		string $regex = " [+-]";
+ 		$allListItems[$i] = `substitute $regex $eachListItem ""`;
+ 		$i++;
+	}
+	return $allListItems;
+}
+
