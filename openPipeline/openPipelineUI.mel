@@ -84,7 +84,13 @@ global proc openPipelineUI()
 	button -label "Project Manager..." -c "openPipelineProjectUI" projManagerButton;
 	setParent..;
 	textFieldGrp -label "Project Path : " -text $currentProject -editable false projPath;
+
+	textFieldGrp -label "CURRENT OPEN FILE :" -text $openPipeline_currentOpenAssetComponentString -editable false currentFileText;
+
+	setParent ..;
 	setParent..;
+
+
 	//
 	//end of columnLayout infoUI
 	//--------------------------
@@ -173,14 +179,6 @@ global proc openPipelineUI()
 					assetInformation;
 				setParent ..;
 
-				// Currently *opened* file printed here...
-				// robo prototype
-				separator -style "double" -w 410;
-				separator -style "double" -w 410;
-				rowLayout -numberOfColumns 2 -w 410 -cw2 120 290;
-					text -label "CURRENT OPEN FILE:";
-					text -l $openPipeline_currentOpenAssetComponentString currentFileText;
-				setParent ..;
 
 				//----------------------------
 				//UI of Pipeline Tools starts
@@ -228,36 +226,6 @@ global proc openPipelineUI()
 			
 			// New asset frame
 			frameLayout -label "New Asset/Component" -w 410 -collapsable 1 -collapse 0 newAssetLayout;
-
-//				string $newAssetFormLayout = `formLayout -numberOfDivisions 100`;
-//					string $newAssetRow1 = `rowLayout -numberOfColumns 3 -cw3 125 200 75 -cl3 "left" "center" "right" -parent $newAssetFormLayout`;
-//						string $newAssetText = `text -label "Asset Name:" -width 125`;
-//						string $newAssetNameField = `textField -width 200 assetNameField`;	
-//						string $newAssetButton = `button -label "New Asset" -width 75 -command "openPipelineNewAssetProcess asset"`;
-//					setParent ..;
-//	
-//					string $newAssetRow2 = `rowLayout -numberOfColumns 4 -cw4 125 150 25 100 -cl4 "center" "center" "right" "center" -parent $newAssetFormLayout`;
-//						string $newComponentMenuGrp = `optionMenuGrp -label "Component Type:" -cw2 125 150 -columnAlign2 "left" "left" -parent $newAssetFormLayout assetComponentTypeMenu`;
-//							menuItem -label "model";
-//							menuItem -label "rig";
-//							menuItem -label "shade";						
-//							menuItem -label "other...";
-//							setParent ..;
-//						string $newComponentMenuButton = `button -label "New Component" -width 100 -h 20 -parent $newAssetFormLayout -command "openPipelineNewAssetProcess component"`;					
-//					setParent ..;
-//				setParent ..;
-//			 	formLayout -edit
-//			 		-attachForm     $newAssetRow1	"top"    5
-//			 		-attachForm     $newAssetRow1	"left"   5
-//			 		-attachForm		$newAssetRow1	"right"	 5 
-//			 		-attachControl	$newAssetRow1	"bottom" 5 $newAssetRow2
-//
-//			 		-attachControl	$newAssetRow2	"top"    5 $newAssetRow1
-//			 		-attachForm     $newAssetRow2	"left"   5
-//			 		-attachForm		$newAssetRow2	"right"	 5 
-//			 		-attachForm		$newAssetRow2	"bottom" 5 
-//			 	$newAssetFormLayout;
-
 				columnLayout -w 400 -adjustableColumn 1;
 					rowLayout -numberOfColumns 3 -cw3 125 200 75 -cl3 "left" "center" "right";
 						text -label "Asset Name:" -width 125;
@@ -381,7 +349,6 @@ global proc openPipelineUI()
 												($validAsset[$i]+"SelButton");
 										
 												iconTextRadioButton -e -en true ($validAsset[$i]+"SelButton");
-											
 										}
 											
 										for($i =0;$i<`size $invalidAsset`; $i++)
@@ -569,6 +536,8 @@ global proc openPipelineUI()
 		//end of formLayout editing
 		//
 
+	// select the right assets
+	catch("openPipelineSetSelectedAsset");
 
 	// display final window, window position is depending on Global Var $openPipeline_winPos[]
 	window -e -w 430 -h 650 -tlc $openPipeline_winPos[0] $openPipeline_winPos[1] openPipelineUI;
@@ -692,6 +661,22 @@ global proc openPipelineNewSceneProcess(string $type, string $field)
 	openPipelineUI;	
 }
 
+global proc openPipelineSetSelectedAsset()
+{
+	global string $openPipeline_menuCurrentAsset;	
+	global string $openPipeline_menuCurrentAssetComponent;
+
+	iconTextRadioCollection -e
+		-select ($openPipeline_menuCurrentAsset + "AssetButton")
+		assetInventory;
+
+	if($openPipeline_menuCurrentAssetComponent != "")
+	{
+		iconTextRadioCollection -e
+			-select ($openPipeline_menuCurrentAssetComponent + "AssetComponentButton")
+			assetComponentInventory;
+	}	
+}
 
 
 global proc openPipelineSelectAsset(string $selectedAsset)
@@ -749,6 +734,9 @@ global proc openPipelineDeSelectAssetComponent(string $selectedAsset)
 		-bgc 1 1 1 
 		($selectedAsset + "AssetComponentButton");
 }
+
+
+
 
 
 global proc openPipelineExpandAssetInventory()

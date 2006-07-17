@@ -268,8 +268,8 @@ global proc openPipelineUpdateCurrentFileText(string $openType, string $version)
 				" " + $openPipeline_currentOpenAssetComponent + 
 				" " + $openType + " revision : " + $version);
 	
-	text -e 
-		-label $openPipeline_currentOpenAssetComponentString 
+	textFieldGrp -e 
+		-text $openPipeline_currentOpenAssetComponentString 
 		currentFileText;
 }
 
