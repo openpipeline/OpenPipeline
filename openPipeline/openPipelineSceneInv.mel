@@ -1,395 +1,3 @@
-//
-//
-//global proc openPipelineRefreshCurrentRefList(){
-//					string $allRef[] = `openPipelineGetRefFileName "sort"`;
-//					int $sizeRef = size($allRef);
-//						textScrollList -e -ra currentRefList;
-//						textScrollList -e -sc "openPipelineCurrentRefListExpand;" currentRefList;
-//					for($i=0; $i<$sizeRef;$i++)
-//					{
-//						textScrollList -e -append $allRef[$i] currentRefList;	
-//					}		
-//			}
-////
-////Not Done
-////
-//global proc openPipelineCurrentRefListExpand()
-//{
-//	string $refPath[] = `file -q -r`;
-//	string $selItem[]=`textScrollList -q -si currentRefList`;
-//	int $selItemIdx[]=`textScrollList -q -sii currentRefList`;
-//	string $refList[]= `openPipelineGetRefFileName "sort"`;
-//	string $refExist[] = `openPipelineGetRefFileName "all"`;
-//	$selItem[0] = `substitute "\\*.*" $selItem[0] ""`;
-//	int $tempID = ($selItemIdx[0]-1);
-//	string $me[] = `reference -f $refPath[$tempID] -q -node`;
-//	select -r $me;
-//	string $he[] = `ls -sl -dag -transforms`;
-//}
-////
-////
-////
-//
-//	
-//global proc string[] openPipelineGetRefFileName(string $inputMode)
-//{
-//	string $refPath[] = `file -q -r`;
-//	string $refName[];
-//	string $outRefName[];
-//	int $refSize = size($refPath);
-//	
-//	for($i = 0 ; $i <$refSize; $i++)
-//	{
-//		string $tempRef[];
-//		$refName[$i] = `substitute ".*/" $refPath[$i] ""`;
-//		$tempRef = `stringToStringArray $refName[$i] "{"`;
-//		$refName[$i] = $tempRef[0];
-//	}
-//	switch($inputMode)
-//	{
-//		case "all":
-//		$outRefName = $refName;
-//		break;
-//		
-//		case "sort":
-//		string $noDup[] = sort(stringArrayRemoveDuplicates($refName));
-//	
-//	int $sizeNoDup = `size $noDup`;
-//	for($i = 0;$i<$sizeNoDup; $i++)
-//	{		
-//		string $whoAmI = $noDup[$i];
-//		//print ("****"+$whoAmI+"\n");
-//		string $assetName = `substitute "\\..*" $whoAmI ""`;
-//		int $countMe = stringArrayCount($whoAmI, $refName);
-//		$outRefName[$i] = ($assetName + "  *  " + $countMe);
-//	}
-//	break;
-//}	
-//	
-//return $outRefName;
-//}
-//
-////
-////
-//
-////global proc openPipelineGrabFileList(string $input_menuName, string $input_listName)
-////{
-////	global int $openPipeline_currentProjIndex;
-////	string $currentProject = `textFieldGrp -q -text projPath`;
-////	string $libPath = ($currentProject + "/lib/");
-////	string $scenePath = ($currentProject + "/scenes/");
-////	string $input_Type = `optionMenuGrp -q -v availableRefMenu`;
-////	string $assetPath;
-////	string $assetFiles[]={};
-////	switch($input_Type)
-////	{
-////		case "model":
-////		$assetPath = ($libPath + "model/");
-////		$assetFiles = `getFileList -folder ($libPath + "model/")`;
-////		
-////		print $assetFiles;
-////		break;
-////		
-////		case "rig":
-////		$assetPath = ($libPath + "rig/");
-////		$assetFiles = `getFileList -folder ($libPath + "rig/")`;
-////		break;
-////		
-////		case "animation":
-////		string $sceneFiles[] = `getFileList -folder $scenePath`;
-////		for($file in $sceneFiles)
-////		{
-////			$assetPath = ($scenePath + $file + "/anim");
-////			if(`filetest -d ($scenePath + $file + "/anim")`)
-////			{
-////				int $tempFoo = `size($assetFiles)`;				
-////				$assetFiles[$tempFoo] = $file;
-////			}	   
-////		}
-////		break;
-////		
-////		case "lighting":
-////		string $sceneFiles[] = `getFileList -folder $scenePath`;
-////		for($file in $sceneFiles)
-////		{
-////			if(`filetest -d ($scenePath + $file + "/light")`)
-////			{
-////				$assetPath = ($scenePath + $file + "/light");
-////				int $tempFoo = `size($assetFiles)`;				
-////				$assetFiles[$tempFoo] = $file;
-////			}	   
-////		}
-////		break;
-////	}
-////	 
-////	int $numAssets = `size($assetFiles)`;	
-////	
-////	textScrollList -e -ra $input_listName;
-////	
-////	for($i = $numAssets-1; $i >=0; $i--)
-////	{
-////		string $chomp = `match "^[a-zA-Z_0-9]+" $assetFiles[$i]`;
-////		
-////		print $chomp;
-////		//check if the master files exist for ref in
-////		//print ($assetPath+$assetFiles[$i]+"/"+$assetFiles[$i]+"_"+$input_Type+".mb\n");
-////		if(`filetest -f ($assetPath+$assetFiles[$i]+"/"+$assetFiles[$i]+"_"+$input_Type+".mb")`)
-////		{
-////			textScrollList -e -append $chomp $input_listName;
-////			}	 	
-////		
-////	}
-////	
-////}
-////	
-////global proc openPipelineClearRefMenu(string $input_SelectedMenu)
-////{
-////	string $removeMe[];
-////	string $allList[] = {"currentRefList", "newRefList","availableAssetList"};
-////	$removeMe[0] = $input_SelectedMenu;
-////	string $disableList[] = stringArrayRemove($removeMe, $allList);
-////	
-////	for($thisList in $disableList)
-////	{
-////		textScrollList -e -da $thisList;
-////	} 	
-////}
-//
-//
-//global proc string[] openPipelineAddRefContent(string $inputString[], string $inputSelection[])
-//{
-//	string $input_Type = `optionMenuGrp -q -v availableRefMenu`;
-//	string $space = "  *  ";
-//	string $outputArray[];
-//	int $exist=0;
-//	int $sizeArray = `size $inputString`;
-//	string $nameInSel = ($input_Type+"::"+$inputSelection[0]);
-//	if($sizeArray!=0)
-//	{
-//		for($i=0; $i<$sizeArray; $i++)
-//		{
-//			
-//			string $tempArray[] = stringToStringArray($inputString[$i], $space);
-//	    string $tempName = `strip $tempArray[0]`;
-//
-//				if($tempArray[0] == $nameInSel)
-//				{	
-//							$exist = 1;
-//							$tempArray[1] = string(int($tempArray[1])+1);
-//							$outputArray[0] = ($tempArray[0]+$space + $tempArray[1]);
-//							textScrollList -e -rii ($i+1) newRefList;
-//							textScrollList -e -ap ($i+1) $outputArray[0] newRefList;
-//							break;							
-//				}
-//		}
-//		if($exist == 0)
-//		{
-//		$outputArray[0] = ($nameInSel+$space + "1");
-//		$outputArray[1] = $sizeArray;
-//		textScrollList -e -append $outputArray[0] newRefList;	
-//			}
-//		
-//	}else{
-//		$outputArray[0] = ($nameInSel+$space + "1");
-//		$outputArray[1] = $sizeArray;
-//		textScrollList -e -append $outputArray[0] newRefList;	
-//		}
-//		
-//		return $outputArray;
-//}
-//
-//global proc string[] openPipelineRemoveRefContent(string $inputString[], string $inputSelection[])
-//{
-//	string $space = "  *  ";
-//	string $outputArray[];
-//	int $exist=0;
-//	int $sizeArray = `size $inputString`;
-//	
-//	if($sizeArray!=0)
-//	{
-//		for($i=0; $i<$sizeArray; $i++)
-//		{
-//			
-//			string $tempArray[] = `stringToStringArray $inputString[$i] $space`;
-//	    string $tempName = `strip $tempArray[0]`;
-//			$tempArray[1] = string(int($tempArray[1])-1);
-//			
-//				if($inputString[$i] == $inputSelection[0])
-//				{	
-//					
-//					if($tempArray[1]==0)
-//					{
-//						$outputArray[0] = ($tempArray[0]+$space+$tempArray[1]);
-//						textScrollList -e -rii ($i+1) newRefList;	
-//					}else{
-//							$outputArray[0] = ($tempArray[0]+$space+$tempArray[1]);
-//							$outputArray[1] = $i;	
-//							textScrollList -e -rii ($i+1) newRefList;							
-//							textScrollList -e -ap ($i+1) $outputArray[0] newRefList;	
-//							break;							
-//					}
-//				}
-//		 }
-//	}
-//		
-//		
-//		return $outputArray;
-//}
-//
-//global proc openPipelineRefIn()
-//{
-//	global int $openPipeline_currentProjIndex;
-//	string $currentProject = `textFieldGrp -q -text projPath`;
-//	string $libPath = ($currentProject + "/lib/");
-//	//print ($libPath+"\n");
-//	string $assetPath;
-//	string $scenePath = ($currentProject + "/scenes/");
-//	
-//string $selItem[] = `textScrollList -q -ai newRefList`;
-//for($eachSel in $selItem)
-//{
-//	string $refObj[] = stringToStringArray($eachSel, "::");
-//	string $typeAndNum[] = stringToStringArray($refObj[1], " * ");
-//	//print ("typeMe \n");
-//	//print $typeAndNum;
-//	switch($refObj[0])
-//	{
-//		case "model":
-//		$assetPath = ($libPath + "model/");
-//		//print ("asset = "+$assetPath+"\n");
-//		break;
-//		
-//		case "rig":
-//		$assetPath = ($libPath + "rig/");
-//		break;
-//		
-//		/*not yet
-//		case "animation":
-//		string $sceneFiles[] = `getFileList -folder $scenePath`;
-//		for($file in $sceneFiles)
-//		{
-//			$assetPath = ($scenePath + $file + "/anim");
-//			if(`filetest -d ($scenePath + $file + "/anim")`)
-//			{
-//				int $tempFoo = `size($assetFiles)`;				
-//				$assetFiles[$tempFoo] = $file;
-//			}	   
-//		}
-//		break;
-//		
-//		case "lighting":
-//		string $sceneFiles[] = `getFileList -folder $scenePath`;
-//		for($file in $sceneFiles)
-//		{
-//			if(`filetest -d ($scenePath + $file + "/light")`)
-//			{
-//				$assetPath = ($scenePath + $file + "/light");
-//				int $tempFoo = `size($assetFiles)`;				
-//				$assetFiles[$tempFoo] = $file;
-//			}	   
-//		}
-//		break;
-//		*/
-//		
-//	}
-//	//ref in
-//	string $refPath = ($assetPath+$typeAndNum[0]+"/"+$typeAndNum[0]+"_"+$refObj[0]+".mb");
-//	//print ("ref path = "+$refPath+"\n");
-//	for($i=0;$i<int($typeAndNum[1]);$i++)
-//	{
-//  file -r -type "mayaBinary" -gl -namespace $refObj[0] -options "v=0" $refPath;
-//	}
-//	}
-//	textScrollList -e -ra newRefList;
-//	openPipelineRefreshCurrentRefList;	
-//}
-//
-///*	
-//global openPipelineRefOut()
-//{
-//		
-//}
-//*/
-//global proc string[] openPipelineGetNewRefListInfo(string $inputMode, string $inputString[],string $inputSel[], string $space)
-//{
-//	string $space = "  *  ";
-//	string $outVal;
-//	string $outputArray[];
-//	int $sizeArray = `size $inputString`;	
-//	if($sizeArray!=0)
-//	{
-//		for($i=0; $i<$sizeArray; $i++)
-//		{
-//			
-//			string $tempArray[] = `stringToStringArray $inputString[$i] $space`; 
-//					switch($inputMode)			
-//					{
-//						case "refName":
-//							string $tempName = `strip $tempArray[0]`;
-//							$outputArray[$i] = $tempName;
-//						break;
-//						case "refAmount":
-//							string $tempNum = `strip $tempArray[1]`;
-//							$outputArray[$i] = $tempNum;
-//						break;
-//					}							
-//			}
-//	}
-//		
-//		return $outputArray;
-//}
-//
-//
-//global proc openPipelineRefManagement(string $inputMode)
-//{
-//	string $space = "  *  ";
-//	switch($inputMode)
-//	{
-//		case "addSel":
-//		//
-//		//check if exists, if yes do follow else create one.
-//		//
-//			int $numSelItem = `textScrollList -q -nsi availableAssetList`;
-//			if($numSelItem>0){
-//				string $selItem[] = `textScrollList -q -si availableAssetList`;				
-//				string $oriItem[] = `textScrollList -q -ai newRefList`;			
-//				//string $allItem[] = `openPipelineClearSpecificString $oriItem $space`;
-//				openPipelineAddRefContent $oriItem $selItem; 
-//			}
-//		break;
-//		
-//		case "removeSel":
-//		//
-//		//check amount if ==0 do follow else decrease the amount
-//		//
-//			int $numSelItem = `textScrollList -q -nsi newRefList`;
-//			if($numSelItem>0)
-//			{
-//				int $selItemIndex[] = `textScrollList -q -sii newRefList`;
-//				string $oriItem[] = `textScrollList -q -ai newRefList`;
-//				string $selItem[] = `textScrollList -q -si newRefList`;
-//				openPipelineRemoveRefContent $oriItem $selItem; 
-//			
-//				//textScrollList -e -rii $selItemIndex[0] newRefList;
-//				
-//				
-//					//selItem in newRefList
-//					int $totalItem = `textScrollList -q -ni newRefList`;			
-//			
-//					if($totalItem>0){
-//						if($totalItem<$selItemIndex[0])
-//						{
-//							textScrollList -e -sii $totalItem newRefList;
-//						}else{
-//							textScrollList -e -sii $selItemIndex[0] newRefList;
-//						}
-//					}
-//			}
-//		
-//		break;
-//	} 
-//}
-
 // 07/03/2006
 // proc name: openPipelineExistedSceneOrAsset
 // function: return a string array which can be
@@ -400,28 +8,16 @@
 //
 // Need to improve: master file check for scene.
 //
-
-global proc string[] openPipelineExistedSceneOrAsset(string $inputType, string $inputMode)
+global proc string[] openPipelineExistedAsset(string $inputMode)
 { 
 		string $validation[];
 		string $chomp[];
 		string $currentProject = `textFieldGrp -q -text projPath`;
-		string $thePath;
-		string $extension;
 		
-		//
-		//need to be fixed depends on the structure of the scenes
-		//
-		switch($inputType){
-		case "scene":
-		$thePath = ($currentProject + "/scenes/");
-		$extension = ".mb";
-		break;
-		case "asset":
-		$thePath = ($currentProject + "/lib/");
-		$extension = "_asset.mb";
-		break;		
-		}
+		
+		string $thePath = ($currentProject + "/lib/");
+		string $extension = "_asset.mb";
+	
 		
 		string $theFiles[] = `getFileList -folder $thePath`;
 		string $outStr[];
@@ -487,7 +83,101 @@ global proc string[] openPipelineExistedSceneOrAsset(string $inputType, string $
 		
 			 return $outStr;
 	}
+	
+//
+//existed seq
+//
+global proc string[] openPipelineExistedSeq(string $inputMode)
+{ 
+		string $validation[];
+		string $chomp[];
+		string $currentProject = `textFieldGrp -q -text projPath`;	
+		string $outStr[];
+		string $fullPath[];
+		string $extension = ".mb";
+		string $seqPath = ($currentProject + "/scenes/");			
+		string $seqFiles[] = `getFileList -folder $seqPath`;
+		int $order=0;
+		
+		int $iMax = `size $seqFiles`;		
+		for($i = 0; $i<$iMax;$i++)
+		{
+			string $shotPath = ($seqPath+$seqFiles[$i]+"/");
+			string $shotFiles[] = `getFileList -folder $shotPath`;
+			int $jMax = `size $shotFiles`;
+			for($j = 0; $j < $jMax; $j++)
+			{
+				string $typeFolderPath = ($shotPath+$shotFiles[$j]+"/");
+				string $typeFolders[] = `getFileList -folder $typeFolderPath`;
+				int $kMax = `size $typeFolders`;
+				for($k = 0; $k < $kMax ; $k++)
+				{				
+					string $typeFilePath = ($typeFolderPath+$typeFolders[$k]+"/");
+					string $typeFiles[] = `getFileList -folder $typeFilePath`;					
+					$chomp[$order]= ($seqFiles[$i]+"_"+$shotFiles[$j]+"_"+$typeFolders[$k]);
+					string $expectedMasterFile = ($typeFilePath + $chomp[$order] + $extension);
+					$fullPath[$order] = $expectedMasterFile;
+							
+					int $masterExists = `filetest -f $expectedMasterFile`;
+					if($masterExists)
+					{
+						$validation[$order] = "true";
+					}else{
+						$validation[$order] = "false";	
+					}	
+					$order++;		 
+				}				 
+			}
+		}
 
+		switch($inputMode)
+		{
+			case "fullPath":
+			$outStr = $fullPath;
+			break;
+			
+			case "list":
+			$outStr = $chomp;
+			break;
+			
+			case "validList":
+				string $tempList[];
+				int $k = 0;
+				for($i=0;$i<`size $validation`;$i++)
+				{
+					if($validation[$i] == "true")
+					{
+						$tempList[$k] = $chomp[$i];
+						$k++;
+						}
+					}
+				$outStr = $tempList;
+			break;
+			
+			case "invalidList":
+				string $tempList[];
+				int $k = 0;
+				for($i=0;$i<`size $validation`;$i++)
+				{
+					if($validation[$i] == "false")
+					{
+						$tempList[$k] = $chomp[$i];
+						$k++;
+						}
+					}
+				$outStr = $tempList;
+			break;
+			
+			case "validation":
+			$outStr = $validation;
+			break;
+		}
+		
+			 return $outStr;
+	}
+	
+//
+//
 // 07/09/2006
 // proc name: openPipelineExistedRefAsset
 // function: get the existed refence info that are related to assets
@@ -501,21 +191,15 @@ global proc string[] openPipelineExistedRefAsset(string $inputMode)
    int $m = $n = $k = $j = 0;
 	 string $assetShortName[], $otherShortName[];
    string $allRef[] = `file -q -r -rfn`;
-	 string $allAssetPath[] = `openPipelineExistedSceneOrAsset asset fullPath`;
+	 string $allAssetPath[] = `openPipelineExistedAsset fullPath`;
    
    
    for ( $i = 0; $i<`size $allAssetPath`; $i++)
    {   		
    		for($me in $allRef){
    			string $tempMe = `match "[^{]*" $me`;
-   			
-//   			print "\n*********************\n";
-//   			print ("In1 : "+$me+"\n");
-//	   		print ("In2 : "+$tempMe+"\n");
-//	   		print ("Path : "+$allAssetPath[$i]+"\n");
-//	   		print `gmatch $tempMe $allAssetPath[$i]`;
-//	   		print "\n*********************\n";
-	   		
+   				   		//print $tempMe;
+   				   		//print "\n++++++++++++";
 	   		 if(`gmatch $tempMe $allAssetPath[$i]`){
 	   		
 	   			$allRefAsset[$m] = $me;
@@ -552,3 +236,309 @@ global proc string[] openPipelineExistedRefAsset(string $inputMode)
 
    return $outStr;
 }
+
+//
+//
+//*****
+//
+global proc string[] openPipelineExistedRefSeq(string $inputMode)
+{
+	 string $outStr[];
+	 string $allRefSeq[],$refSeqLoaded[];
+	 string $allRefOthers[],$refOthersLoaded[];
+   int $m = $n = $k = $j = 0;
+	 string $seqShortName[], $otherShortName[];
+   string $allRef[] = `file -q -r -rfn`;
+	 string $allSeqPath[] = `openPipelineExistedSeq fullPath`;
+   
+
+   for ( $i = 0; $i<`size $allSeqPath`; $i++)
+   {   		
+   		for($me in $allRef){
+   			string $tempMe = `match "[^{]*" $me`;
+   				   		
+	   		 if(`gmatch $tempMe $allSeqPath[$i]`){
+	   		
+	   			$allRefSeq[$m] = $me;
+	   			string $tempSeqName = `match "[^/]*$" $tempMe`;
+		      $tempSeqName = `match "[^.]*" $tempSeqName`;
+		      $seqShortName[$m++] = $tempSeqName;
+	   			 
+	   		  if( !`file -q -dr $me` )
+	   			{
+	         $refSeqLoaded[$n++] = "true";
+	        }else{
+	         $refSeqLoaded[$n++] = "false";
+	        }
+	        
+	   		}
+   	}
+  }
+     
+   switch($inputMode)
+   {   	
+   	case "loadingCheck":
+   		$outStr = $refSeqLoaded;
+   	break;
+   	
+   	case "fileName":   	  
+   		$outStr = $allRefSeq;   		
+   	break;  
+   	
+   	case "shortName":
+	   $outStr = $seqShortName;
+   	break; 	   	
+   }
+   	
+
+   return $outStr;
+}
+
+
+// 07/22/2006
+// 3 procs that creats the file tree UI
+// can be improved, combine into one or two proc.
+//
+global proc openPipelineSeqFileTreeUI()
+{
+string $currentProject = `textFieldGrp -q -text projPath`;
+string $scenePath = $currentProject+"/scenes/";
+string $theSeqs[] = `getFileList -folder $scenePath`;
+string $uiScript;
+
+for($i=0; $i<`size $theSeqs`;$i++)
+{
+$uiScript += "columnLayout ";
+$uiScript += ("col_"+$theSeqs[$i]+";\n");
+$uiScript += "rowLayout -nc 2 -cw2 20 175;\n";
+$uiScript += "columnLayout;\n";
+
+string $expand;
+string $seqPath = $scenePath+$theSeqs[$i]+"/";
+string $theShots[] = `getFileList -folder $scenePath`;
+
+if(`size $theShots`>0)
+{
+$expand = "+";
+}else{
+$expand = "x";
+}
+
+if($expand == "x")
+{
+$uiScript += "iconTextButton -en fasle -w 20 -h 20 -st \"textOnly\" -l ";
+}else{
+$uiScript += "iconTextButton -en true -w 20 -h 20 -st \"textOnly\" -l ";
+	}
+
+$uiScript += "\"";
+$uiScript += $expand;
+$uiScript += "\"";
+$uiScript += " -c ";
+$uiScript += "\"openPipelineShotFileTreeUI";
+$uiScript += (" "+$theSeqs[$i]+"\" ");
+$uiScript += (" iTB_"+$theSeqs[$i]+";\n");
+
+$uiScript += "setParent..;\n";	
+$uiScript += "columnLayout ;\n";
+if($expand == "x")
+{
+$uiScript += "text -en false -align \"left\" -w 175 -h 20 -l ";
+}else{
+$uiScript += "text -en true -align \"left\" -w 175 -h 20 -l ";	
+	}
+$uiScript += "\"";
+$uiScript += $theSeqs[$i];
+$uiScript += "\";\n";
+$uiScript += "setParent..;\n";			
+$uiScript += "setParent..;\n";		
+$uiScript += "setParent..;\n";
+}
+
+eval $uiScript;
+}
+
+
+global proc openPipelineShotFileTreeUI(string $inputSeq)
+{
+	string $uiScript;
+	string $seqiTB = ("iTB_"+$inputSeq);
+	string $expand = `iconTextButton -q -l $seqiTB`;
+
+	switch($expand)
+	{
+	case "+":
+		string $currentProject = `textFieldGrp -q -text projPath`;
+		string $seqPath = ($currentProject+"/scenes/"+$inputSeq+"/");	
+		string $theShots[] = `getFileList -folder $seqPath`;
+		
+		for($i=0;$i<`size $theShots`;$i++)
+		{	
+			$uiScript += "columnLayout -p ";
+			$uiScript += ("col_"+$inputSeq+" ");
+			$uiScript += ("col_"+$inputSeq+"_"+$theShots[$i]+";\n");		
+			$uiScript += "rowLayout -nc 2 -cw2 20 175 -ct2 \"left\" \"left\" -co2 10 10;\n";	
+			$uiScript += "columnLayout;\n";
+			
+			if(`size $theShots`>0)
+			{
+			$expand = "+";
+			}else{
+			$expand = "x";
+			}
+			
+			if($expand == "x")
+			{
+			$uiScript += "iconTextButton -en fasle -w 20 -h 20 -st \"textOnly\" -l ";
+			}else{
+			$uiScript += "iconTextButton -en true -w 20 -h 20 -st \"textOnly\" -l ";
+			}
+			
+			$uiScript += "\"";
+			$uiScript += $expand;
+			$uiScript += "\"";
+			$uiScript += " -c ";
+			$uiScript += "\"openPipelineTypeFileTreeUI";
+			$uiScript += (" "+$inputSeq+" "+$theShots[$i]+"\" ");
+			$uiScript += (" iTB_"+$inputSeq+"_"+$theShots[$i]+";\n");
+			
+			$uiScript += "setParent..;\n";	
+			
+				
+			$uiScript += "columnLayout;\n";
+			$uiScript += "text -align \"left\" -w 175 -h 20 -l ";
+			$uiScript += "\"";
+			$uiScript += $theShots[$i];
+			$uiScript += "\";\n";
+			$uiScript += "setParent..;\n";
+			$uiScript += "setParent..;\n";
+			$uiScript += "setParent..;\n";
+		}
+		
+		eval $uiScript;
+		iconTextButton -e -l "-" $seqiTB;
+	break;
+	
+	case "-":
+		string $childCol[] = `columnLayout -q -ca ("col_"+$inputSeq)`;
+		for($i=1;$i<`size $childCol`;$i++)
+		{
+			deleteUI $childCol[$i];
+			}
+		iconTextButton -e -l "+" $seqiTB;
+	break;
+}
+
+}
+
+global proc openPipelineTypeFileTreeUI(string $inputSeq, string $inputShot)
+{
+	string $uiScript;
+	string $shotiTB = ("iTB_"+$inputSeq+"_"+$inputShot);
+	string $expand = `iconTextButton -q -l $shotiTB`;
+	
+	switch($expand)
+	{
+	case "+":
+	string $currentProject = `textFieldGrp -q -text projPath`;
+	string $shotPath = ($currentProject+"/scenes/"+$inputSeq+"/"+$inputShot+"/");	
+	string $theTypes[] = `getFileList -folder $shotPath`;
+	
+	
+	for($i=0;$i<`size $theTypes`;$i++)
+	{	
+		$uiScript += "columnLayout -p ";
+		$uiScript += ("col_"+$inputSeq+"_"+$inputShot+" ");
+		$uiScript += ("col_"+$inputSeq+"_"+$inputShot+"_"+$theTypes[$i]+";\n");		
+		$uiScript += "rowLayout -nc 2 -cw2 5 185 -ct2 \"left\" \"left\";\n";	
+		$uiScript += "columnLayout;\n";
+		$uiScript += "text -w 5 -h 20 -l \"\";\n";
+		$uiScript += "setParent..;\n";	
+		
+		string $expectedMasterFile = ($shotPath+$theTypes[$i]+"/"+$inputSeq+"_"+$inputShot+"_"+$theTypes[$i]+".mb");
+		int $masterExists = `filetest -f $expectedMasterFile`;
+		
+		
+		$uiScript += "columnLayout;\n";
+		
+		if($masterExists)
+		{
+		$uiScript += "iconTextButton -en true -w 175 -h 20 -st \"textOnly\" -l ";
+		}else{
+		$uiScript += "iconTextButton -en flase -w 175 -h 20 -st \"textOnly\" -l ";
+		}
+
+		$uiScript += "\"";
+		$uiScript += $theTypes[$i];
+		$uiScript += "\" -align \"left\"";
+		$uiScript += " -c ";
+		$uiScript += "\"openPipelineCreateReference seq";
+		$uiScript += (" "+"\\"+"\""+$expectedMasterFile+"\\"+"\""+"\" ");
+		$uiScript += (" iTB_"+$inputSeq+"_"+$inputShot+"_"+$theTypes[$i]+";\n");
+		$uiScript += "setParent..;\n";
+		$uiScript += "setParent..;\n";
+		$uiScript += "setParent..;\n";
+		}
+	
+	eval $uiScript;
+	iconTextButton -e -l "-" $shotiTB;
+	break;
+	
+	case "-":
+	string $childCol[] = `columnLayout -q -ca ("col_"+$inputSeq+"_"+$inputShot)`;
+	for($i=1;$i<`size $childCol`;$i++)
+	{
+		deleteUI $childCol[$i];
+		}
+	iconTextButton -e -l "+" $shotiTB;
+	break;
+}
+
+}
+
+//
+//
+//
+global proc openPipelineAdjustScrollLayout(string $inputName, int $height)
+{
+		scrollLayout -e -h $height $inputName; 			
+	}
+
+global proc openPipelineRefLoadingBoxWrapper(string $inputName, int $inputNum)
+{
+	string $checkBoxName = $inputName+"_"+$inputNum+"_loadBox";
+	string $iconTextName = $inputName+"_"+$inputNum+"_SelButton";
+	int $load = `checkBox -q -v $checkBoxName`;
+	string $path = `iconTextRadioButton -q -ann $iconTextName `;
+	string $refNode = `file -q -rfn $path`;
+	if($load)
+	{
+		file -lr $refNode;
+	}else{
+		file -ur $refNode;
+}
+
+}
+
+global proc openPipelineCreateReference(string $inputMode, string $inputPath)
+{
+	string $path;
+	switch($inputMode)
+	{
+		case "seq":
+		$path = $inputPath;
+		break;
+		
+		case "asset":
+		string $currentProject = `textFieldGrp -q -text projPath`;
+		$path = ($currentProject+"/lib/"+$inputPath+"/"+$inputPath+"_asset.mb");	
+		break;
+		}
+	file -r $path;
+	//then
+	//refresh ref inv.
+	//....
+	//....not yet..
+	//
+	}
+
