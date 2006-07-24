@@ -327,7 +327,7 @@ global proc openPipelineUI()
 												-w 155 -h 20 -style "textOnly"  							
 												-l $validAsset[$i]
 												-font $font
-												-c ""
+												-c ("openPipelineCreateReference asset "+$validAsset[$i])
 												-bgc 1 1 1 												
 												($validAsset[$i]+"_"+$i+"_"+"SelButton");									
 												
@@ -363,87 +363,9 @@ global proc openPipelineUI()
 								text -l "Ref:";
 								setParent..;
 																
-								columnLayout;
-								
-									scrollLayout -backgroundColor 1 1 1 -w 240 -hst 0 -vst 0 allRefScroll;													
-									//
-									columnLayout -cw 240 -h 200 ;
-										//text -l "Seq_Shot_Type" -h 20 -w 195;
-									rowLayout -nc 3 -h 20 -cw3 20 20 160;
-										columnLayout refC1;
-										setParent..;
-										columnLayout refC2;
-										iconTextRadioCollection allRefInventory;
-										setParent..;
-									setParent..;			
-															
-										string $existedRefSeq[] = `openPipelineExistedRefSeq shortName`;
-										string $seqLoadingCheck[] = `openPipelineExistedRefSeq loadingCheck`;
-										string $existedRefSeqPath[] = `openPipelineExistedRefSeq fileName`;
-										for($i =0;$i<`size $existedRefSeq`; $i++)
-										{
-											string $font = "plainLabelFont";
-											int $load;
-												if($seqLoadingCheck[$i]=="true")
-												{
-													$load = 1;
-												}else{
-													$load = 0;
-													}
-													string $cCommand = ("openPipelineRefLoadingBoxWrapper "+$existedRefSeq[$i]+" "+$i+";");
-												checkBox -l "" -v $load -cc $cCommand -w 20 -h 20 -p refC1 ($existedRefSeq[$i]+"_"+$i+"_"+"loadBox");							
-											
-												iconTextRadioButton 
-												-w 200 -h 20 -style "textOnly"  							
-												-l $existedRefSeq[$i]
-												-font $font
-												-onc ""
-												-ofc ""
-												-bgc 1 1 1
-												-ann $existedRefSeqPath[$i]
-												-p refC2
-												-collection allRefInventory
-												($existedRefSeq[$i]+"_"+$i+"_"+"SelButton");
-										
-												iconTextRadioButton -e -en true ($existedRefSeq[$i]+"_"+$i+"_"+"SelButton");
-										}	
-						
-										//text -l "Asset" -h 20 -w 240;
-										string $existedRefAsset[] = `openPipelineExistedRefAsset shortName`;
-										string $assetLoadingCheck[] = `openPipelineExistedRefAsset loadingCheck`;
-										string $existedRefAssetPath[] = `openPipelineExistedRefAsset fileName`;
-										for($i =0;$i<`size $existedRefAsset`; $i++)
-										{
-											string $font = "plainLabelFont";
-												
-												int $load;
-												if($assetLoadingCheck[$i]=="true")
-												{
-													$load = 1;
-												}else{
-													$load = 0;
-													}
-												checkBox -l "" -v $load -w 20 -h 20 -p refC1 ($existedRefAsset[$i]+"_"+$i+"_"+"loadBox");
-											
-												
-												iconTextRadioButton 
-												-w 200 -h 20 -style "textOnly"  							
-												-l $existedRefAsset[$i]
-												-font $font
-												-onc ""
-												-ofc ""
-												-bgc 1 1 1
-												-ann $existedRefAssetPath[$i]
-												-p refC2 
-												-collection allRefInventory
-												($existedRefAsset[$i]+"_"+$i+"_"+"SelButton");
-										
-												iconTextRadioButton -e -en true ($existedRefAsset[$i]+"_"+$i+"_"+"SelButton");
-										}				 
-									//
-									scrollLayout -e -rc "openPipelineAdjustScrollLayout allRefScroll 200" -h 200 allRefScroll;
-									setParent..;
-									setParent..;
+								columnLayout col_RefInv;
+								openPipelineRefInvUI;
+
 								setParent..;
 									
 								columnLayout;
