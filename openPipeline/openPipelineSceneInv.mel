@@ -301,18 +301,25 @@ global proc string[] openPipelineExistedRefSeq(string $inputMode)
 //
 global proc openPipelineSeqFileTreeUI()
 {
+	
 string $currentProject = `textFieldGrp -q -text projPath`;
 string $scenePath = $currentProject+"/scenes/";
 string $theSeqs[] = `getFileList -folder $scenePath`;
-string $uiScript;
+string $uiScript="";
 
+if(!`size $theSeqs`)
+{
+	//$uiScript += "columnLayout ";
+	$uiScript += "text -en false -align \"left\" -w 175 -h 20 -l \"no Seq exists!\";";
+	//$uiScript += "setParent..;\n";	
+}else{
 for($i=0; $i<`size $theSeqs`;$i++)
 {
 $uiScript += "columnLayout ";
 $uiScript += ("col_"+$theSeqs[$i]+";\n");
 $uiScript += "rowLayout -nc 2 -cw2 20 175;\n";
 $uiScript += "columnLayout;\n";
-
+	print ($uiScript+"\n******\n");
 string $expand;
 string $seqPath = $scenePath+$theSeqs[$i]+"/";
 string $theShots[] = `getFileList -folder $scenePath`;
@@ -326,7 +333,7 @@ $expand = "x";
 
 if($expand == "x")
 {
-$uiScript += "iconTextButton -en fasle -w 20 -h 20 -st \"textOnly\" -l ";
+$uiScript += "iconTextButton -en false -w 20 -h 20 -st \"textOnly\" -l ";
 }else{
 $uiScript += "iconTextButton -en true -w 20 -h 20 -st \"textOnly\" -l ";
 	}
@@ -354,7 +361,7 @@ $uiScript += "setParent..;\n";
 $uiScript += "setParent..;\n";		
 $uiScript += "setParent..;\n";
 }
-
+}
 eval $uiScript;
 }
 

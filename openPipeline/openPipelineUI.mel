@@ -290,33 +290,37 @@ global proc openPipelineUI()
 				//proc openPipelineGetProjList
 				//located in openPipelineUtility.mel
 				//frameLayout -label "Reference Creator" -collapsable 1 -collapse 0 -w 410 -ec "openPipelineGrabFileList availableRefMenu availableAssetList;";
-					columnLayout;
-												
-						rowLayout -numberOfColumns 2 -w 410 -h 440 -cw2 160 250;		
-							columnLayout -columnAttach "left" 5 -cw 160 -h 440;	
-															
-								columnLayout -h 20;
+					
+					//problem starts here
+					columnLayout;//c
+											
+						rowLayout -numberOfColumns 2 -w 410 -h 440 -cw2 160 250;//rA		
+							columnLayout -columnAttach "left" 5 -cw 160 -h 440;//cA	
+														
+								columnLayout -h 20;//cAa
+								
 								text -l "Scenes:";
-								setParent..;
+								setParent..;//cAa
 								
-								columnLayout;
-								scrollLayout -w 155 -hst 0 -vst 0 allSceneScroll;
-									columnLayout -cw 155 -h 200;				
-										openPipelineSeqFileTreeUI;										
-										
-										setParent..;
-										scrollLayout -e -rc "openPipelineAdjustScrollLayout allSceneScroll 200;" -h 200 allSceneScroll;	 
-									setParent..;
 								
-								setParent..;
+								columnLayout;//cAb
+									scrollLayout -w 155 -hst 0 -vst 0 allSceneScroll;//cAba
+										columnLayout -cw 155 -h 200;//cAbaa				
+											openPipelineSeqFileTreeUI;									
+										setParent..;//cAbaa	 
+									scrollLayout -e -rc "openPipelineAdjustScrollLayout allSceneScroll 200;" -h 200 allSceneScroll;										
+									setParent..;//cAba								
+								setParent..;//cAb
 								
-								columnLayout;
+								
+								columnLayout;//cAc
 								text -l "Asset:";
-								setParent..;
+								setParent..;//cAc
 								
-								columnLayout;
-								scrollLayout -backgroundColor 1 1 1 -w 155 -hst 0 -vst 0 allAssetScroll;
-									columnLayout -cw 155 -h 200;
+								
+								columnLayout;//cAd
+								scrollLayout -backgroundColor 1 1 1 -w 155 -hst 0 -vst 0 allAssetScroll;//cAda
+									columnLayout -cw 155 -h 200;//cAdaa
 										string $validAsset[] = `openPipelineExistedAsset validList`;
 										string $invalidAsset[] = `openPipelineExistedAsset invalidList`;
 										for($i =0;$i<`size $validAsset`; $i++)
@@ -348,62 +352,63 @@ global proc openPipelineUI()
 											
 											
 										}		
+										setParent..;//cAdaa
 														
-										scrollLayout -e -rc "openPipelineAdjustScrollLayout allAssetScroll 200;" -h 200 allAssetScroll;
-										
-										setParent..;		 
-									setParent..;
-								setParent..;
-							setParent..;
+										scrollLayout -e -rc "openPipelineAdjustScrollLayout allAssetScroll 200;" -h 200 allAssetScroll;							
+												 
+									setParent..;//cAda
+							setParent..;//cAd
 							
-							
-							columnLayout -columnAttach "both" 5 -cw 250;
+							setParent..;//cA
+							//problem ends here	
+							columnLayout -columnAttach "both" 5 -cw 250;//cB
 								
-								columnLayout;
+								columnLayout;//cBa
 								text -l "Ref:";
-								setParent..;
+								setParent..;//cBa
 																
-								columnLayout col_RefInv;
-								openPipelineRefInvUI;
+								columnLayout col_RefInv;//cBb
+								openPipelineRefInvUI;//cBb
 
 								setParent..;
 									
-								columnLayout;
+								columnLayout;//cBc
 									separator -w 200;
-								setParent..;
+								setParent..;//cBc
 								
 							 	
-									columnLayout;
+								columnLayout;//cBd
 									
-										columnLayout;
-												separator -style "double" -w 205;
-												text -label "PIPELINE TOOL";
-												separator -style "double" -w 205;
-										setParent..;
+									columnLayout;//cBda
+										separator -style "double" -w 205;
+										text -label "PIPELINE TOOL";
+										separator -style "double" -w 205;
+									setParent..;//cBda
 										
-										columnLayout -w 205 -adjustableColumn 1 workflowColumnForSceneInv;
-											button -label "Save Workshop" -width 200 -h 30 -command "";
-											button -label "MASTER FILE" -width 200 -h 30 -command "";
+									columnLayout -w 205 -adjustableColumn 1 workflowColumnForSceneInv;//cBdb
+										button -label "Save Workshop" -width 200 -h 30 -command "";
+										button -label "MASTER FILE" -width 200 -h 30 -command "";
 											
-											separator -style "double" -w 200 -h 30;		
+										separator -style "double" -w 200 -h 30;		
 					
-											optionMenu 
-												-label "Revive:" ;
+										optionMenu 
+											-label "Revive:" ;
 												
-								 				menuItem -label "workshop";
-								 				menuItem -label "master";
+								 			menuItem -label "workshop";
+								 			menuItem -label "master";
 					
-											optionMenu -label "Version:" -w 200 reviveVerMenu_SceneInv;	
-											button -label "Revive" -width 200 -command "";
-										setParent ..;
+										optionMenu -label "Version:" -w 200 reviveVerMenu_SceneInv;	
+										button -label "Revive" -width 200 -command "";										
+									setParent ..;//cBdb						
+								
+								setParent..;//cBd
+										
+										
+							setParent..;//cB
 							
+							setParent..;//rA	
+							setParent..;//c	
 								
-							setParent..;
-										
-										
-								setParent ..;
-								
-							setParent..;			
 					
 					
 				frameLayout -label "New Seq/Shots" -collapsable 1 -collapse 0 -w 410 -ec "";
@@ -433,7 +438,7 @@ global proc openPipelineUI()
 					setParent ..;
 				setParent ..;
 				setParent ..;
-					
+				
 				setParent..;	
 				setParent..;
 				
