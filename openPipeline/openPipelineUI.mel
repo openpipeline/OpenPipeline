@@ -6,11 +6,8 @@
 //
 global proc openPipelineUI()
 {
-	global string $openPipeline_menuCurrentState;
-	global string $openPipeline_menuCurrentSelection;
-
-
 	global string $openPipeline_menuCurrentAsset;
+	global string $openPipeline_menuCurrentAssetType;
 	global string $openPipeline_menuCurrentAssetComponent;
 	global string $openPipeline_currentOpenAsset;
 	global string $openPipeline_currentOpenAssetComponent;
@@ -112,68 +109,91 @@ global proc openPipelineUI()
 				separator -style "double" -w 410;
 
 				//
-				rowLayout -numberOfColumns 3 -w 400;
+				rowLayout -numberOfColumns 4 -cw4 50 50 100 100;
 					text -label "Assets";
+					checkBox -label "Type" -v 1 assetCheckBox;
 					text -label "Components";
 					text -label "Information";
 				setParent ..;
 
 				rowLayout -numberOfColumns 3 -h 200 -w 400 -bgc 1 1 1;
-				
+
 				// Asset List
-				scrollLayout -backgroundColor 1 1 1 -w 100 -h 130 -hst 0 assetScrollLayout;
-					columnLayout -h 100 -w 100 -bgc 1 1 1 assetColumn;
+				scrollLayout -backgroundColor 1 1 1 -w 100 -h 200 -hst 0 assetScrollLayout;
+					columnLayout -h 200 -w 100 -bgc 1 1 1 assetColumn;
 					iconTextRadioCollection assetInventory;
-							
-					// Asset Inventory  
-					string $libFiles[] = `getFileList -folder $libPath`;
-					int $numLib = `size($libFiles)`;
-	
-					for($i = 0; $i < $numLib; $i++)
+				
+					// Asset Type Inventory
+					string $libTypeFiles[] = `getFileList -folder $libPath`;
+					int $numLibType = `size($libTypeFiles)`;
+					for($i = 0; $i < $numLibType; $i++)
 					{
-						string $font;
-						string $chomp = `match "^[a-zA-Z_0-9]+" $libFiles[$i]`;
-						string $expectedMasterFile = ($libPath + $chomp + "/" + $chomp + "_asset.mb");
-						int $masterExists = `filetest -f $expectedMasterFile`;
-						if($masterExists)
+						if(`checkBox -q -value assetCheckBox` == 1)
 						{
-							$font = "plainLabelFont";
-						}else{
-							$font = "obliqueLabelFont";			
+							iconTextRadioButton 
+								-w 100 -h 15 
+								-style "iconAndTextCentered"  
+								-l $libTypeFiles[$i]
+								-font "smallBoldLabelFont"
+								-enable 0
+								-align "left"
+								-bgc 0.5 0.5 0.5
+								-collection assetInventory
+								($libTypeFiles[$i] + "AssetTypeButton");
 						}
-						
-						if($chomp == $openPipeline_currentOpenAsset)
+					
+						// Asset Inventory
+						string $libSubPath = ($libPath + $libTypeFiles[$i] + "/");
+						string $libFiles[] = `getFileList -folder $libSubPath`;
+						int $numLib = `size($libFiles)`;
+	
+						for($j = 0; $j < $numLib; $j++)
 						{
-							$font = "smallBoldLabelFont";
+							string $font;
+							string $chomp = `match "^[a-zA-Z_0-9]+" $libFiles[$j]`;
+							
+							string $expectedMasterFile = ($libSubPath + $chomp + "/" + $chomp + "_asset.mb");
+							int $masterExists = `filetest -f $expectedMasterFile`;
+							if($masterExists)
+							{
+								$font = "plainLabelFont";
+							}else{
+								$font = "obliqueLabelFont";			
+							}
+							
+							if($chomp == $openPipeline_currentOpenAsset)
+							{
+								$font = "smallBoldLabelFont";
+							}
+		
+							iconTextRadioButton 
+								-w 100 -h 15 
+								-style "iconAndTextCentered"  
+								-l $chomp
+								-font $font
+								-align "left"
+								-onc ("openPipelineSelectAsset " + $libTypeFiles[$i] + " " + $chomp)
+								-ofc ("openPipelineDeSelectAsset " + $chomp)
+								-bgc 1 1 1
+								-collection assetInventory
+								($chomp + "AssetButton");
+		
+							openPipelineAssetPopUpMenus($chomp, "assetScrollLayout");
 						}
-	
-						iconTextRadioButton 
-							-w 100 -h 20 
-							-style "textOnly"  
-							-l $chomp
-							-font $font
-							-align "left"
-							-onc ("openPipelineSelectAsset " + $chomp)
-							-ofc ("openPipelineDeSelectAsset " + $chomp)
-							-bgc 1 1 1
-							-collection assetInventory
-							($chomp + "AssetButton");
-	
-						openPipelineAssetPopUpMenus($chomp, "assetScrollLayout");
 					}
-					scrollLayout -e -h 130 assetScrollLayout;
+					scrollLayout -e -h 200 assetScrollLayout;
 					setParent ..;
 				setParent ..;
 				
 				// Asset Component List
-				scrollLayout -backgroundColor 1 1 1 -w 100 -h 130 -hst 0 assetComponentScrollLayout;
-					columnLayout -h 100 -w 100 -bgc 1 1 1 assetComponentColumn;
+				scrollLayout -backgroundColor 1 1 1 -w 100 -h 200 -hst 0 assetComponentScrollLayout;
+					columnLayout -h 200 -w 100 -bgc 1 1 1 assetComponentColumn;
 					iconTextRadioCollection assetComponentInventory;		
 					setParent ..;
 				setParent ..;
 				
 				// Asset Information field
-				scrollField -w 210 -height 130 -enable 1 -editable 0 -wordWrap 1 
+				scrollField -w 210 -height 200 -enable 1 -editable 0 -wordWrap 1 
 					-backgroundColor 1 1 1 -font "smallPlainLabelFont" 
 					-text "" 
 					assetInformation;
@@ -267,7 +287,7 @@ global proc openPipelineUI()
 				//Scene Inventory starts
 				//
 				separator -style "double" -w 410;
-				text -label "SCENE INVENTORY (NOT WORKING...YET)";
+				text -label "SCENE INVENTORY";
 				separator -style "double" -w 410;
 	
 				
@@ -567,6 +587,12 @@ global proc openPipelineAssetPopUpMenus(string $elementName, string $list)
 	menuItem -label "reference Master" -command "openPipelineReferenceFile master";	
 	menuItem -label "---";
 	menuItem -label "delete Asset" -command "openPipelineDeleteAsset";
+
+	menuItem -label "---";
+	menuItem -label "new Asset" -command "openPipelineNewAssetProcess";
+	menuItem -label "new Component Type" -command "";
+	menuItem -label "---";
+
 }
 
 
@@ -627,11 +653,13 @@ global proc openPipelineNewSceneProcess(string $type, string $field)
 
 
 
-global proc openPipelineSelectAsset(string $selectedAsset)
+global proc openPipelineSelectAsset(string $type, string $selectedAsset)
 {
 	global string $openPipeline_menuCurrentAsset;	
+	global string $openPipeline_menuCurrentAssetType;
 	global string $openPipeline_menuCurrentAssetComponent;
 
+	$openPipeline_menuCurrentAssetType = $type;
 	$openPipeline_menuCurrentAsset = $selectedAsset;
 	$openPipeline_menuCurrentAssetComponent = "";
 
@@ -688,11 +716,13 @@ global proc openPipelineExpandAssetInventory()
 {
 
 	global string $openPipeline_menuCurrentAsset;
+	global string $openPipeline_menuCurrentAssetType;
 	global string $openPipeline_menuCurrentAssetComponent;
 
 	global string $openPipeline_currentOpenAssetComponent;
 
 	string $libPath = `openPipelineGetPath "lib"`;
+	$libPath = ($libPath + $openPipeline_menuCurrentAssetType + "/");
 
 	$openPipeline_menuCurrentAssetComponent = "";
 
@@ -704,7 +734,7 @@ global proc openPipelineExpandAssetInventory()
 	{
 		deleteUI $button;
 	}
-	scrollLayout -e -h 130 assetComponentScrollLayout;
+	scrollLayout -e -h 200 assetComponentScrollLayout;
 	int $numAsset = `size($assetFiles)`;
 
 	for($i = 0; $i < $numAsset; $i++)
@@ -728,11 +758,12 @@ global proc openPipelineExpandAssetInventory()
 		}
 		
 		iconTextRadioButton  
-			-w 100 -h 20 -style "textOnly"  
+			-w 100 -h 15 -style "iconAndTextCentered"  
 			-l $chomp
 			-onc ("openPipelineSelectAssetComponent " + $chomp)
 			-ofc ("openPipelineDeSelectAssetComponent " + $chomp)
 			-bgc 1 1 1
+			-align "left"
 			-font $font
 			-collection assetComponentInventory
 			-parent assetComponentColumn
@@ -742,16 +773,19 @@ global proc openPipelineExpandAssetInventory()
 	}
 	openPipelineLoadAssetNote;
 	
-//	openPipelineUpdateRevisionUI;
 }
 
 // fill the asset information box with the collected info
 global proc	openPipelineAssetInformation()
 {
-	global string $openPipeline_menuCurrentAsset;	
+	global string $openPipeline_menuCurrentAsset;
+	global string $openPipeline_menuCurrentAssetType;
 	global string $openPipeline_menuCurrentAssetComponent;
 
 	string $libPath = `openPipelineGetPath "lib"`;
+	$libPath = ($libPath + $openPipeline_menuCurrentAssetType + "/");
+
+print $libPath;
 
 	int $workshopNum;	
 	int $versionNum;

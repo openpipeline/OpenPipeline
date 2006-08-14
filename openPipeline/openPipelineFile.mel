@@ -11,6 +11,11 @@ global proc openPipelineMakeNewAssetTree(string $type, string $name)
 	
 	switch($type)
 	{
+		case "assettype":
+			openPipelineMakeNewAssetType($libPath, $name);
+			break;
+
+
 		case "asset":
 			openPipelineMakeNewAsset($libPath, $name);
 			break;
@@ -79,12 +84,28 @@ global proc openPipelineMakeNewAssetTree(string $type, string $name)
 	}
 }
 
+global proc string openPipelineMakeNewAssetType(string $libPath, string $name)
+{
+	string $assetPath = ($libPath + $name);
+	if(`filetest -d ($assetPath)` == 0)
+	{
+		sysFile -makeDir ($assetPath);
+	}else if(`filetest -d $assetPath` == 1){
+		warning ("openPipeline: " + $name + " exists.\n");
+		return $assetPath;
+	}else{}
+
+	sysFile -makeDir $assetPath;
+	
+	return $assetPath;
+}
 
 
 global proc string openPipelineMakeNewAsset(string $libPath, string $name)
 {
 
 	global string $openPipeline_menuCurrentAsset;
+	global string $openPipeline_menuCurrentAssetType;	
 	global string $openPipeline_menuCurrentAssetComponent;
 	
 	$openPipeline_menuCurrentAsset = $name;
@@ -244,6 +265,7 @@ global proc openPipelineOpenFile(string $openType)
 {
 	// query the asset state
 	global string $openPipeline_menuCurrentAsset;
+	global string $openPipeline_menuCurrentAssetType;
 	global string $openPipeline_menuCurrentAssetComponent;
 
 	openPipelineUpdateCurrentFileText($openType, "latest");
@@ -255,6 +277,7 @@ global proc openPipelineOpenFile(string $openType)
 global proc openPipelineUpdateCurrentFileText(string $openType, string $version)
 {
 	global string $openPipeline_menuCurrentAsset;
+	global string $openPipeline_menuCurrentAssetType;
 	global string $openPipeline_menuCurrentAssetComponent;
 
 	global string $openPipeline_currentOpenAsset;
@@ -373,7 +396,11 @@ global proc openPipelineProcessAssetOpen(string $openType, string $assetName, st
 
 global proc int openPipelineOpenWorkshop(string $assetName, string $assetComponentName)
 {
+
+	global string $openPipeline_menuCurrentAssetType;
+
 	string $libPath = `openPipelineGetPath "lib"`;
+	$libPath = ($libPath + $openPipeline_menuCurrentAssetType + "/");
 
 	string $workshop;
 	string $workshopFile;
@@ -406,7 +433,10 @@ global proc int openPipelineOpenWorkshop(string $assetName, string $assetCompone
 
 global proc int openPipelineOpenMaster(string $assetName, string $assetComponentName)
 {
+	global string $openPipeline_menuCurrentAssetType;
+
 	string $libPath = `openPipelineGetPath "lib"`;
+	$libPath = ($libPath + $openPipeline_menuCurrentAssetType + "/");
 	
 	string $masterFile;
 	string $selectedInventory;
@@ -493,7 +523,11 @@ global proc openPipelineProcessAssetSave(string $saveType, string $assetName, st
 
 global proc openPipelineSaveWorkshop(string $assetName, string $assetComponentName)
 {
+	global string $openPipeline_menuCurrentAssetType;
+
 	string $libPath = `openPipelineGetPath "lib"`;
+	$libPath = ($libPath + $openPipeline_menuCurrentAssetType + "/");
+
 	string $scenePath = `openPipelineGetPath "scenes"`;
 
 	string $workshop;
@@ -522,7 +556,11 @@ global proc openPipelineSaveWorkshop(string $assetName, string $assetComponentNa
 
 global proc openPipelineSaveMaster(string $assetName, string $assetComponentName)
 {
+	global string $openPipeline_menuCurrentAssetType;
+
 	string $libPath = `openPipelineGetPath "lib"`;
+	$libPath = ($libPath + $openPipeline_menuCurrentAssetType + "/");
+
 	string $scenePath = `openPipelineGetPath "scenes"`;
 	
 	string $masterFile;
@@ -631,7 +669,11 @@ global proc openPipelineProcessAssetReference(string $openType, string $assetNam
 
 global proc int openPipelineReferenceWorkshop(string $assetName, string $assetComponentName)
 {
+	global string $openPipeline_menuCurrentAssetType;
+
 	string $libPath = `openPipelineGetPath "lib"`;
+	$libPath = ($libPath + $openPipeline_menuCurrentAssetType + "/");
+
 
 	string $workshop;
 	string $workshopFile;
@@ -664,7 +706,10 @@ global proc int openPipelineReferenceWorkshop(string $assetName, string $assetCo
 
 global proc int openPipelineReferenceMaster(string $assetName, string $assetComponentName)
 {
+	global string $openPipeline_menuCurrentAssetType;
+
 	string $libPath = `openPipelineGetPath "lib"`;
+	$libPath = ($libPath + $openPipeline_menuCurrentAssetType + "/");
 	
 	string $masterFile;
 	
@@ -692,7 +737,10 @@ global proc int openPipelineReviveAsset()
 	global string $openPipeline_menuCurrentAsset;	
 	global string $openPipeline_menuCurrentAssetComponent;
 
+	global string $openPipeline_menuCurrentAssetType;
+
 	string $libPath = `openPipelineGetPath "lib"`;
+	$libPath = ($libPath + $openPipeline_menuCurrentAssetType + "/");
 	
 	int $versionNumber = `optionMenu -q -v reviveVerMenu`;
 	string $reviveTypeMenu = `optionMenu -q -value reviveTypeMenu`;

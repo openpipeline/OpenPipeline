@@ -1,10 +1,9 @@
 global proc string openPipelineGetPath(string $inputMode)
 {
 	global string $openPipeline_menuCurrentAsset;	
+	global string $openPipeline_menuCurrentAssetType;
 	global string $openPipeline_menuCurrentAssetComponent;
 
-global string $openPipeline_menuCurrentState;	
-global string $openPipeline_menuCurrentSelection;
 	
 	string $outputString;
 	string $projString = `workspace -q -fn`;
@@ -26,14 +25,10 @@ global string $openPipeline_menuCurrentSelection;
 		case "archive":
 			$outputString = ($projString + "/archive/");
 		break;
-		
-		case "state":
-			$outputString = ($projString + "/lib/" + $openPipeline_menuCurrentState + "/");	
-		break;
-		
+				
 		case "asset":
-			string $selectedItem = $openPipeline_menuCurrentSelection;
-			$outputString = $projString + "/lib/" +$openPipeline_menuCurrentState + "/" + $selectedItem + "/";	
+//			string $selectedItem = $openPipeline_menuCurrentSelection;
+//			$outputString = $projString + "/lib/" +$openPipeline_menuCurrentState + "/" + $selectedItem + "/";	
 		break;
 		
 		case "note":
@@ -41,10 +36,10 @@ global string $openPipeline_menuCurrentSelection;
 			string $notesPath;
 			if($openPipeline_menuCurrentAssetComponent == "")
 			{
-				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAsset + "/notes/";
+				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset + "/notes/";
 				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_AssetNote.txt";
 			}else{
-				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAsset  + "/components/" + $openPipeline_menuCurrentAssetComponent + "/notes/";
+				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset + "/components/" + $openPipeline_menuCurrentAssetComponent + "/notes/";
 				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_AssetNote.txt";
 			}
 		break;
