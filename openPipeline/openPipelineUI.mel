@@ -47,13 +47,18 @@ global proc openPipelineUI()
 	string $window = `window -w 410 -h 650 -mxb 0 -rtf 0 -menuBar true -title ("openPipeline v0.1: " + $currentProjectShort) openPipelineUI`;
 
 	// menu (more can go here)
+ 	menu -label "New" -parent $window;
+ 		menuItem -label "New Asset Type" -command openPipelineNewAssetTypeUI;
+ 		menuItem -label "New Asset" -command openPipelineNewAssetUI;
+
+ 	menu -label "Maya Tools" -parent $window;
+ 		menuItem -label "Maya Reference Editor" -command "ReferenceEditor";
+ 		menuItem -label "Maya Project Manager" -command "projectSetup 2";
+
  	menu -label "Help" -helpMenu true -parent $window;
  		menuItem -label "About openPipeline..." -command openPipelineAboutDialog;
  		menuItem -label "Help..." -command openPipelineHelpLaunch;
 
- 	menu -label "Maya Tools" -helpMenu true -parent $window;
- 		menuItem -label "Maya Reference Editor" -command "ReferenceEditor";
- 		menuItem -label "Maya Project Manager" -command "projectSetup 2";
 
 	//starting formlayout
 	string $form = `formLayout`;	
@@ -243,31 +248,6 @@ global proc openPipelineUI()
 				setParent ..;
 			setParent ..;
 			//end of framlayout:Asset Notes
-			
-			// New asset frame
-			frameLayout -label "New Asset/Component" -w 410 -collapsable 1 -collapse 0 newAssetLayout;
-				columnLayout -w 400 -adjustableColumn 1;
-					rowLayout -numberOfColumns 3 -cw3 125 200 75 -cl3 "left" "center" "right";
-						text -label "Asset Name:" -width 125;
-						string $nameField = `textField -width 200 assetNameField`;	
-						button -label "New Asset" -width 75 -command "openPipelineNewAssetProcess asset";
-					setParent ..;
-						
-					rowLayout -numberOfColumns 4 -cw4 125 150 25 100 -cl4 "center" "center" "right" "center";
-						optionMenuGrp -label "Component Type:" -cw2 125 150 -columnAlign2 "left" "left" assetComponentTypeMenu;
-							menuItem -label "model";
-							menuItem -label "rig";
-							menuItem -label "shade";						
-							menuItem -label "other...";
-						setParent ..;
-						button -label "New Component" -width 100 -h 20 -command "openPipelineNewAssetProcess component";					
-					setParent ..;
-				setParent ..;	
-
-//			setParent ..;
-
-			//end of framlayout:New Asset	
-			//---------------------------
 		
 		setParent ..;		
 		//UI of Pipeline Tools ends
@@ -577,45 +557,141 @@ global proc openPipelineAssetPopUpMenus(string $elementName, string $list)
 	popupMenu -parent $list; //-postMenuCommand; //("textScrollList -e -selectItem " + $elementName + " " +  $listassetIn);
 	menuItem -label "open Workshop" -command "openPipelineOpenFile workshop";
 	menuItem -label "open Master" -command "openPipelineOpenFile master";
+
 	menuItem -label "---";
 	menuItem -label "import Workshop" -command "openPipelineImportFile workshop";
 	menuItem -label "import Master" -command "openPipelineImportFile master";
-	menuItem -label "---";
 
-	// FIX add reference commands
+	menuItem -label "---";
 	menuItem -label "reference Workshop" -command "openPipelineReferenceFile workshop";
 	menuItem -label "reference Master" -command "openPipelineReferenceFile master";	
+
 	menuItem -label "---";
 	menuItem -label "delete Asset" -command "openPipelineDeleteAsset";
 
 	menuItem -label "---";
-	menuItem -label "new Asset" -command "openPipelineNewAssetProcess";
-	menuItem -label "new Component Type" -command "";
-	menuItem -label "---";
+	menuItem -label "new Asset" -command "openPipelineNewAssetUI";
+	menuItem -label "new Component Type" -command "openPipelineNewAssetComponentUI";
+
+}
+
+global proc openPipelineNewAssetTypeUI()
+{
+	string $assetType;
+
+	string $result = `promptDialog 
+		-title "openPipeline: new asset type"
+		-message "asset type name:"
+		-button "create" -button "cancel"
+		-defaultButton "create" -cancelButton "cancel"
+		-dismissString "cancel"`;
+	
+	if($result == "create")
+	{
+		$assetType = `promptDialog -query -text`;
+		if($result == "")
+		{
+			$test = 1;
+		}else{
+			openPipelineMakeNewAssetTree "assettype" $assetType;
+			$test = 0;				
+		}
+	}
+	openPipelineUI;	
+}
+
+
+
+global proc openPipelineNewAssetUI()
+{
+
+	string $libPath = `openPipelineGetPath "lib"`;
+			
+	if(`window -exists newAsset`) deleteUI newAsset;
+	
+	window -t "openPipeline: new asset" -w 300 -h 100 newAsset;
+
+	columnLayout;
+	rowLayout -numberOfColumns 2 -cw2 100 200 -cl2 "center" "center";
+		text -l "asset name: " -w 100 -h 20;
+		textField -w 195 -h 20 newAssetFieldName;
+	setParent..;
+
+	rowLayout -numberOfColumns 2 -cw2 100 200 -cl2 "center" "center";
+		optionMenu -label "asset type" -w 100 newAssetTypeMenu;
+		string $libTypeFiles[] = `getFileList -folder $libPath`;
+		int $numLibType = `size($libTypeFiles)`;
+		for($i = 0; $i < $numLibType; $i++)
+		{
+ 			menuItem -label $libTypeFiles[$i];
+ 		}
+		
+	setParent..;
+
+	rowLayout -numberOfColumns 2 -cw2 150 150 -cl2 "center" "center";
+		button -w 150 -l "create" -c openPipelineNewAssetProcess;
+		button -w 150 -l "cancel" -c "deleteUI newAsset;";
+	setParent..;
+
+	window -e -w 300 -h 100 newAsset;
+
+	showWindow newAsset;
 
 }
 
 
-global proc openPipelineNewAssetProcess(string $type)
+global proc openPipelineNewAssetProcess()
 {
+	global string $openPipeline_menuCurrentAssetType;
+
 	// query ui for data
-	string $name = `textField -q -text assetNameField`;
+	string $name = `textField -q -text newAssetFieldName`;
+	string $assetType = `optionMenu -q -value newAssetTypeMenu`;
 	
+	deleteUI newAsset;
+
+	$openPipeline_menuCurrentAssetType = $assetType;
+
 	// test to see if asset exists
-	string $currentListItems[] = `openPipelineGetAssetList $type`;
+	string $currentListItems[] = `openPipelineGetAssetList "asset"`;
 	string $eachItem;
 	for	($eachItem in $currentListItems)
 	{
 		if($eachItem == $name)
 		{	
-			 error("openPipeline: " + $type + " : " + $name + " exists.\n");
+			 error("openPipeline: " + $assetType + " : " + $name + " exists.\n");
 			 return;
 		}		
 	}
 
- 	openPipelineMakeNewAssetTree $type $name;
+ 	openPipelineMakeNewAssetTree "asset" $name;
  	
  	// refresh UI
+	openPipelineUI;	
+}
+
+global proc openPipelineNewAssetComponentUI()
+{
+	string $assetComponent;
+
+	string $result = `promptDialog 
+		-title "openPipeline: new asset component"
+		-message "asset component name:"
+		-button "create" -button "cancel"
+		-defaultButton "create" -cancelButton "cancel"
+		-dismissString "cancel"`;
+	
+	if($result == "create")
+	{
+		$assetType = `promptDialog -query -text`;
+		if($result == "")
+		{
+			$test = 1;
+		}else{
+			openPipelineMakeNewAssetTree "component" $assetType;
+			$test = 0;				
+		}
+	}
 	openPipelineUI;	
 }
 
@@ -784,8 +860,6 @@ global proc	openPipelineAssetInformation()
 
 	string $libPath = `openPipelineGetPath "lib"`;
 	$libPath = ($libPath + $openPipeline_menuCurrentAssetType + "/");
-
-print $libPath;
 
 	int $workshopNum;	
 	int $versionNum;

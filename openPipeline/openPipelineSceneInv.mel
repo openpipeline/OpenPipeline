@@ -319,7 +319,7 @@ $uiScript += "columnLayout ";
 $uiScript += ("col_"+$theSeqs[$i]+";\n");
 $uiScript += "rowLayout -nc 2 -cw2 20 175;\n";
 $uiScript += "columnLayout;\n";
-	print ($uiScript+"\n******\n");
+//	print ($uiScript+"\n******\n");
 string $expand;
 string $seqPath = $scenePath+$theSeqs[$i]+"/";
 string $theShots[] = `getFileList -folder $scenePath`;
