@@ -50,7 +50,8 @@ global proc openPipelineUI()
  	menu -label "New" -parent $window;
  		menuItem -label "New Asset Type" -command openPipelineNewAssetTypeUI;
  		menuItem -label "New Asset" -command openPipelineNewAssetUI;
-
+		menuItem -label "New Component Type" -command openPipelineNewAssetComponentUI;
+		
  	menu -label "Maya Tools" -parent $window;
  		menuItem -label "Maya Reference Editor" -command "ReferenceEditor";
  		menuItem -label "Maya Project Manager" -command "projectSetup 2";
@@ -555,25 +556,32 @@ global proc openPipelineAssetPopUpMenus(string $elementName, string $list)
 {
 	// robo wip	(figure out how to right click within textscroll list)			
 	popupMenu -parent $list; //-postMenuCommand; //("textScrollList -e -selectItem " + $elementName + " " +  $listassetIn);
-	menuItem -label "open Workshop" -command "openPipelineOpenFile workshop";
-	menuItem -label "open Master" -command "openPipelineOpenFile master";
 
-	menuItem -label "---";
-	menuItem -label "import Workshop" -command "openPipelineImportFile workshop";
-	menuItem -label "import Master" -command "openPipelineImportFile master";
+	menuItem -label "Open" -subMenu 1;
+		menuItem -label "Open Workshop" -command "openPipelineOpenFile workshop";
+		menuItem -label "Open Master" -command "openPipelineOpenFile master";
+	setParent -menu ..;
 
-	menuItem -label "---";
-	menuItem -label "reference Workshop" -command "openPipelineReferenceFile workshop";
-	menuItem -label "reference Master" -command "openPipelineReferenceFile master";	
+	menuItem -label "Import" -subMenu 1;
+		menuItem -label "Import Workshop" -command "openPipelineImportFile workshop";
+		menuItem -label "Import Master" -command "openPipelineImportFile master";
+	setParent -menu ..;
 
-	menuItem -label "---";
-	menuItem -label "delete Asset" -command "openPipelineDeleteAsset";
+	menuItem -label "Reference" -subMenu 1;
+	menuItem -label "Reference Workshop" -command "openPipelineReferenceFile workshop";
+	menuItem -label "Reference Master" -command "openPipelineReferenceFile master";	
+	setParent -menu ..;
 
-	menuItem -label "---";
-	menuItem -label "new Asset" -command "openPipelineNewAssetUI";
-	menuItem -label "new Component Type" -command "openPipelineNewAssetComponentUI";
+	menuItem -label "New" -subMenu 1;
+ 	menuItem -label "New Asset Type" -command "openPipelineNewAssetTypeUI";
+	menuItem -label "New Asset" -command "openPipelineNewAssetUI";
+	menuItem -label "New Component Type" -command "openPipelineNewAssetComponentUI";
+	setParent -menu ..;
+
+	menuItem -label "Delete Asset" -command "openPipelineDeleteAsset";
 
 }
+
 
 global proc openPipelineNewAssetTypeUI()
 {
