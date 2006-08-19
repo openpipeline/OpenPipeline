@@ -1,26 +1,3 @@
-// add revision control notes
-
-global proc openPipelineSaveMasterNoteGUI()
-{
-	if(`window -exists masterNoteUI`) deleteUI masterNoteUI;
-	
-	window -t "Add Master File Comment" -w 300 -h 70 masterNoteUI;
-
-	columnLayout;
-	rowLayout -numberOfColumns 2 -cw2 60 230 -cl2 "center" "center";
-		text -l "comment: " -w 60 -h 20;
-		textField -w 230 -h 20 masterCommentField;
-	setParent..;
-
-	rowLayout -numberOfColumns 2 -cw2 145 145 -cl2 "center" "center";
-		button -w 145 -l "save" -c "openPipelineSaveMasterFileWrapper";
-		button -w 145 -l "cancel" -c "deleteUI masterNoteUI;";
-	setParent..;
-
-	showWindow masterNoteUI;
-}
-
-
 global proc openPipelineLoadAssetNote()
 {
 	global string $openPipeline_menuCurrentAsset;
@@ -43,8 +20,7 @@ global proc openPipelineLoadAssetNote()
 
 global proc openPipelineAssetNoteWriter(string $inputMode)
 {
-	global string $openPipeline_menuCurrentState;
-	global string $openPipeline_menuCurrentSelection;
+
 	global string $openPipeline_userName;	
 	
 	//boolean value for preventing the user entering nothing while adding comment
@@ -100,7 +76,7 @@ global proc openPipelineAssetNoteWriter(string $inputMode)
 				}else{
 					$commentContent = "";	
 				}
-			deleteUI masterNoteUI;
+//			deleteUI masterFileUI;
 			break;
 		
 			case "add":

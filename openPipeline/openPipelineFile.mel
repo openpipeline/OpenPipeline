@@ -479,7 +479,16 @@ global proc int openPipelineOpenMaster(string $assetName, string $assetComponent
 
 global proc openPipelineSaveMasterFileWrapper()
 {
+	// query the ui for mastering steps
+	
+	
+	// notes
 	openPipelineAssetNoteWriter master; 
+
+	// do required checks
+	
+	
+	// finally save the master file
 	openPipelineSaveFile master;
 }
 

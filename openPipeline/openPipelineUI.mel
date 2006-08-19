@@ -217,7 +217,7 @@ global proc openPipelineUI()
 				rowLayout -numberOfColumns 2 -w 410 -cw2 120 290;
 					columnLayout -w 120 -adjustableColumn 1 workflowColumn;
 						button -label "Save Workshop" -width 120 -command "openPipelineSaveFile workshop";
-						button -label "MASTER FILE" -width 120 -command "openPipelineSaveMasterNoteGUI";
+						button -label "MASTER FILE" -width 120 -command "openPipelineSaveMasterFileGUI";
 						
 						separator -style "double" -w 120;		
 
@@ -554,12 +554,17 @@ global proc openPipelineHelpLaunch()
 
 global proc openPipelineAssetPopUpMenus(string $elementName, string $list)
 {
-	// robo wip	(figure out how to right click within textscroll list)			
+	// bug: figure out how to right click select within textscroll list			
 	popupMenu -parent $list; //-postMenuCommand; //("textScrollList -e -selectItem " + $elementName + " " +  $listassetIn);
 
 	menuItem -label "Open" -subMenu 1;
 		menuItem -label "Open Workshop" -command "openPipelineOpenFile workshop";
 		menuItem -label "Open Master" -command "openPipelineOpenFile master";
+	setParent -menu ..;
+
+	menuItem -label "Save" -subMenu 1;
+		menuItem -label "Save Workshop" -command "openPipelineSaveFile workshop";
+		menuItem -label "MASTER FILE" -command "openPipelineSaveMasterFileGUI";
 	setParent -menu ..;
 
 	menuItem -label "Import" -subMenu 1;
@@ -701,6 +706,50 @@ global proc openPipelineNewAssetComponentUI()
 		}
 	}
 	openPipelineUI;	
+}
+
+
+global proc openPipelineSaveMasterFileGUI()
+{
+	string $windowExists = `window -exists masterFileUI`;
+	if($windowExists == 1)
+	{
+		print "here!";
+		deleteUI masterFileUI;
+	}
+	
+	window -t "Master File Switchboard" -w 300 -h 150 masterFileUI;
+
+	columnLayout;
+	rowLayout -numberOfColumns 2 -cw2 150 150 -cl2 "center" "center";
+		// flatten reference...
+		checkBox -label "Import Reference" -v 1 masterImportReferencesBox;
+		//  ...
+		checkBox -label "Help Homeless" -v 1 someother;
+	setParent..;
+
+	rowLayout -numberOfColumns 2 -cw2 150 150 -cl2 "center" "center";
+		// check clashing...	
+		checkBox -label "Check Clashing" -v 1 masterCheckClashingBox;
+		//  ...
+		checkBox -label "Send Email" -v 1;
+	setParent ..;
+	
+
+	// notes...
+	rowLayout -numberOfColumns 2 -cw2 60 230 -cl2 "center" "center";
+		text -l "comment: " -w 60 -h 20;
+		textField -w 230 -h 20 masterCommentField;
+	setParent..;
+
+	rowLayout -numberOfColumns 2 -cw2 145 145 -cl2 "center" "center";
+		button -w 145 -l "save" -c "openPipelineSaveMasterFileWrapper";
+		button -w 145 -l "cancel" -c "deleteUI masterNoteUI;";
+	setParent..;
+
+	window -e -w 300 -h 150 masterFileUI;
+	showWindow masterFileUI;
+	
 }
 
 
@@ -938,12 +987,14 @@ global proc	openPipelineAssetInformation()
 global proc openPipelineUpdateRevisionUI()
 {
 	global string $openPipeline_menuCurrentAsset;	
+	global string $openPipeline_menuCurrentAssetType;	
 	global string $openPipeline_menuCurrentAssetComponent;
 	
 	//proc openPipelineGetPath to get all path
 	//located in openPipelineUtility.mel
-	string $currentProject = `openPipelineGetPath "proj"`;
 	string $libPath = `openPipelineGetPath "lib"`;
+	$libPath = ($libPath + $openPipeline_menuCurrentAssetType + "/");
+	
 	string $scenePath = `openPipelineGetPath "scenes"`;
 	string $assetPath;	
 	string $revMenuItems;

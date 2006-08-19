@@ -48,10 +48,10 @@ global proc string openPipelineGetPath(string $inputMode)
 			string $notesPath;
 			if($openPipeline_menuCurrentAssetComponent == "")
 			{
-				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAsset + "/notes/";
+				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset + "/notes/";
 				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_AssetNote.txt";
 			}else{
-				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAsset  + "/components/" + $openPipeline_menuCurrentAssetComponent + "/notes/";
+				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset  + "/components/" + $openPipeline_menuCurrentAssetComponent + "/notes/";
 				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_AssetNote.txt";
 			}
 		break;
@@ -111,19 +111,6 @@ global proc openPipelineImportRefs()
 		file -importReference $eachReference;
 		print ("openPipeline: " + $eachReference + " imported into current scene file\n");
 	}
-}
-
-
-global proc string openPipelineGetItemSelected()
-{
-	global string $openPipeline_menuCurrentState;
-	global string $openPipeline_menuCurrentSelection;
-	
-	string $temp[] = `textScrollList -q -si ($openPipeline_menuCurrentState + "ScrollList")`;
-	$openPipeline_menuCurrentSelection = $temp[0];
-	string $regex = " [+-]";
- 	$openPipeline_menuCurrentSelection = `substitute $regex $openPipeline_menuCurrentSelection ""`;
-	return $openPipeline_menuCurrentSelection;
 }
 
 
