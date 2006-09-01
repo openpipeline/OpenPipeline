@@ -182,7 +182,7 @@ global proc openPipelineUI()
 								-ofc ("openPipelineDeSelectAsset " + $chomp)
 								-bgc 1 1 1
 								-collection assetInventory
-								($chomp + "AssetButton");
+								($chomp + "AssetButton"+$i);
 		
 							openPipelineAssetPopUpMenus($chomp, "assetScrollLayout");
 						}
