@@ -131,7 +131,7 @@ global proc string openPipelineMakeNewAsset(string $libPath, string $name)
 	
 	// asset notes
 	sysFile -makeDir ($assetPath + "/" + "notes");
-	$noteFile = ($assetPath + "/" + "notes" + "/" + $name + "_AssetNote.txt");
+	$noteFile = ($assetPath + "/" + "notes" + "/" + $name + "_AssetNote.xml");
 	
 	//---Clear and Fix-----//
 	// let Proc openPipeline_AssetNoteWriter writes the note
@@ -165,7 +165,7 @@ global proc string openPipelineMakeNewAssetComponent(string $libPath, string $co
 			
 	// asset notes
 	sysFile -makeDir ($assetPath + "/" + "notes");
-	$noteFile = ($assetPath + "/" + "notes" + "/" + $openPipeline_menuCurrentAsset + "_AssetNote.txt");
+	$noteFile = ($assetPath + "/" + "notes" + "/" + $openPipeline_menuCurrentAsset + "_AssetNote.xml");
 	
 	//---Clear and Fix-----//
 	// let Proc openPipeline_AssetNoteWriter writes the note
@@ -219,7 +219,7 @@ global proc string openPipelineMakeNewShot(string $scenePath, string $name)
 			
 	// asset notes
 	sysFile -makeDir ($shotPath + "/" + "notes");
-	$noteFile = ($shotPath + "/" + "notes" + "/" + $name + "_AssetNote.txt");
+	$noteFile = ($shotPath + "/" + "notes" + "/" + $name + "_AssetNote.xml");
 	
 	//---Clear and Fix-----//
 	// let Proc openPipeline_AssetNoteWriter writes the note
@@ -255,7 +255,7 @@ global proc string openPipelineMakeNewShotType(string $scenePath, string $name)
 			
 	// asset notes
 	sysFile -makeDir ($shotTypePath + "/" + "notes");
-	$noteFile = ($shotTypePath + "/" + "notes" + "/" + $name + "_AssetNote.txt");
+	$noteFile = ($shotTypePath + "/" + "notes" + "/" + $name + "_AssetNote.xml");
 	
 	//---Clear and Fix-----//
 	// let Proc openPipeline_AssetNoteWriter writes the note

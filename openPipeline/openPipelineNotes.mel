@@ -11,10 +11,48 @@ global proc openPipelineLoadAssetNote()
 		openPipelineAssetNoteWriter "missing";
 	}
 
-	string $assetNoteTextArray[] = `openPipelineReadTxt $notePath "everything"`;
+//	string $assetNoteTextArray[] = `openPipelineReadTxt $notePath "everything"`;
+	string $assetNoteTextArray[] = `openPipelineReadXML $notePath`;
 	string $assetNoteText = stringArrayToString($assetNoteTextArray, "");
 		
 	scrollField -edit -text $assetNoteText noteField;
+}
+
+// parses the specified XML file
+global proc string openpipelineLoadXML(string $line)
+{
+	string $tag;
+	string $content;
+	string $tagAndContent;
+
+	// we need to keep track of 
+
+
+	// cull leading white space escape quotes
+	$line = `strip($line)`; // may not be needed
+	$line = `encodeString($line)`;	
+
+	// search for header
+	int $headerMatch = `gmatch $line "*?xml*"`;
+	if($headerMatch == 1) return $tagAndContent;
+
+	// match for the tag
+	$tag = `match "<[a-zA-Z0-9 \"=\\]*>" $line`;
+	$tag = substituteAllString($tag, "<", "");	
+	$tag = substituteAllString($tag, ">", "");
+	
+	// everything else is the content
+	$content = `match ">[:/a-zA-Z0-9 \"=\\]*<" $line`;
+	$content = substituteAllString($content, "<", "");	
+	$content = substituteAllString($content, ">", "");
+
+	// check for bum data
+	if(($tag == "") && ($content =="")) return $tagAndContent;
+
+	// finally return tag and content
+	$tagAndContent = ($tag + ": " + $content);
+	print ($tagAndContent+"\n");
+	return $tagAndContent;
 }
 
 
@@ -186,6 +224,30 @@ global proc string[] openPipelineReadTxt(string $inputPath, string $inputMode)
 					$nextLine = `fgetline $fileId`;
 					break;
 			}
+		}
+		fclose $fileId;		
+	}else{
+		warning ("No file exists in " + $inputPath);
+	}
+	return $outputString;
+}
+
+global proc string[] openPipelineReadXML(string $inputPath)
+{
+	int $i=0;
+	string $outputString[];
+		
+	if(`filetest -r $inputPath`)
+	{
+		$fileId = `fopen $inputPath "r"`;
+		string $nextLine = `fgetline $fileId`;
+		
+		while(size($nextLine)>0)
+		{
+			$outputString[$i] = openpipelineLoadXML($nextLine);
+			//$outputString[$i] = $nextLine;
+			$i++;
+			$nextLine = `fgetline $fileId`;
 		}
 		fclose $fileId;		
 	}else{

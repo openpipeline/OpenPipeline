@@ -37,10 +37,10 @@ global proc string openPipelineGetPath(string $inputMode)
 			if($openPipeline_menuCurrentAssetComponent == "")
 			{
 				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset + "/notes/";
-				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_AssetNote.txt";
+				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_AssetNote.xml";
 			}else{
 				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset + "/components/" + $openPipeline_menuCurrentAssetComponent + "/notes/";
-				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_AssetNote.txt";
+				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_AssetNote.xml";
 			}
 		break;
 		
@@ -49,10 +49,10 @@ global proc string openPipelineGetPath(string $inputMode)
 			if($openPipeline_menuCurrentAssetComponent == "")
 			{
 				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset + "/notes/";
-				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_AssetNote.txt";
+				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_AssetNote.xml";
 			}else{
 				$notesPath = $projString + "/lib/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset  + "/components/" + $openPipeline_menuCurrentAssetComponent + "/notes/";
-				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_AssetNote.txt";
+				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_AssetNote.xml";
 			}
 		break;
 	}
