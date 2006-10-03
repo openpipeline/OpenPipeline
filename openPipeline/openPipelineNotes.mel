@@ -21,11 +21,13 @@ global proc openPipelineLoadAssetNote()
 // parses the specified XML file
 global proc string openpipelineLoadXML(string $line)
 {
+	int $debug = 0;
+
 	string $tag;
 	string $content;
 	string $tagAndContent;
 
-	// we need to keep track of 
+	// keep track of tags...
 
 
 	// cull leading white space escape quotes
@@ -51,7 +53,7 @@ global proc string openpipelineLoadXML(string $line)
 
 	// finally return tag and content
 	$tagAndContent = ($tag + ": " + $content);
-	print ($tagAndContent+"\n");
+	if ($debug) print ($tagAndContent+"\n");
 	return $tagAndContent;
 }
 
@@ -241,7 +243,7 @@ global proc string[] openPipelineReadXML(string $inputPath)
 	{
 		$fileId = `fopen $inputPath "r"`;
 		string $nextLine = `fgetline $fileId`;
-		
+
 		while(size($nextLine)>0)
 		{
 			$outputString[$i] = openpipelineLoadXML($nextLine);
@@ -253,5 +255,103 @@ global proc string[] openPipelineReadXML(string $inputPath)
 	}else{
 		warning ("No file exists in " + $inputPath);
 	}
+
+	int $countNotes = `openPipelineCountNotes($inputPath)`;
+	//string $notes = `openPipelineReadWholeNote($inputPath)`;
+	string $notes = `openPipelineReadIndividualNote $inputPath 4`;
+	print $notes;
 	return $outputString;
+}
+
+global proc int openPipelineCountNotes(string $inputPath)
+{
+	$fileId = `fopen $inputPath "r"`;
+	string $nextLine = `fgetline $fileId`;
+	string $lineArray[];
+
+	int $count = 0;
+
+	while(size($nextLine)>0)
+	{
+		$nextLine = `strip($nextLine)`; // may not be needed
+		$nextLine = `encodeString($nextLine)`;	
+		$lineArray = stringToStringArray($nextLine, " ");
+		$count += stringArrayCount("<note>", $lineArray);
+		$nextLine = `fgetline $fileId`;
+	}
+	fclose $fileId;
+	return $count;
+}
+
+
+global proc string openPipelineReadWholeNote(string $inputPath)
+{
+	$fileId = `fopen $inputPath "r"`;
+	string $nextLine = `fgetline $fileId`;
+	string $noteContents;
+
+	while(size($nextLine)>0)
+	{
+		$nextLine = openPipelineGetCleanLineXML($nextLine);
+		$noteMatch = gmatch($nextLine, "<note>");
+		if($noteMatch == 1)
+		{
+			$nextLine = `fgetline $fileId`;
+			$nextLine = openPipelineGetCleanLineXML($nextLine);
+			while(`match "</note>" $nextLine` == "")
+			{
+				print ($nextLine + "\n");
+				$noteContents += $nextLine;
+				$nextLine = `fgetline $fileId`;
+				$nextLine = openPipelineGetCleanLineXML($nextLine);
+			}	
+		}
+		else{
+			$nextLine = `fgetline $fileId`;
+			$nextLine = openPipelineGetCleanLineXML($nextLine);
+		}
+	}
+	fclose $fileId;
+	return $noteContents;
+}
+
+global proc string openPipelineReadIndividualNote(string $inputPath, int $index)
+{
+	$fileId = `fopen $inputPath "r"`;
+	string $nextLine = `fgetline $fileId`;
+	string $noteContents;
+	int $noteMatch;
+	int $count;
+	while(size($nextLine)>0)
+	{
+		$nextLine = openPipelineGetCleanLineXML($nextLine);
+		$noteMatch = gmatch($nextLine, "<note>");
+		$count += $noteMatch;
+		if(($noteMatch == 1)&&($count == $index))
+		{
+			$nextLine = `fgetline $fileId`;
+			$nextLine = openPipelineGetCleanLineXML($nextLine);
+			while(`match "</note>" $nextLine` == "")
+			{
+				print ($nextLine + "\n");
+				$noteContents += $nextLine;
+				$nextLine = `fgetline $fileId`;
+				$nextLine = openPipelineGetCleanLineXML($nextLine);
+				
+			}	
+		}
+		else{
+			$nextLine = `fgetline $fileId`;
+			$nextLine = openPipelineGetCleanLineXML($nextLine);
+		}
+	}
+	fclose $fileId;
+	return $noteContents;
+}
+
+global proc string openPipelineGetCleanLineXML(string $nextLine)
+{
+	$nextLine = `strip($nextLine)`;
+	$nextLine = `encodeString($nextLine)`;
+	return $nextLine;
 }
