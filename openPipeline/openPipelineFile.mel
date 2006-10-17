@@ -678,8 +678,6 @@ global proc openPipelineSaveFile(string $saveType)
 
 global proc openPipelineProcessAssetSave(string $saveType)
 {
-
-	
 	switch($saveType)
 	{
 		case "workshop":

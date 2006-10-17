@@ -15,7 +15,7 @@ global proc string[] openPipelineExistedAsset(string $inputMode)
 		string $currentProject = `textFieldGrp -q -text projPath`;
 		
 		
-		string $thePath = ($currentProject + "/lib/");
+		string $thePath = `openPipelineGetPath "lib"`;
 		string $extension = "_asset.mb";
 	
 		
@@ -537,8 +537,8 @@ global proc openPipelineCreateReference(string $inputMode, string $inputPath)
 		break;
 		
 		case "asset":
-		string $currentProject = `textFieldGrp -q -text projPath`;
-		string $path = ($currentProject+"/lib/"+$inputPath+"/"+$inputPath+"_asset.mb");	
+		string $currentProject = `openPipelineGetPath "lib"`;;
+		string $path = ($currentProject + $inputPath + "/" + $inputPath + "_asset.mb");	
 		file -r -type "mayaBinary" -gl -namespace $inputPath -options "v=0" $path;
 		break;
 	}

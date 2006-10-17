@@ -1,27 +1,26 @@
-// openPipeline
 //
-// Developed by:
-// Rob O'Neill (roneill@dal.pratt.edu)
-// Meng-Han Ho (mho@pratt.edu)
+// CUSTOMIZATION AND SETUP (edit to suit needs...) /////////////////
 
-// to do
-// -fix revision control
-// -scene inventory
-//
-
-
-
-//
-// CUSTOMIZATION AND SETUP (edit paths to suit needs...) /////////////////
+global string $openPipeline_name = "openPipeline";
 
 global string $openPipeline_projList_nt = "openPipeline_projects.txt";
 
+global string $openPipeline_libraryDirectoryName;
+$openPipeline_libraryDirectoryName = "lib";
+
+global string $openPipeline_sceneDirectoryName;
+$openPipeline_sceneDirectoryName = "scenes";
+
+// mac stuff for the future...
 global string $openPipeline_projList_mac = "openPipeline_projects_mac.txt";
 global string $openPipeline_macPath = "/Volumes/MID/BIN/scripts/openPipeline/";
 
 ///////////////////////////////////////////////////////////////////////////
 //
 
+// STATIC openPipeline GLOBAL VARS( edit at own risk)
+//
+global string $openPipeline_version = "0.1";
 
 
 // DYNAMIC GLOBAL VARS (edit at own risk)
@@ -63,7 +62,7 @@ global string $openPipeline_menuCurrentAsset;
 global string $openPipeline_menuCurrentAssetComponent;
 
 // Current Proj Name
-global int $openPipeline_currentProjIndex=0;
+global int $openPipeline_currentProjIndex = 0;
 
 // Store the GUI's position.
 global int $openPipeline_winPos[];
