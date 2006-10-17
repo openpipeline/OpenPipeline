@@ -155,10 +155,10 @@ global proc openPipelineRemoveProject(int $projIndex, string $projName)
 		$projectsList[$projIndex]="";
 		$projectsList[$projIndex+1]="";
 		if ($openPipeline_currentProjIndex*2>=$projIndex)
-			{
+		{
 			if ($openPipeline_currentProjIndex>0)
 				$openPipeline_currentProjIndex--;
-			}
+		}
 		openPipelineRewriteProjFile($projectsList);
 	}
 }
@@ -205,23 +205,29 @@ global proc openPipelineProjDialogWindow(int $mode, int $index, string $defName,
 	workspace -dir $defPath;
 	
 	window  -w 300 -h 200 -sizeable 0 -mxb 0 -rtf 0 -title $title_txt openPipelineProjDialog;
-		rowColumnLayout -width 280 -numberOfRows 6 -rh 1 15 -rh 2 25 -rh 3 15 -rh 4 25 -rh 5 30 -rh 6 30 -rs 1 10 -rs 3 10 -rs 6 20 mainDialogLayout; 
-			rowColumnLayout -numberOfColumns 1 -cw 1 280;
-			text -fn "boldLabelFont" -label "Project Name (max length: 18):";
-			setParent "mainDialogLayout";
-			textField -text $defName nameTextField;
-			setParent "mainDialogLayout";
-			text -fn "boldLabelFont" -label "Project Path:";
-			setParent "mainDialogLayout";
-			textField -text $defPath pathTextField;
-			setParent "mainDialogLayout";
-			rowColumnLayout -numberOfColumns 2 -cw 1 220 -cw 2 73;
-			text -label ""; button -label "Browse..." -c "fileBrowserDialog -m 4 -fc \"openPipelineSetProjDialogPath\" -an \"Select Location\" ";
-			setParent "mainDialogLayout";
-			rowColumnLayout -numberOfColumns 2 -cs 1 10 -cw 1 140 -cw 2 140;
+		columnLayout  -rs 5 -co "both" 10;
+			text -fn "boldLabelFont" -label "Project Name (max length: 18)" -w 280 -align "left";
+			//setParent "mainDialogLayout";
+			textField -text $defName -w 280 nameTextField;
+			//setParent "mainDialogLayout";
+			//rowLayout -numberOfColumns 2 -cw2 80 220;
+				text -fn "boldLabelFont" -label "Project Path" -w 280 -align "left";
+				text  -label "(if folder doesn't already exist it will be created)" -w 280 -align "left";
+			//	setParent..;
+			//setParent "mainDialogLayout";
+			rowLayout   -numberOfColumns 2 -cw2 210 70;
+				textField -text $defPath -w 210 pathTextField ;
+				//setParent "mainDialogLayout";
+				//rowColumnLayout -numberOfColumns 2 -cw 1 220 -cw 2 73;
+				//text -label ""; 
+				button -label "Browse..." -w 70 -c "fileBrowserDialog -m 4 -fc \"openPipelineSetProjDialogPath\" -an \"Find Location\" ";
+				setParent..;
+			//setParent "mainDialogLayout";
+			separator -style "none" -h 10;
+			rowLayout -numberOfColumns 2 -cw 1 140 -cw 2 140;
 			string $accept_str = "openPipelineProjDialogCallback("+$mode+","+$index+")";
-			button -label "Accept" -c $accept_str;
-			button -label "Cancel" -c "openPipelineCloseProjDialog";
+			button -label "Accept" -c $accept_str -w 140;
+			button -label "Cancel" -c "openPipelineCloseProjDialog" -w 140;
 	window  -e -w 300 -h 200 openPipelineProjDialog;
 	showWindow;
 }
