@@ -112,18 +112,19 @@ global proc openPipelineImportRefs()
 
 global proc string openPipelineGetAssetSelected()
 {
-	string $currentSelection = `iconTextRadioCollection -q -sl assetInventory`;
-
-	string $regex = " [+-]";
- 	$currentAsset = `substitute $regex $currentSelection ""`;
- 	$regex = "AssetButton";
- 	$currentAssetComponent = `substitute $regex $currentSelection ""`;
- 
- 	if($currentAsset == "NONE")
- 	{
- 		$currentAsset = "";	
- 	}
-
+//	string $currentSelection = `iconTextRadioCollection -q -sl assetInventory`;
+//
+//	string $regex = " [+-]";
+// 	$currentAsset = `substitute $regex $currentSelection ""`;
+// 	$regex = "AssetButton";
+// 	$currentAssetComponent = `substitute $regex $currentSelection ""`;
+// 
+// 	if($currentAsset == "NONE")
+// 	{
+// 		$currentAsset = "";	
+// 	}
+//
+	string $currentAsset; //temp
 	return $currentAsset;
 }
 

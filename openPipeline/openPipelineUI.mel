@@ -273,7 +273,7 @@ global proc openPipelineUI()
 					setParent ..;
 				columnLayout;
 					text -fn "boldLabelFont" -l "Comments" -w 260 -al "center";
-					scrollField -w 260 -h 75 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "Rob here!" op_commentField;
+					scrollField -w 260 -h 75 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_commentField;
 					setParent ..;
 					
 				setParent..;
@@ -939,11 +939,9 @@ global proc openPipelineAssetSelected()
 		openPipelineAssetInformation;
 		openPipelineLoadAssetNote;	
 	}
-	else
-	{			
-		textScrollList -e -en $active "op_componentScrollList";
-		openPipelineComponentSelected();
-	}
+
+	textScrollList -e -en $active "op_componentScrollList";
+	openPipelineComponentSelected();
 }
 
 global proc openPipelineComponentSelected()
@@ -1490,18 +1488,24 @@ global proc openPipelineExpandAssetInventory()
 //
 global proc	openPipelineAssetInformation()
 {
-	global string $openPipeline_menuCurrentAsset;
-	$openPipeline_menuCurrentAsset = `openPipelineGetSelectedAsset`;
+	string $temp[];
+	string $foo;
 	global string $openPipeline_menuCurrentAssetType;
-	$openPipeline_menuCurrentAssetType = `optionVar -q "op_currOpenType"`;
+	$temp = `openPipelineGetSelectedAssetTypes`;
+	$openPipeline_menuCurrentAssetType = openPipelineGetFolderFromPath($temp[0], 0);
+
+	global string $openPipeline_menuCurrentAsset;
+	$foo = `openPipelineGetSelectedAsset`;
+	$openPipeline_menuCurrentAsset = openPipelineGetFolderFromPath($foo, 0);	
+
 	global string $openPipeline_menuCurrentAssetComponent;
+	$foo = `openPipelineGetSelectedComponent`;
+	$openPipeline_menuCurrentAssetComponent = openPipelineGetFolderFromPath($foo, 0);	
 
 	string $libPath = `optionVar -q "op_libPath"`; 
 
 	$libPath = ($libPath + $openPipeline_menuCurrentAssetType + "/");
 	
-	print $libPath;
-
 	int $workshopNum;	
 	int $versionNum;
 	int $masterExists;
@@ -1540,15 +1544,15 @@ global proc	openPipelineAssetInformation()
 		string $str = `system ("dir " + $expectedMasterFile)`;
 		string $masterDate = `match "[0-9]+/[0-9]+/[0-9]+" $str`;
 		
-		$fileMastered = ("File Mastered: Yes (" + $masterDate + ")\n");
+		$fileMastered = ("Mastered?: Yes \nDate: " + $masterDate + "\n");
 	} else {
-		$fileMastered = ("File Mastered: No \n");
+		$fileMastered = ("Mastered?: No \n");
 	}
 
 	// current version
 	if($versionNum > 0)
 	{
-		$currentVersion = ($versionNum + 1);
+		$currentVersion = ($versionNum);
 	}else{
 		$currentVersion = 0;	
 	}
@@ -1557,9 +1561,9 @@ global proc	openPipelineAssetInformation()
 	string $assetInfoHeader = ($openPipeline_menuCurrentAsset + " : " + 
 			$openPipeline_menuCurrentAssetComponent + "\n-------------------\n");
 
-	string $current = ("Latest Mastered Version: " + $currentVersion + "\n");
-	string $workshopTotal = ("Workshop Files: " + $workshopNum + "\n");		
-	string $versionTotal = ("Version Files: " + $versionNum + "\n");	
+	string $current = ("Latest Master: " + $currentVersion + "\n");
+	string $workshopTotal = ("Workshops: " + $workshopNum + "\n");		
+	string $versionTotal = ("Versions: " + $versionNum + "\n");	
 
 	string $outputText = ($assetInfoHeader + $current + $workshopTotal + $versionTotal + $fileMastered);
 	
