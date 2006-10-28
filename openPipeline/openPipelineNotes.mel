@@ -8,248 +8,17 @@ global proc openPipelineLoadAssetNote()
 		openPipelineAssetNoteWriter "missing";
 	}
 
-//	string $assetNoteTextArray[] = `openPipelineReadTxt $notePath "everything"`;
 	string $assetNoteTextArray[] = `openPipelineReadXML $notePath`;
 	string $assetNoteText = stringArrayToString($assetNoteTextArray, "");
 		
 	scrollField -edit -text $assetNoteText op_commentField;
 }
 
-// parses the specified XML file
-global proc string openpipelineLoadXML(string $line)
-{
-	int $debug = 0;
-
-	string $tag;
-	string $content;
-	string $tagAndContent;
-
-	// keep track of tags...
-
-	// cull leading white space escape quotes
-	$line = `strip($line)`; // may not be needed
-	$line = `encodeString($line)`;	
-
-	// search for header
-	int $headerMatch = `gmatch $line "*?xml*"`;
-	if($headerMatch == 1) return $tagAndContent;
-
-	// match for the tag
-	$tag = `match "<[a-zA-Z0-9 \"=\\]*>" $line`;
-	$tag = substituteAllString($tag, "<", "");	
-	$tag = substituteAllString($tag, ">", "");
-	
-	// everything else is the content
-	$content = `match ">[:/a-zA-Z0-9 \"=\\]*<" $line`;
-	$content = substituteAllString($content, "<", "");	
-	$content = substituteAllString($content, ">", "");
-
-	// check for bum data
-	if(($tag == "") && ($content =="")) return $tagAndContent;
-
-	// finally return tag and content
-	$tagAndContent = ($tag + ": " + $content);
-	if ($debug) print ($tagAndContent+"\n");
-	return $tagAndContent;
-}
-
-
-global proc openPipelineAssetNoteWriter(string $inputMode)
-{
-	global string $openPipeline_userName;	
-	
-	//boolean value for preventing the user entering nothing while adding comment
-	int $emptyCommentAdded = 0;	
-	
-	string $eventContent;
-	string $commentContent;
-	
-	//get the date and time
-	string $dateNow = `system("date /t")`;
-	string $timeNow = `system("time /t")`;
-	string $dateStrip = `strip $dateNow`;
-	string $timeStrip = `strip $timeNow`;
-		
-	$dateStrip = `match "[A-Za-z][A-Za-z][A-Za-z] [0-9]+/[0-9]+/[0-9]+" $dateStrip`;
-	$timeStrip = `match "[0-9]+:[0-9]+ [AP]M" $timeStrip`;
-
-	string $time_Date = ("Time: " + $timeStrip + "   Date: " + $dateStrip);	
-	string $proj_Path = `openPipelineGetPath "proj"`;
-	
-	if($inputMode=="creation")
-	{	
-		string $creationPath = `openPipelineGetPath "newnote"`;
-		
-		$fileId=`fopen $creationPath "w"`;
-		fprint $fileId "Asset Created: ";
- 		fprint $fileId $time_Date;
-		fprint $fileId "\n";
-
- 		fclose $fileId;
-
- 		openPipelineFilePermisson "+R" $creationPath;
-
-	}else if($inputMode == "missing")
-	{
-		string $creationPath = `openPipelineGetPath "note"`;			
-		$fileId=`fopen $creationPath "w"`;
-		fprint $fileId "Asset note missing: recreated: ";
- 		fprint $fileId $time_Date;
- 		fclose $fileId;
- 		openPipelineFilePermisson "+R" $creationPath;
-
-	}else{
-		switch($inputMode)
-		{	
-			case "master":
-				string $commentAdd = `textField -q -text masterCommentField`;
-				$eventContent = "\nEVENT: File mastered by " + $openPipeline_userName + ".";
-				string $tempComment = `strip $commentAdd`;
-				if(size($tempComment)>0)
-				{
-					$commentContent = ("\nCOMMENT: " + $commentAdd);	
-				}else{
-					$commentContent = "";	
-				}
-//			deleteUI masterFileUI;
-			break;
-		
-			case "add":
-				$eventContent = ("\nEVENT: comment added by "+ $openPipeline_userName+". version: ");
-				string $commentAdd = `textField -q -text commentField`;	
-				$commentContent = ("\nCOMMENT: " + $commentAdd);
-				
-				//get rid of space from commentField and size it.
-				//if nothing is there, trun the $emptyCommentAdded into 1 
-				string $tempComment = `strip $commentAdd`;
-				if(size($tempComment)==0)
-				{
-					$emptyCommentAdded = 1;
-				}else
-				{
-					$emptyCommentAdded = 0;
-				}
-			break;
-		}
-			
-		//do follow if it's not added empty comment 
-		//or it's file mastered
-		if(!$emptyCommentAdded)
-		{		
-
-			string $notePath = `openPipelineGetPath "note"`;
-			int $fileId;
-			
-			if(`filetest -f $notePath`)
-			{
-				openPipelineFilePermisson "-R" $notePath;
-				$fileId=`fopen $notePath "a"`;
-			}else{
-				$fileId=`fopen $notePath "w"`;
-			}
-						
-			fprint $fileId "\n";
-		 	fprint $fileId $time_Date;
-		 	fprint $fileId $eventContent;
-		 	fprint $fileId $commentContent;
-		 	fprint $fileId "\n";
-		 	fclose $fileId;
-		 	
-		 	openPipelineFilePermisson "+R" $notePath;
-		 	
-		 	//reload the note
-		 	openPipelineLoadAssetNote;
-		}
-	}
-}
-
-
-global proc openPipelineShotNoteWriter(string $inputMode)
-{
-	
-// nothing.
-	
-	
-}
-
-
-//
-//change the file permission in Window
-//
-// + set
-// - clean
-// R read-Only
-// H Hidden
-//
-global proc openPipelineFilePermisson(string $inputMode, string $input_Path)
-{
-	string $exeCommand = "ATTRIB " + $inputMode + " " + $input_Path;
-	system($exeCommand);
-}
-
-//
-//This Proc reads TXT file.
-//It will return an string[] without the empty lines and the comments.
-//
-global proc string[] openPipelineReadTxt(string $inputPath, string $inputMode)
-{
-	int $i=0;
-	string $outputString[]={};
-		
-	if(`filetest -r $inputPath`)
-	{
-		$fileId = `fopen $inputPath "r"`;
-		string $nextLine = `fgetline $fileId`;
-		
-		while(size($nextLine)>0)
-		{
-			switch($inputMode)
-			{
-				case "clean":
-					string $stripNextLine = `strip $nextLine`;
-					if(size($stripNextLine)>0 && startString($stripNextLine, 2)!="//" )
-					{
-						$outputString[$i] = $nextLine;
-						$i++;
-					}
-					$nextLine = `fgetline $fileId`;				
-					break;
-					
-				case "everything":
-					$outputString[$i] = $nextLine;
-					$i++;
-					$nextLine = `fgetline $fileId`;
-					break;
-			}
-		}
-		fclose $fileId;		
-	}else{
-		warning ("No file exists in " + $inputPath);
-	}
-	return $outputString;
-}
 
 global proc string[] openPipelineReadXML(string $inputPath)
 {
-	int $i=0;
-	string $outputString[];
-		
-	if(`filetest -r $inputPath`)
-	{
-		$fileId = `fopen $inputPath "r"`;
-		string $nextLine = `fgetline $fileId`;
 
-		while(size($nextLine)>0)
-		{
-			//$outputString[$i] = openpipelineLoadXML($nextLine);
-			//$outputString[$i] = $nextLine;
-			$i++;
-			$nextLine = `fgetline $fileId`;
-		}
-		fclose $fileId;		
-	}else{
-		warning ("No file exists in " + $inputPath);
-	}
+	string $outputString[];
 
 //	int $countNotes = `openPipelineCountNotes($inputPath)`;
 	string $notes[] = `openPipelineReadAllNotes($inputPath)`;
@@ -257,10 +26,78 @@ global proc string[] openPipelineReadXML(string $inputPath)
 //	string $notes[] = `openPipelineReadNotesByType $inputPath "workshop"`;
 //	string $notes[] = `openPipelineReadNotesByVersion $inputPath 2`;	
 //	print $notes;
-	$outputString[0] = openPipelineFormatNotes($notes);
-	print $outputString;
+	
 	// format string for display...
+	int $i=0;
+	for($note in $notes)
+	{
+			$outputString[$i] = openPipelineFormatXML($note);
+			$i++;
+	}
 	return $outputString;
+}
+
+// formats the specified XML array
+global proc string openPipelineFormatXML(string $line)
+{
+	int $debug = 0;
+	string $formatedXML;
+
+	// cull leading white space escape quotes
+	$line = `strip($line)`; // may not be needed
+	$line = `encodeString($line)`;	
+
+	// match the author
+	string $author = `match "<author>[a-zA-Z0-9 \"-=\\]*</author>" $line`;
+	$author = substitute("<author>", $author, "");
+	$author = substitute("</author>", $author, "");
+
+	// match the date
+	string $date = `match "<date>[a-zA-Z0-9 \"-=\\]*</date>" $line`;
+	$date = substitute("<date>", $date, "");
+	$date = substitute("</date>", $date, "");
+
+	// match the time
+	string $time = `match "<time>[a-zA-Z0-9 \"-=\\]*</time>" $line`;
+	$time = substitute("<time>", $time, "");
+	$time = substitute("</time>", $time, "");
+
+	// match the event
+	string $event = `match "<event>[a-z A-Z]*</event>" $line`;
+	$event = substitute("<event>", $event, "");
+	$event = substitute("</event>", $event, "");
+
+	// match the version
+	string $version = `match "<version>[0-9]*</version>" $line`;
+	$version = substitute("<version>", $version, "");
+	$version = substitute("</version>", $version, "");
+
+	// match the comment
+	string $comment = `match "<comment>[a-zA-Z0-9 \"-=\\]*</comment>" $line`;
+	$comment = substitute("<comment>", $comment, "");
+	$comment = substitute("</comment>", $comment, "");
+
+	// finally return tag and content
+	$formatedXML = ("Author: " + $author + "\n" + 
+					"Date: " + $date + " " + $time + "\n" + 
+					"Event: " + $event);
+
+	if($version != "")
+	{
+		$formatedXML += (" (Version: " + $version + ")\n");
+	}else{
+		$formatedXML += ("\n");
+	}
+	
+					
+	if($comment != "")
+	{
+		$formatedXML += ("Comment: " + $comment + "\n\n");
+	}else{
+		$formatedXML += ("\n");
+	}
+	if ($debug) print ($formatedXML+"\n");
+	return $formatedXML;
 }
 
 
@@ -354,15 +191,157 @@ global proc string[] openPipelineReadNotesByVersion(string $inputPath, int $vers
 	return $noteContents;
 }
 
-global proc string openPipelineFormatNotes(string $outputString[])
+
+global proc string openPipelineGetCleanLineXML(string $nextLine)
 {
-	string $output = stringArrayToString($outputString, "&");
-	$output = substituteAllString($output, "\<note\>", "");
-//	$output = substituteAllString($output, "<notetype>*</notetype>", "");	
-	$output = substituteAllString($output, "</*>", "/n");
-//	$output = substituteAllString($output, ">", ": ");	
+	$nextLine = `strip($nextLine)`;
+	$nextLine = `encodeString($nextLine)`;
+	return $nextLine;
+}
+
+
+global proc openPipelineAssetNoteWriter(string $inputMode)
+{
+	global string $openPipeline_userName;	
 	
-	return $output;	
+	//boolean value for preventing the user entering nothing while adding comment
+	int $emptyCommentAdded = 0;	
+	
+	string $eventContent;
+	string $commentContent;
+	
+	//get the date and time
+	string $dateNow = `system("date /t")`;
+	string $timeNow = `system("time /t")`;
+	string $dateStrip = `strip $dateNow`;
+	string $timeStrip = `strip $timeNow`;
+		
+	$dateStrip = `match "[A-Za-z][A-Za-z][A-Za-z] [0-9]+/[0-9]+/[0-9]+" $dateStrip`;
+	$timeStrip = `match "[0-9]+:[0-9]+ [AP]M" $timeStrip`;
+
+	string $proj_Path = `openPipelineGetPath "proj"`;
+	
+	if($inputMode=="creation")
+	{	
+		string $creationPath = `openPipelineGetPath "newnote"`;
+		
+		$fileId=`fopen $creationPath "w"`;
+		fprint $fileId "<?xml version=\"1.0\"?>\n";
+		fprint $fileId "<openpipelinenotes>\n";
+		fprint $fileId "	<note>\n";
+		fprint $fileId "		<notetype>creation</notetype>\n";
+		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
+		fprint $fileId ("		<date>" + $dateStrip + "</date>\n");
+		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
+		fprint $fileId ("		<event>asset created</event>\n");
+		fprint $fileId "	</note>\n";
+		fprint $fileId "\n";
+ 		fclose $fileId;
+
+ 		openPipelineFilePermisson "+R" $creationPath;
+
+	}else if($inputMode == "missing")
+	{
+		string $creationPath = `openPipelineGetPath "note"`;			
+		$fileId=`fopen $creationPath "w"`;
+		fprint $fileId "<?xml version=\"1.0\"?>\n";
+		fprint $fileId "<openpipelinenotes>\n";
+		fprint $fileId "	<note>\n";
+		fprint $fileId "		<notetype>creation</notetype>\n";
+		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
+		fprint $fileId ("		<date>" + $dateStrip + "</date>\n");
+		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
+		fprint $fileId ("		<event>asset created - note missing</event>\n");
+		fprint $fileId "	</note>\n";
+		fprint $fileId "\n";
+ 		fclose $fileId;
+ 		
+ 		openPipelineFilePermisson "+R" $creationPath;
+
+	}else{
+		switch($inputMode)
+		{	
+			case "master":
+				string $commentAdd = `textField -q -text masterCommentField`;
+				$eventContent = "\nEVENT: File mastered by " + $openPipeline_userName + ".";
+				string $tempComment = `strip $commentAdd`;
+				if(size($tempComment)>0)
+				{
+					$commentContent = ("\nCOMMENT: " + $commentAdd);	
+				}else{
+					$commentContent = "";	
+				}
+//			deleteUI masterFileUI;
+			break;
+		
+			case "add":
+				$eventContent = ("\nEVENT: comment added by "+ $openPipeline_userName+". version: ");
+				string $commentAdd = `textField -q -text commentField`;	
+				$commentContent = ("\nCOMMENT: " + $commentAdd);
+				
+				//get rid of space from commentField and size it.
+				//if nothing is there, trun the $emptyCommentAdded into 1 
+				string $tempComment = `strip $commentAdd`;
+				if(size($tempComment)==0)
+				{
+					$emptyCommentAdded = 1;
+				}else
+				{
+					$emptyCommentAdded = 0;
+				}
+			break;
+		}
+			
+		//do follow if it's not added empty comment 
+		//or it's file mastered
+		if(!$emptyCommentAdded)
+		{		
+
+			string $notePath = `openPipelineGetPath "note"`;
+			int $fileId;
+			
+			if(`filetest -f $notePath`)
+			{
+				openPipelineFilePermisson "-R" $notePath;
+				$fileId=`fopen $notePath "a"`;
+			}else{
+				$fileId=`fopen $notePath "w"`;
+			}
+						
+			fprint $fileId "\n";
+//		 	fprint $fileId $time_Date;
+		 	fprint $fileId $eventContent;
+		 	fprint $fileId $commentContent;
+		 	fprint $fileId "\n";
+		 	fclose $fileId;
+		 	
+		 	openPipelineFilePermisson "+R" $notePath;
+		 	
+		 	//reload the note
+		 	openPipelineLoadAssetNote;
+		}
+	}
+}
+
+
+global proc openPipelineShotNoteWriter(string $inputMode)
+{
+	// nothing.
+}
+
+
+//
+//change the file permission in Window
+//
+// + set
+// - clean
+// R read-Only
+// H Hidden
+//
+global proc openPipelineFilePermisson(string $inputMode, string $input_Path)
+{
+	string $exeCommand = "ATTRIB " + $inputMode + " " + $input_Path;
+	system($exeCommand);
 }
 
 /*
@@ -415,17 +394,6 @@ global proc string openPipelineFormatNotes(string $outputString[])
    </note>  
 </openpipelinenotes>
 */
-
-global proc string openPipelineGetCleanLineXML(string $nextLine)
-{
-	$nextLine = `strip($nextLine)`;
-	$nextLine = `encodeString($nextLine)`;
-	return $nextLine;
-}
-
-
-
-
 
 
 
@@ -482,4 +450,84 @@ global proc string openPipelineReadIndividualNote(string $inputPath, int $index)
 	}
 	fclose $fileId;
 	return $noteContents;
+}
+
+//
+//This Proc reads TXT file.
+//It will return an string[] without the empty lines and the comments.
+//
+global proc string[] openPipelineReadTxt_old(string $inputPath, string $inputMode)
+{
+	int $i=0;
+	string $outputString[]={};
+		
+	if(`filetest -r $inputPath`)
+	{
+		$fileId = `fopen $inputPath "r"`;
+		string $nextLine = `fgetline $fileId`;
+		
+		while(size($nextLine)>0)
+		{
+			switch($inputMode)
+			{
+				case "clean":
+					string $stripNextLine = `strip $nextLine`;
+					if(size($stripNextLine)>0 && startString($stripNextLine, 2)!="//" )
+					{
+						$outputString[$i] = $nextLine;
+						$i++;
+					}
+					$nextLine = `fgetline $fileId`;				
+					break;
+					
+				case "everything":
+					$outputString[$i] = $nextLine;
+					$i++;
+					$nextLine = `fgetline $fileId`;
+					break;
+			}
+		}
+		fclose $fileId;		
+	}else{
+		warning ("No file exists in " + $inputPath);
+	}
+	return $outputString;
+}
+
+// formats the specified XML array
+global proc string openpipelineFormatXML_old(string $line)
+{
+	int $debug = 0;
+
+	string $tag;
+	string $content;
+	string $tagAndContent;
+
+	// keep track of tags...
+
+	// cull leading white space escape quotes
+	$line = `strip($line)`; // may not be needed
+	$line = `encodeString($line)`;	
+
+	// search for header
+	int $headerMatch = `gmatch $line "*?xml*"`;
+	if($headerMatch == 1) return $tagAndContent;
+
+	// match for the tag
+	$tag = `match "<[a-zA-Z0-9 \"=\\]*>" $line`;
+	$tag = substituteAllString($tag, "<", "");	
+	$tag = substituteAllString($tag, ">", "");
+	
+	// everything else is the content
+	$content = `match ">[:/a-zA-Z0-9 \"=\\]*<" $line`;
+	$content = substituteAllString($content, "<", "");	
+	$content = substituteAllString($content, ">", "");
+
+	// check for bum data
+	if(($tag == "") && ($content =="")) return $tagAndContent;
+
+	// finally return tag and content
+	$tagAndContent = ($tag + ": " + $content);
+	if ($debug) print ($tagAndContent+"\n");
+	return $tagAndContent;
 }
