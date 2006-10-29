@@ -5,7 +5,7 @@ global proc openPipelineLoadAssetNote()
 
 	if(`filetest -f $notePath` == 0)
 	{
-		openPipelineAssetNoteWriter "missing";
+		openPipelineAssetNoteWriter "creation";
 	}
 
 	string $assetNoteTextArray[] = `openPipelineReadXML $notePath`;
@@ -48,7 +48,7 @@ global proc string openPipelineFormatXML(string $line)
 	$line = `encodeString($line)`;	
 
 	// match the author
-	string $author = `match "<author>[a-zA-Z0-9 \"-=\\]*</author>" $line`;
+	string $author = `match "<author>[a-zA-Z0-9 \"-!?=\\]*</author>" $line`;
 	$author = substitute("<author>", $author, "");
 	$author = substitute("</author>", $author, "");
 
@@ -58,12 +58,12 @@ global proc string openPipelineFormatXML(string $line)
 	$date = substitute("</date>", $date, "");
 
 	// match the time
-	string $time = `match "<time>[a-zA-Z0-9 \"-=\\]*</time>" $line`;
+	string $time = `match "<time>[a-zA-Z0-9 \"-!?=\\]*</time>" $line`;
 	$time = substitute("<time>", $time, "");
 	$time = substitute("</time>", $time, "");
 
 	// match the event
-	string $event = `match "<event>[a-z A-Z]*</event>" $line`;
+	string $event = `match "<event>[a-zA-Z0-9 \"-=\\]*</event>" $line`;
 	$event = substitute("<event>", $event, "");
 	$event = substitute("</event>", $event, "");
 
@@ -73,11 +73,11 @@ global proc string openPipelineFormatXML(string $line)
 	$version = substitute("</version>", $version, "");
 
 	// match the comment
-	string $comment = `match "<comment>[a-zA-Z0-9 \"-=\\]*</comment>" $line`;
+	string $comment = `match "<comment>[a-zA-Z0-9 \"-!?=\\]*</comment>" $line`;
 	$comment = substitute("<comment>", $comment, "");
 	$comment = substitute("</comment>", $comment, "");
 
-	// finally return tag and content
+	// finally return content
 	$formatedXML = ("Author: " + $author + "\n" + 
 					"Date: " + $date + " " + $time + "\n" + 
 					"Event: " + $event);
@@ -200,15 +200,11 @@ global proc string openPipelineGetCleanLineXML(string $nextLine)
 }
 
 
-global proc openPipelineAssetNoteWriter(string $inputMode)
+global proc int openPipelineAssetNoteWriter(string $inputMode)
 {
 	global string $openPipeline_userName;	
 	
-	//boolean value for preventing the user entering nothing while adding comment
-	int $emptyCommentAdded = 0;	
-	
-	string $eventContent;
-	string $commentContent;
+	int $fileId;
 	
 	//get the date and time
 	string $dateNow = `system("date /t")`;
@@ -218,8 +214,6 @@ global proc openPipelineAssetNoteWriter(string $inputMode)
 		
 	$dateStrip = `match "[A-Za-z][A-Za-z][A-Za-z] [0-9]+/[0-9]+/[0-9]+" $dateStrip`;
 	$timeStrip = `match "[0-9]+:[0-9]+ [AP]M" $timeStrip`;
-
-	string $proj_Path = `openPipelineGetPath "proj"`;
 	
 	if($inputMode=="creation")
 	{	
@@ -227,7 +221,7 @@ global proc openPipelineAssetNoteWriter(string $inputMode)
 		
 		$fileId=`fopen $creationPath "w"`;
 		fprint $fileId "<?xml version=\"1.0\"?>\n";
-		fprint $fileId "<openpipelinenotes>\n";
+//		fprint $fileId "<openpipelinenotes>\n";
 		fprint $fileId "	<note>\n";
 		fprint $fileId "		<notetype>creation</notetype>\n";
 		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
@@ -235,17 +229,16 @@ global proc openPipelineAssetNoteWriter(string $inputMode)
 		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
 		fprint $fileId ("		<event>asset created</event>\n");
 		fprint $fileId "	</note>\n";
-		fprint $fileId "\n";
  		fclose $fileId;
 
  		openPipelineFilePermisson "+R" $creationPath;
+ 		return 1;
 
-	}else if($inputMode == "missing")
-	{
+	}else if($inputMode == "missing"){
 		string $creationPath = `openPipelineGetPath "note"`;			
 		$fileId=`fopen $creationPath "w"`;
 		fprint $fileId "<?xml version=\"1.0\"?>\n";
-		fprint $fileId "<openpipelinenotes>\n";
+//		fprint $fileId "<openpipelinenotes>\n";
 		fprint $fileId "	<note>\n";
 		fprint $fileId "		<notetype>creation</notetype>\n";
 		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
@@ -253,74 +246,66 @@ global proc openPipelineAssetNoteWriter(string $inputMode)
 		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
 		fprint $fileId ("		<event>asset created - note missing</event>\n");
 		fprint $fileId "	</note>\n";
-		fprint $fileId "\n";
  		fclose $fileId;
  		
  		openPipelineFilePermisson "+R" $creationPath;
+ 		return 1;
 
 	}else{
 		switch($inputMode)
 		{	
 			case "master":
-				string $commentAdd = `textField -q -text masterCommentField`;
-				$eventContent = "\nEVENT: File mastered by " + $openPipeline_userName + ".";
-				string $tempComment = `strip $commentAdd`;
-				if(size($tempComment)>0)
-				{
-					$commentContent = ("\nCOMMENT: " + $commentAdd);	
-				}else{
-					$commentContent = "";	
-				}
-//			deleteUI masterFileUI;
+				// get comment
+				string $commentAdded = `textField -q -text op_masterCommentField`;
+				$commentAdded = `strip $commentAdded`;
+				
+				// get version
+				string $currPath = `optionVar -q "op_currOpenPath"`;
+				string $versions = ($currPath + "version/");
+				string $versionFiles[] = `getFileList -folder $versions -filespec ("*_version_*.mb")`;
+				int $version = size($versionFiles);	
 			break;
 		
-			case "add":
-				$eventContent = ("\nEVENT: comment added by "+ $openPipeline_userName+". version: ");
-				string $commentAdd = `textField -q -text commentField`;	
-				$commentContent = ("\nCOMMENT: " + $commentAdd);
+			case "workshop":
+				// get comment
+				string $commentAdded = `textField -q -text op_saveWorkshopCommentField`;	
+				$commentAdded = `strip $commentAdded`;
 				
-				//get rid of space from commentField and size it.
-				//if nothing is there, trun the $emptyCommentAdded into 1 
-				string $tempComment = `strip $commentAdd`;
-				if(size($tempComment)==0)
-				{
-					$emptyCommentAdded = 1;
-				}else
-				{
-					$emptyCommentAdded = 0;
-				}
+				// get version
+				string $currPath = `optionVar -q "op_currOpenPath"`;
+				string $workshop = ($currPath + "workshop/");
+				string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_workshop_*.mb")`;
+				int $version = size($workshopFiles);				
 			break;
 		}
-			
-		//do follow if it's not added empty comment 
-		//or it's file mastered
-		if(!$emptyCommentAdded)
-		{		
-
-			string $notePath = `openPipelineGetPath "note"`;
-			int $fileId;
-			
-			if(`filetest -f $notePath`)
-			{
-				openPipelineFilePermisson "-R" $notePath;
-				$fileId=`fopen $notePath "a"`;
-			}else{
-				$fileId=`fopen $notePath "w"`;
-			}
-						
-			fprint $fileId "\n";
-//		 	fprint $fileId $time_Date;
-		 	fprint $fileId $eventContent;
-		 	fprint $fileId $commentContent;
-		 	fprint $fileId "\n";
-		 	fclose $fileId;
-		 	
-		 	openPipelineFilePermisson "+R" $notePath;
-		 	
-		 	//reload the note
-		 	openPipelineLoadAssetNote;
+		
+		string $notePath = `openPipelineGetPath "note"`;
+		
+		if(`filetest -f $notePath`)
+		{
+			openPipelineFilePermisson "-R" $notePath;
+			$fileId=`fopen $notePath "a"`;
+		}else{
+			$fileId=`fopen $notePath "w"`;
 		}
+					
+		fprint $fileId "	<note>\n";
+		fprint $fileId ("		<notetype>" + $inputMode + "</notetype>\n");
+		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
+		fprint $fileId ("		<date>" + $dateStrip + "</date>\n");
+		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
+		fprint $fileId ("		<event>" + $inputMode + "</event>\n");
+		fprint $fileId ("		<version>" + $version + "</version>\n");
+		fprint $fileId ("		<comment>" + $commentAdded + "</comment>\n");
+		fprint $fileId "	</note>\n";
+	 	fclose $fileId;
+	 	
+	 	openPipelineFilePermisson "+R" $notePath;
+	 	
+	 	//reload the note
+	 	openPipelineLoadAssetNote;
 	}
+	return 1;
 }
 
 
@@ -343,58 +328,6 @@ global proc openPipelineFilePermisson(string $inputMode, string $input_Path)
 	string $exeCommand = "ATTRIB " + $inputMode + " " + $input_Path;
 	system($exeCommand);
 }
-
-/*
-<?xml version="1.0"?>
-<openpipelinenotes>
-	<note>
-		<notetype>creation</notetype>
-		<author>rob</author>
-		<date>Sun 07/09/2006</date>
-		<time>08:40 PM</time>
-		<event>creation</event>
-		<version>0</version>
-		<comment></comment>
-	</note>
-	<note>
-		<notetype>workshop</notetype>
-		<author>rob</author>
-		<date>Sun 07/09/2006</date>
-		<time>09:30 PM</time>
-		<event>workshop</event>
-		<version>1</version>
-		<comment></comment>
-	</note>
-	<note>
-		<notetype>workshop</notetype>
-		<author>rob</author>
-		<date>Sun 07/09/2006</date>
-		<time>09:36 PM</time>
-		<event>workshop</event>
-		<version>2</version>
-		<comment></comment>
-	</note>
-	<note>
-		<notetype>master</notetype>
-		<author>rob</author>
-		<date>Sun 07/09/2006</date>
-		<time>09:56 PM</time>
-		<event>master</event>
-		<version>1</version>
-		<comment>grabed the cape guy - needs a belt</comment>
-	</note>
-	<note>
-		<notetype>workshop</notetype>
-		<author>rob</author>
-		<date>Sun 07/09/2006</date>
-		<time>09:58 PM</time>
-		<event>comment</event>
-		<version>3</version>
-		<comment>remember to add the belt</comment>
-   </note>  
-</openpipelinenotes>
-*/
-
 
 
 

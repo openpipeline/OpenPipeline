@@ -24,25 +24,6 @@ global proc openPipelineMakeNewAssetTree(string $type, string $name)
 			break;
 			
 		case "component":
-//			while($name == "other...")
-//			{
-//				// pop up window
-// 				string $result = `promptDialog 
-// 					-title "Custom Component"
-// 					-message "component name:"
-// 					-button "create" -button "cancel"
-// 					-defaultButton "create" -cancelButton "cancel"
-// 					-dismissString "cancel"`;
-// 
-// 				if($result == "create")
-// 				{
-// 					$component = `promptDialog -query -text`;
-// 					if($component == "")
-// 					{
-// 						$component = "other...";
-// 					}
-// 				}
-//			}
 			openPipelineMakeNewAssetComponent($name);		
 			break;
 			
@@ -107,13 +88,6 @@ global proc string openPipelineMakeNewAssetType(string $name)
 
 global proc string openPipelineMakeNewAsset(string $name)
 {
-
-	//global string $openPipeline_menuCurrentAsset;
-	//global string $openPipeline_menuCurrentAssetType;	
-	//global string $openPipeline_menuCurrentAssetComponent;
-	
-	//$openPipeline_menuCurrentAsset = $name;
-	//$openPipeline_menuCurrentAssetComponent = "";
 	string $selectedAssetTypePaths[] = openPipelineGetSelectedAssetTypes();
 	string $assetPath = ($selectedAssetTypePaths[0] + $name);
 	if(`filetest -d ($assetPath)` == 0)
@@ -132,11 +106,7 @@ global proc string openPipelineMakeNewAsset(string $name)
 	// asset notes
 	sysFile -makeDir ($assetPath + "/" + "notes");
 	
-	//$noteFile = ($assetPath + "/" + "notes" + "/" + $name + "_AssetNote.txt");
-	
-	//---Clear and Fix-----//
-	// let Proc openPipeline_AssetNoteWriter writes the note
-	//openPipelineAssetNoteWriter "creation";
+	openPipelineAssetNoteWriter "creation";
 	
 	return $assetPath;
 }
@@ -623,14 +593,13 @@ global proc openPipelineSaveMasterFileWrapper()
 	// query the ui for mastering steps
 	
 	
-	// notes
-	//openPipelineAssetNoteWriter master; 
-
 	// do required checks
 	
-	
+
+	// notes
+	openPipelineAssetNoteWriter master; 
+
 	// finally save the master file
-	//openPipelineSaveFile master;
 	openPipelineProcessAssetSave master;
 }
 
@@ -682,6 +651,7 @@ global proc openPipelineProcessAssetSave(string $saveType)
 	{
 		case "workshop":
 			openPipelineSaveWorkshop;
+			openPipelineAssetNoteWriter workshop; 
 			deleteUI op_saveWorkshopUI;
 			break;
 		case "master":
@@ -701,11 +671,6 @@ global proc openPipelineProcessAssetSave(string $saveType)
 
 global proc openPipelineSaveWorkshop()
 {
-	
-	//global string $openPipeline_menuCurrentAssetType;
-
-	//string $libPath = `openPipelineGetPath "lib"`;
-	//$libPath = ($libPath + $openPipeline_menuCurrentAssetType + "/");
 
 	//string $scenePath = `openPipelineGetPath "scenes"`;
 	string $currPath = `optionVar -q "op_currOpenPath"`;

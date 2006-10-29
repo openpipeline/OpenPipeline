@@ -1,10 +1,23 @@
 global proc string openPipelineGetPath(string $inputMode)
 {
-	global string $openPipeline_menuCurrentAsset;	
 	global string $openPipeline_menuCurrentAssetType;
+	string $assetType[] = `openPipelineGetSelectedAssetTypes`;
+	$openPipeline_menuCurrentAssetType = openPipelineGetFolderFromPath($assetType[0], 0);
+
+	global string $openPipeline_menuCurrentAsset;
+	string $asset = `openPipelineGetSelectedAsset`;
+	$openPipeline_menuCurrentAsset = openPipelineGetFolderFromPath($asset, 0);	
+
 	global string $openPipeline_menuCurrentAssetComponent;
+	string $component = `openPipelineGetSelectedComponent`;
+	$openPipeline_menuCurrentAssetComponent = openPipelineGetFolderFromPath($component, 0);	
+
 	global string $openPipeline_libraryDirectoryName;
 	global string $openPipeline_sceneDirectoryName;
+
+	string $selectedAsset = `openPipelineGetSelectedAsset`;
+	string $selectedAssetComponent = `openPipelineGetSelectedComponent`;
+
 	
 	string $outputString;
 	string $projString = `workspace -q -fn`;
@@ -42,12 +55,12 @@ global proc string openPipelineGetPath(string $inputMode)
 		
 		case "newnote":
 			string $notesPath;
-			if($openPipeline_menuCurrentAssetComponent == "")
+			if($selectedAssetComponent == "")
 			{
 				$notesPath = $projString + "/" + $openPipeline_libraryDirectoryName + "/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset + "/notes/";
 				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_AssetNote.xml";
 			}else{
-				$notesPath = $projString + "/" + $openPipeline_libraryDirectoryName + "/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset  + "/components/" + $openPipeline_menuCurrentAssetComponent + "/notes/";
+				$notesPath = $projString + "/" + $openPipeline_libraryDirectoryName + "/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset + "/components/" + $openPipeline_menuCurrentAssetComponent + "/notes/";
 				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_AssetNote.xml";
 			}
 		break;

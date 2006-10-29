@@ -1212,7 +1212,6 @@ global proc openPipelineSaveMasterFileGUI()
 	string $windowExists = `window -exists op_masterFileUI`;
 	if($windowExists == 1)
 	{
-		//print "here!";
 		deleteUI op_masterFileUI;
 	}
 	
@@ -1488,19 +1487,17 @@ global proc openPipelineExpandAssetInventory()
 //
 global proc	openPipelineAssetInformation()
 {
-	string $temp[];
-	string $foo;
 	global string $openPipeline_menuCurrentAssetType;
-	$temp = `openPipelineGetSelectedAssetTypes`;
-	$openPipeline_menuCurrentAssetType = openPipelineGetFolderFromPath($temp[0], 0);
+	string $assetType[] = `openPipelineGetSelectedAssetTypes`;
+	$openPipeline_menuCurrentAssetType = openPipelineGetFolderFromPath($assetType[0], 0);
 
 	global string $openPipeline_menuCurrentAsset;
-	$foo = `openPipelineGetSelectedAsset`;
-	$openPipeline_menuCurrentAsset = openPipelineGetFolderFromPath($foo, 0);	
+	string $asset = `openPipelineGetSelectedAsset`;
+	$openPipeline_menuCurrentAsset = openPipelineGetFolderFromPath($asset, 0);	
 
 	global string $openPipeline_menuCurrentAssetComponent;
-	$foo = `openPipelineGetSelectedComponent`;
-	$openPipeline_menuCurrentAssetComponent = openPipelineGetFolderFromPath($foo, 0);	
+	string $component = `openPipelineGetSelectedComponent`;
+	$openPipeline_menuCurrentAssetComponent = openPipelineGetFolderFromPath($component, 0);	
 
 	string $libPath = `optionVar -q "op_libPath"`; 
 
