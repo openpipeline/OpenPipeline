@@ -385,11 +385,14 @@ global proc openPipelineSaveMasterFileWrapper()
 	// do required checks
 	//checkBox -label "Import Reference" -v 1 masterImportReferencesBox;
 
-	// notes
-	openPipelineAssetNoteWriter master; 
-
 	// finally save the master file
 	openPipelineProcessAssetSave master;
+
+	// notes
+	openPipelineAssetNoteWriter master;
+	
+	// delete mastering ui
+	deleteUI op_masterFileUI;
 }
 
 
@@ -405,7 +408,6 @@ global proc openPipelineProcessAssetSave(string $saveType)
 		case "master":
 			openPipelineSaveWorkshop;			
 			openPipelineSaveMaster;
-			deleteUI op_masterFileUI;
 			break;
 	}
 	
@@ -465,10 +467,6 @@ global proc openPipelineSaveMaster()
 	string $currCat = `optionVar -q "op_currOpenCategory"`;
 	int $currVersion = `optionVar -q "op_currOpenVersion"`;
 
-
-	//string $libPath = `openPipelineGetPath "lib"`;
-	//$libPath = ($libPath + $openPipeline_menuCurrentAssetType + "/");
-
 	//string $scenePath = `openPipelineGetPath "scenes"`;
 	
 	string $masterFile;
@@ -504,24 +502,31 @@ global proc openPipelineSaveMaster()
 	
 	system($cleanCmd);
 
+	openPipelineCleanMaster;
+		
+	// save the current file to the master location
+	file -rename $masterFile;
+	file -save -type "mayaBinary";
+}
+
+
+global proc openPipelineCleanMaster()
+{
 	// flatten the references to create a publishable master file
 	int $flatten = `checkBox -q -v masterImportReferencesBox`;
 	if($flatten)
 	{
 		openPipelineImportRefs;
 	}
-	
-	// save the current file to the master location
-	file -rename $masterFile;
-	file -save -type "mayaBinary";
 
-	// open the latest workshop (so no one actually works in the master!)
-	//openPipelineOpenFile("workshop");
-	
-	
-	//after save master, change the current version in Revision Layout from whatever to master
-//	text -e -label "master" currentVersion;
+	// delete layers from the publishable master file
+	int $deleteLayers = `checkBox -q -v masterDeleteLayersBox`;
+	if($flatten)
+	{
+		delete `ls -type displayLayer`;
+	}
 }
+
 
 global proc openPipelineRemoveFolder(string $category)
 {

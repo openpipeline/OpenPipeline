@@ -165,7 +165,7 @@ global proc openPipelineUI()
 							setParent..;
 						columnLayout -rs 5;
 							text -fn "boldLabelFont" -label "Comments" -w 180 -al "left";
-							scrollField -w 220 -h 50 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "Nothing here!" noteField;
+							scrollField -w 220 -h 50 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_currentNoteField;
 							setParent..;
 					setParent ..;
 
@@ -595,7 +595,9 @@ global proc openPipelineUpdateCurrentlyOpen()
 			string $assetName = openPipelineGetFolderFromPath($currPath,0);
 			string $assetType = openPipelineGetFolderFromPath($currPath,1);
 			$displayString+=($assetType+": "+$assetName+"  ("+$currType+")");
-		
+			
+			// update current comment field
+			openPipelineLoadCurrentAssetNote;
 		}
 		else if ($currCat=="component")
 		{
@@ -638,7 +640,7 @@ global proc openPipelineUpdateCurrentlyOpen()
 		text -e -label $displayString -fn "boldLabelFont" op_currOpenHeading;
 		
 	}
-		openPipelineRemoveSecondaryWindows();
+	openPipelineRemoveSecondaryWindows();
 }
 
 global proc int openPipelineAssetHasWorkshop(string $path)
@@ -676,12 +678,14 @@ global proc int openPipelineComponentHasMaster(string $path)
 	int $masterExists = `filetest -f $expectedMasterFile`;
 	return $masterExists;
 }
+
 global proc openPipelineRemoveSecondaryWindows()
 {
 	if(`window -exists op_saveWorkshopUI`)
 		deleteUI op_saveWorkshopUI;
-	if(`window -exists op_masterFileUI`)
-		deleteUI op_masterFileUI;
+// robo commented to work with mastering schema
+//	if(`window -exists op_masterFileUI`)
+//		deleteUI op_masterFileUI;
 	if(`window -exists op_reviveUI`)
 		deleteUI op_reviveUI;
 }
@@ -1189,17 +1193,15 @@ global proc openPipelineNewComponentProcess(string $componentName)
 	
 	//string $assetPath = $assetTypePath + $assetName;
 	if (`filetest -d ($assetPath + "components/" + $componentName)`)
-			$error+=("component \""+$componentName+"\" already exists!");
-		
-
-
+	{
+		$error+=("component \""+$componentName+"\" already exists!");
+	}
+			
 	if($error != "")
 	{
 			confirmDialog -title "openPipeline Error" -message $error
  				-button "OK" -defaultButton "OK";
-	}	
-	else
-	{
+	}else{
 		//$openPipeline_menuCurrentAsset = $assetName;
 		//$openPipeline_menuCurrentAssetType = $assetTypeName;
 		print($openPipeline_menuCurrentAsset+"\n");
@@ -1225,8 +1227,8 @@ global proc openPipelineSaveMasterFileGUI()
 	setParent..;
 
 	rowLayout -numberOfColumns 2 -cw2 150 150 -cl2 "center" "center";
-		// check clashing...	
-//		checkBox -label "Check Clashing" -v 1 masterCheckClashingBox;
+		// delete layers...	
+		checkBox -label "Delete Display Layers" -v 1 masterDeleteLayersBox;
 		//  ...
 	setParent ..;
 	
@@ -1279,37 +1281,36 @@ global proc openPipelineSaveWorkshopGUI()
 global proc openPipelineReviveGUI()
 {
 	string $currPath = `optionVar -q "op_currOpenPath"`;
-	//string $currType = `optionVar -q "op_currOpenType"`;
-	//string $currCat = `optionVar -q "op_currOpenCategory"`;
-	//int $currVersion = `optionVar -q "op_currOpenVersion"`;
-	//string $assetName = openPipelineGetFolderFromPath($currPath,0);
+
 	string $workshop = ($currPath + "workshop/");
 	string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_workshop_*.mb")`;
 	int $numVersions = `size($workshopFiles)`;
 	
 	if(`window -exists op_reviveUI`)
 		deleteUI op_reviveUI;
-	window -t "Revive Workshop" -w 200 -h 85 op_reviveUI;
+	window -t "Revive Workshop" -w 275 -h 85 op_reviveUI;
 
 	columnLayout -rs 5 -co "both" 10;
 	
 	// notes...
 	rowLayout -numberOfColumns 2 -cw2 130 50 -cl2 "left" "right";
-		text -l "select version to revive: " -w 130 -h 30 -al "left";
-		optionMenu -w 50 -h 30 op_reviveVersionMenu;
+		text -l "Select Version to Revive: " -w 130 -h 30 -al "left";
+		optionMenu -w 50 -h 30 -cc openPipelineReviveWorkshopNotesCallback op_reviveVersionMenu;
 			int $i;
 			for ($i=1;$i<=$numVersions;$i++)
+			{
 				menuItem -l $i;
+			}
 	setParent..;
 	
-	scrollField -editable 0 -text "version description" -w 170 -h 100;
+	scrollField -editable 0 -text "version description" -w 260 -h 100 op_reviveWorkshopNotes;
 	
 	rowLayout -numberOfColumns 2 -cw2 85 85 -cl2 "center" "center";
 		button -w 85 -l "REVIVE" -c "openPipelineReviveWorkshopCallback" -bgc .5 .7 .7;
 		button -w 85 -l "cancel" -c "deleteUI op_reviveUI" -bgc .8 .4 .4;
 	setParent..;
 	optionMenu -e -sl $numVersions op_reviveVersionMenu;
-	window -e -w 200 -h 200 op_reviveUI;
+	window -e -w 275 -h 200 op_reviveUI;
 	showWindow op_reviveUI;
 }
 	
