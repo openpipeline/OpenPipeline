@@ -58,7 +58,7 @@ global proc string openPipelineFormatXML(string $line)
 	$date = substitute("</date>", $date, "");
 
 	// match the time
-	string $time = `match "<time>[a-zA-Z0-9 \"-!?=\\]*</time>" $line`;
+	string $time = `match "<time>[a-zA-Z0-9 \"-:!?=\\]*</time>" $line`;
 	$time = substitute("<time>", $time, "");
 	$time = substitute("</time>", $time, "");
 
@@ -73,7 +73,7 @@ global proc string openPipelineFormatXML(string $line)
 	$version = substitute("</version>", $version, "");
 
 	// match the comment
-	string $comment = `match "<comment>[a-zA-Z0-9 \"-!?=\\]*</comment>" $line`;
+	string $comment = `match "<comment>[a-zA-Z0-9 -:=\\\"]**</comment>" $line`;
 	$comment = substitute("<comment>", $comment, "");
 	$comment = substitute("</comment>", $comment, "");
 

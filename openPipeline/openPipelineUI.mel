@@ -1222,14 +1222,12 @@ global proc openPipelineSaveMasterFileGUI()
 		// flatten reference...
 		checkBox -label "Import Reference" -v 1 masterImportReferencesBox;
 		//  ...
-		checkBox -label "Help Homeless" -v 1 someother;
 	setParent..;
 
 	rowLayout -numberOfColumns 2 -cw2 150 150 -cl2 "center" "center";
 		// check clashing...	
-		checkBox -label "Check Clashing" -v 1 masterCheckClashingBox;
+//		checkBox -label "Check Clashing" -v 1 masterCheckClashingBox;
 		//  ...
-		checkBox -label "Send Email" -v 1;
 	setParent ..;
 	
 
