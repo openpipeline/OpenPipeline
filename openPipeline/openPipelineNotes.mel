@@ -262,6 +262,25 @@ global proc string[] openPipelineReadNotesByVersion(string $inputPath, int $vers
 }
 
 
+global proc string[] openPipelineCullNotesByVersion(string $allTheNotes[], int $version)
+{
+	string $noteMatch = ("*<version>" + $version + "</version>*");
+	string $noteContents[];
+	
+	int $i = 0;
+	for($eachNote in $allTheNotes)
+	{
+		int $test = gmatch($eachNote, $noteMatch);
+		if($test)
+		{
+			$noteContents[$i] = $eachNote;
+			$i++;
+		}
+	}
+	return $noteContents;
+}
+
+
 global proc string openPipelineGetCleanLineXML(string $nextLine)
 {
 	$nextLine = `strip($nextLine)`;
@@ -340,7 +359,7 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 				// get comment
 				string $masterPrepend = (" (Mastered as Version " + $masterVersion + ")");
 				string $commentAdded = `textField -q -text op_masterCommentField`;
-				$commentAdded = (`strip $commentAdded` $masterPrepend);
+				$commentAdded = (`strip $commentAdded` + $masterPrepend);
 			break;
 		
 			case "workshop":

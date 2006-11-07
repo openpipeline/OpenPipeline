@@ -1222,7 +1222,7 @@ global proc openPipelineSaveMasterFileGUI()
 	columnLayout -rs 5 -co "both" 10;
 	rowLayout -numberOfColumns 2 -cw2 150 150 -cl2 "center" "center";
 		// flatten reference...
-		checkBox -label "Import Reference" -v 1 masterImportReferencesBox;
+		checkBox -label "Import References" -v 1 masterImportReferencesBox;
 		//  ...
 	setParent..;
 
@@ -1303,7 +1303,7 @@ global proc openPipelineReviveGUI()
 			}
 	setParent..;
 	
-	scrollField -editable 0 -text "version description" -w 260 -h 100 op_reviveWorkshopNotes;
+	scrollField -editable 0 -wordWrap 1 -text "" -w 260 -h 100 op_reviveWorkshopNotes;
 	
 	rowLayout -numberOfColumns 2 -cw2 85 85 -cl2 "center" "center";
 		button -w 85 -l "REVIVE" -c "openPipelineReviveWorkshopCallback" -bgc .5 .7 .7;
@@ -1540,35 +1540,32 @@ global proc	openPipelineAssetInformation()
 		string $str = `system ("dir " + $expectedMasterFile)`;
 		string $masterDate = `match "[0-9]+/[0-9]+/[0-9]+" $str`;
 		
-		$fileMastered = ("Mastered?: Yes \nDate: " + $masterDate + "\n");
+		$fileMastered = ("Mastered?: Yes" + " (" + $currentVersion + ")\nDate: " + $masterDate + "\n");
 	} else {
 		$fileMastered = ("Mastered?: No \n");
 	}
 
 	// current version
-	if($versionNum > 0)
+	if($versionNum >= 0)
 	{
-		$currentVersion = ($versionNum);
+		$currentVersion = ($versionNum + 1);
 	}else{
 		$currentVersion = 0;	
 	}
 	
 	// format information
 	string $assetInfoHeader = ($openPipeline_menuCurrentAsset + " : " + 
-			$openPipeline_menuCurrentAssetComponent + "\n-------------------\n");
+			$openPipeline_menuCurrentAssetComponent + "\n");
 
-	string $current = ("Latest Master: " + $currentVersion + "\n");
 	string $workshopTotal = ("Workshops: " + $workshopNum + "\n");		
 	string $versionTotal = ("Versions: " + $versionNum + "\n");	
 
-	string $outputText = ($assetInfoHeader + $current + $workshopTotal + $versionTotal + $fileMastered);
+	string $outputText = ($assetInfoHeader + $workshopTotal + $versionTotal + $fileMastered);
 	
 	// fill box
 	scrollField -e -text $outputText op_infoField;
 	
 }
-
-//For Proj Set up 
 
 
 //query winPos
@@ -1578,6 +1575,7 @@ global proc openPipelineRefreshUIPos()
 	
 	$openPipeline_winPos = `window -q -tlc openPipelineUI`;
 }
+
 
 global proc openPipelineUpdateAssetMenus(string $assetPath)
 {
@@ -1595,6 +1593,7 @@ global proc openPipelineUpdateAssetMenus(string $assetPath)
 	menuItem -e -en $hasWorkshop op_assetMenuImportWorkshop2;
 	menuItem -e -en $hasWorkshop op_assetMenuReferenceWorkshop2;
 }
+
 
 global proc openPipelineUpdateComponentMenus(string $componentPath)
 {
