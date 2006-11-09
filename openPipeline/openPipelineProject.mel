@@ -141,7 +141,7 @@ global proc openPipelineEditProject(int $index)
 	
 global proc openPipelineRemoveProject(int $projIndex, string $projName)
 {
-	global int $openPipeline_currentProjIndex;
+	int $openPipeline_currentProjIndex = `optionVar -q "op_currProject"`;
 	string $messageText = "Are you sure you want to remove project "+ $projName + " ?";
 	string $result = `confirmDialog -bgc .9 .9 .9 -title "Remove Project Confirm" -message $messageText
 			-button "Yes" -button "Cancel" -defaultButton "Yes"
@@ -157,7 +157,9 @@ global proc openPipelineRemoveProject(int $projIndex, string $projName)
 		if ($openPipeline_currentProjIndex*2>=$projIndex)
 			{
 			if ($openPipeline_currentProjIndex>0)
+				
 				$openPipeline_currentProjIndex--;
+				optionVar -iv "op_currProject" $openPipeline_currentProjIndex;
 			}
 		openPipelineRewriteProjFile($projectsList);
 	}
@@ -205,30 +207,29 @@ global proc openPipelineProjDialogWindow(int $mode, int $index, string $defName,
 	workspace -dir $defPath;
 	
 	window  -w 300 -h 200 -sizeable 0 -mxb 0 -rtf 0 -title $title_txt openPipelineProjDialog;
-		rowColumnLayout -width 280 -numberOfRows 6 -rh 1 15 -rh 2 25 -rh 3 15 -rh 4 25 -rh 5 30 -rh 6 30 -rs 1 10 -rs 3 10 -rs 6 20 mainDialogLayout; 
-			rowColumnLayout -numberOfColumns 1 -cw 1 280;
-			text -fn "boldLabelFont" -label "Project Name (max length: 18):";
-			setParent "mainDialogLayout";
-			textField -text $defName nameTextField;
-			setParent "mainDialogLayout";
-			text -fn "boldLabelFont" -label "Project Path:";
-			setParent "mainDialogLayout";
-			textField -text $defPath pathTextField;
-			setParent "mainDialogLayout";
-			rowColumnLayout -numberOfColumns 2 -cw 1 220 -cw 2 73;
-			text -label ""; button -label "Browse..." -c "fileBrowserDialog -m 4 -fc \"openPipelineSetProjDialogPath\" -an \"Find Location\" ";
-			setParent "mainDialogLayout";
-			rowColumnLayout -numberOfColumns 2 -cs 1 10 -cw 1 140 -cw 2 140;
+		columnLayout -width 280 -rs 5 -co "both" 10; 
+			
+			text -fn "boldLabelFont" -label "Project Name (max length: 18):" -align "left" -width 280;
+			textField -h 20 -text $defName -width 280  nameTextField ;
+			text -fn "boldLabelFont" -label "Project Path:" -align "left" -width 280;
+			text -label "(folders which don't already exist will be created)" -align "left" -width 280;
+			textField -h 20 -text $defPath -width 280 pathTextField ; 
+			rowLayout -nc 2  -cw2 220 60 ;
+				text -label ""; 
+				button -label "Browse..." -c "fileBrowserDialog -m 4 -fc \"openPipelineSetProjDialogPath\" -an \"Find Location\" " -w 60;
+			setParent..;
 			string $accept_str = "openPipelineProjDialogCallback("+$mode+","+$index+")";
-			button -label "Accept" -c $accept_str;
-			button -label "Cancel" -c "openPipelineCloseProjDialog";
-	window  -e -w 300 -h 200 openPipelineProjDialog;
+			separator -h 10 -style "none";
+			rowLayout -nc 2 -cw2 140 140;
+				button -label "Accept" -w 140 -c $accept_str;
+				button -label "Cancel" -w 140  -c "openPipelineCloseProjDialog";
+	window  -e -w 305 -h 210 openPipelineProjDialog;
 	showWindow;
 }
 	
 global proc openPipelineProjDialogCallback(int $mode, int $index)
 {
-	global int $openPipeline_currentProjIndex;
+	int $openPipeline_currentProjIndex = `optionVar -q "op_currProject"`;
 	string $newName=`textField -q -tx nameTextField`;
 	string $newPath = strip(`textField -q -tx pathTextField`);
 	int $error = 0;
@@ -317,6 +318,7 @@ global proc openPipelineProjDialogCallback(int $mode, int $index)
 			if ($j<=($openPipeline_currentProjIndex*2))
 			{
 				$openPipeline_currentProjIndex++;
+				optionVar -iv "op_currProject" $openPipeline_currentProjIndex;
 			}
 			$projectsList[$j+2]=$newName;
 			$projectsList[$j+3]=$newPath;
