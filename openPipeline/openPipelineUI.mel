@@ -62,7 +62,7 @@ global proc openPipelineUI()
 	global int $openPipeline_winPos[];
 
 	string $projList[] = openPipelineGetProjectList();
-	//nt $numProjects = size($projList)/2;
+
 	if (size($projList))
 	{
 		string $windowExists = `window -q -exists openPipelineUI`;
@@ -103,7 +103,7 @@ global proc openPipelineUI()
 	optionMenuGrp -label "Project Name : " -cl2 "right" "left" -columnWidth2 140 200  
 		-cc "openPipelineProjSelected 1" -ann $anno_projectList projNameMenu;
 	//
-	//call proc openPipelineGetProjList to get the existed proj size and name one by one
+	//call proc openPipelineGetProjectList to get the existed proj size and name one by one
 	//proc located in openPipelineUtility.mel
 	string $projList[] = openPipelineGetProjectList();
 	int $numProjects = size($projList)/2;
@@ -113,22 +113,20 @@ global proc openPipelineUI()
 		menuItem -label $temp_projName;
 	}
 			
-	int $currProj=1;
+	int $currProj = 1;
 	if (`optionVar -ex "op_currProject"`)
+	{
 		$currProj = `optionVar -q "op_currProject"`;
+	}
 			
 	optionMenuGrp -e -sl $currProj projNameMenu;
-	
 	
 	button -label "Project Manager..." -c "openPipelineProjectUI" -ann $anno_projectManager projManagerButton;
 	setParent..;
 	textFieldGrp -label "Project Path : " -editable false projPath;
 
-	//textFieldGrp -label "CURRENT OPEN FILE :" -text $openPipeline_currentOpenAssetComponentString -editable false currentFileText;//*************not needed
-
 	setParent ..;
 	setParent..;
-
 
 	//
 	//end of columnLayout infoUI
@@ -177,8 +175,8 @@ global proc openPipelineUI()
 							//	setParent..;
 							setParent..;
 						columnLayout -rs 5;
-							text -fn "boldLabelFont" -label "Comments" -w 180 -al "left";
-							scrollField -w 220 -h 50 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_currentNoteField;
+							text -fn "boldLabelFont" -label "Latest Comment" -w 180 -al "left";
+							scrollField -w 220 -h 50 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_currentAssetNoteField;
 							setParent..;
 					setParent ..;
 
@@ -339,8 +337,8 @@ global proc openPipelineUI()
 							//	setParent..;
 							setParent..;
 						columnLayout -rs 5;
-							text -fn "boldLabelFont" -label "Comments" -w 180 -al "left";
-							scrollField -w 220 -h 50 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "Nothing here!" sceneNoteField;
+							text -fn "boldLabelFont" -label "Latest Comment" -w 180 -al "left";
+							scrollField -w 220 -h 50 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_currentSceneNoteField;
 							setParent..;
 					setParent ..;
 
@@ -390,13 +388,12 @@ global proc openPipelineUI()
 							setParent..;
 						setParent..;
 								columnLayout -rs 0;
-								text -fn "boldLabelFont" -label "Info" -w 180 -al "left";
-								separator -style "none" -w 125 -h 15;
-								scrollField -w 220 -h 133 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "Nothing here!" op_sceneInfoField;
+								text -fn "tinyBoldLabelFont" -label "Info" -w 180 -al "left";
+								//separator -style "none" -w 125 -h 15;
+								scrollField -w 220 -h 60 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_sceneInfoField;
+								text -fn "tinyBoldLabelFont" -label "Comments" -w 180 -al "left";
+								scrollField -w 220 -h 70 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_sceneCommentField;
 								setParent..;
-					
-						
-						
 						setParent ..;
 						separator -style "none" -w 410 -h 10;
 				separator -style "double" -w 410;
@@ -502,25 +499,26 @@ global proc openPipelineUI()
 		openPipelineProjectUI();
 	}
 }
-global proc openPipelineSceneEdit()
-{
-	
-}
+
+
 global proc openPipelineUpdateCurrentlyOpen()
 {
-	
+
 	string $currPath = `optionVar -q "op_currOpenPath"`;
 	string $currType = `optionVar -q "op_currOpenType"`;
 	string $currCat = `optionVar -q "op_currOpenCategory"`;
 	int $currVersion = `optionVar -q "op_currOpenVersion"`;
-	
+
+	// clear the currently opened notes field
+	openPipelineClearCurrentAssetNote;	
+
 	string $workshop = ($currPath + "workshop/");
 	string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_workshop_*.mb")`;
 	int $numVersions = `size($workshopFiles)`;
 	
 	if ($currPath=="")
 	{
-	  button -e -en 0 op_saveWorkshopButton;
+		button -e -en 0 op_saveWorkshopButton;
 		button -e -en 0 op_masterButton;
 		button -e -en 0 op_reviveButton;
 		text -e -label "none open" op_currOpenHeading;
@@ -532,18 +530,16 @@ global proc openPipelineUpdateCurrentlyOpen()
 		text -e -label "none open" op_currOpenSceneHeading;
 		text -e -vis 0 op_currOpenSceneHeadingVersion;
 		text -e -label "" -fn "obliqueLabelFont" op_currOpenSceneLabel;
-	}
-	else
-	{
-string $displayString="";
+	}else{
+		string $displayString="";
 		string $versionString="";
+		
 		if ($currCat=="asset")
 		{
 			string $assetName = openPipelineGetFolderFromPath($currPath,0);
 			string $assetType = openPipelineGetFolderFromPath($currPath,1);
 			$displayString+=($assetType+": "+$assetName+"  ("+$currType+")");
-	
-						
+				
 			// update current comment field
 			openPipelineLoadCurrentAssetNote;		
 		}
@@ -558,6 +554,9 @@ string $displayString="";
 		{
 			string $sceneName = openPipelineGetFolderFromPath($currPath,0);
 			$displayString+=($sceneName+"  ("+$currType+")");
+			
+			// update current comment field
+			openPipelineLoadCurrentSceneNote;	
 		}
 		if ($currType=="workshop")
 		{
@@ -594,9 +593,7 @@ string $displayString="";
 			
 			button -e -en 1 op_masterSceneButton;
 			button -e -en 0 op_masterButton;//other side
-		}
-		else
-		{
+		}else{
 			button -e -en ($numVersions-1)  op_reviveButton;
 			button -e -en 0 op_reviveSceneButton;//other side
 			
@@ -620,8 +617,7 @@ string $displayString="";
 			button -e -en 1 op_masterButton;
 			button -e -en 0 op_masterSceneButton;//other side
 		}
-		openPipelineRemoveSecondaryWindows();
-		
+	openPipelineRemoveSecondaryWindows();
 	}
 }
 
@@ -686,7 +682,6 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 	optionVar -iv "op_currProject" $projIndex;
 	int $currentProjIndex = $projIndex-1;
 	string $projList[] = openPipelineGetProjectList();
-	//proc located in openPipelineUtility.mel
 	string $currentProject = $projList[$currentProjIndex*2+1];
 	setProject $currentProject;
 	textFieldGrp -e -text $currentProject projPath;
@@ -696,26 +691,26 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 	string $currentProjectShort = $buffer[$numDepth - 1];
 	string $libPath = `openPipelineGetPath "lib"`;
 	optionVar -sv "op_libPath" $libPath;
-	
+
 	string $scenePath = ($currentProject + "/scenes/");
 	string $archivePath = ($currentProject + "/archive/");
 	optionVar -sv "op_scenePath" $scenePath;
 	optionVar -sv "op_archivePath" $archivePath;
 	if ($refreshCurrOpen)
-		{
+	{
 		optionVar -sv "op_currOpenPath" "";
 		optionVar -sv "op_currOpenType" "";
 		optionVar -sv "op_currOpenCategory" "";
 		optionVar -iv "op_currOpenVersion" 0;
 		//NewScene; //********************** maybe not?
-		}
+	}
 	
 	string $buffer[];
 	int $numDepth = `tokenize $currentProject "/" $buffer`;
-	//textFieldGrp -label "Project Path : " -text $currentProject -editable false projPath;
 	openPipelineUpdateAssetTypeList();
 	openPipelineUpdateSceneList();
 }
+
 
 global proc openPipelineUpdateSceneList()
 {
@@ -725,8 +720,6 @@ global proc openPipelineUpdateSceneList()
 	int $active = 0;
 	string $scenePath = `optionVar -q "op_scenePath"`; 
 	string $sceneFolders[] = `getFileList -folder $scenePath`;
-	
-	
 	
 	int $numScenes = `size($sceneFolders)`;
 	if (!$numScenes)
@@ -743,10 +736,10 @@ global proc openPipelineUpdateSceneList()
 		else if (openPipelineAssetHasWorkshop($currScenePath))
 			$post+="-";
 		if ($currScenePath == `optionVar -q "op_currOpenPath"`)
-				{
-					$pre+= "*";
-					$post+=" *";
-				}
+		{
+			$pre += "*";
+			$post += " *";
+		}
 		optionVar -sva "op_scenes" $currScenePath;
 		
 		textScrollList -e -a ($pre+$sceneFolders[$i]+$post) op_sceneScrollList;
@@ -755,9 +748,10 @@ global proc openPipelineUpdateSceneList()
 			textScrollList -e -si ($pre+$sceneFolders[$i]+$post) op_sceneScrollList;
 		}
 	}
-openPipelineSceneSelected();
-openPipelineUpdateSceneAssetTypeList();
+	openPipelineSceneSelected();
+	openPipelineUpdateSceneAssetTypeList();
 }
+
 
 global proc openPipelineUpdateSceneAssetTypeList()
 {
@@ -775,10 +769,9 @@ global proc openPipelineUpdateSceneAssetTypeList()
 			textScrollList -e -si $libTypeFiles[$i] op_sceneAssetTypeList;
 		}
 	}
-	
-
-		openPipelineSceneAssetTypeSelected();
+	openPipelineSceneAssetTypeSelected();
 }
+
 
 global proc openPipelineSceneSelected()
 {
@@ -790,26 +783,29 @@ global proc openPipelineSceneSelected()
 			menuItem -e -en 1 op_sceneMenuEdit;
 			menuItem -e -en 1 op_sceneMenuEdit2;
 			openPipelineUpdateSceneMenus($selScenePath);
+	}else{
+		button -e -en 0 op_sceneRemoveButton;
+		menuItem -e -en 0 op_sceneMenuEdit;
+		menuItem -e -en 0 op_sceneMenuView;
+		menuItem -e -en 0 op_sceneMenuImport;
+		menuItem -e -en 0 op_sceneMenuReference;
+		//menuItem -e -en 0 op_sceneMenuEdit2;
+		menuItem -e -en 0 op_sceneMenuView2;
+		menuItem -e -en 0 op_sceneMenuImport2;
+		menuItem -e -en 0 op_sceneMenuReference2;
+		button -e -en 0 op_sceneRemoveButton;
+		button -e -en 0 op_componentNewButton;
 	}
-	else
-		{
-			button -e -en 0 op_sceneRemoveButton;
-			menuItem -e -en 0 op_sceneMenuEdit;
-			menuItem -e -en 0 op_sceneMenuView;
-			menuItem -e -en 0 op_sceneMenuImport;
-			menuItem -e -en 0 op_sceneMenuReference;
-			//menuItem -e -en 0 op_sceneMenuEdit2;
-			menuItem -e -en 0 op_sceneMenuView2;
-			menuItem -e -en 0 op_sceneMenuImport2;
-			menuItem -e -en 0 op_sceneMenuReference2;
-			button -e -en 0 op_sceneRemoveButton;
-			button -e -en 0 op_componentNewButton;
-		}
+	
+	openPipelineSceneInformation;
+	openPipelineLoadSceneNote;	
 	openPipelineUpdateCurrentlyOpen();
 }
+
+
 global proc openPipelineSceneAssetTypeSelected()
 {
-string $lastSelectedPath = openPipelineGetSelectedAsset();
+	string $lastSelectedPath = openPipelineGetSelectedAsset();
 	textScrollList -e -ra "op_sceneAssetList";
 	optionVar -ca "op_sceneAssets";
 	int $active = 0;
@@ -855,31 +851,32 @@ string $lastSelectedPath = openPipelineGetSelectedAsset();
 			}
 		}
 	}
-		button -e -en (size($selectedTypes)) op_assetTypeRemoveButton;
-		if (size($selectedTypes)==1)
-			button -e -en 1 op_assetNewButton;
-		else
-			button -e -en 0 op_assetNewButton;
+	button -e -en (size($selectedTypes)) op_assetTypeRemoveButton;
+	if (size($selectedTypes)==1)
+		button -e -en 1 op_assetNewButton;
+	else
+		button -e -en 0 op_assetNewButton;
+	
 	textScrollList -e -en $active "op_sceneAssetList";
-
 	
 	openPipelineSceneAssetSelected();
 }
 
+
 global proc openPipelineSceneAssetSelected()
 {
 	string $currAssetPath = openPipelineGetSelectedSceneAsset();
+
 	if (($currAssetPath!="")&&(openPipelineAssetHasMaster($currAssetPath)))
 	{
 		button -e -en 1 op_importToSceneButton;
 		button -e -en 1 op_referenceToSceneButton;
-	}
-	else
-	{
+	}else{
 		button -e -en 0 op_importToSceneButton;
 		button -e -en 0 op_referenceToSceneButton;
 	}
 }
+
 
 global proc openPipelineUpdateAssetTypeList()
 {
@@ -897,14 +894,13 @@ global proc openPipelineUpdateAssetTypeList()
 		textScrollList -e -a $libTypeFiles[$i] op_assetTypeScrollList;
 		for ($j=0; $j< (size($lastSelectedPaths)); $j++)
 		{
-		
-		if ($libTypeFiles[$i]==openPipelineGetFolderFromPath($lastSelectedPaths[$j],0))
-			textScrollList -e -si $libTypeFiles[$i] op_assetTypeScrollList;
+			if ($libTypeFiles[$i]==openPipelineGetFolderFromPath($lastSelectedPaths[$j],0))
+				textScrollList -e -si $libTypeFiles[$i] op_assetTypeScrollList;
 		}
-	}
-	
+	}	
 	openPipelineAssetTypeSelected();
 }
+
 
 global proc string[] openPipelineGetSelectedSceneAssetTypes()
 {
@@ -924,6 +920,7 @@ global proc string[] openPipelineGetSelectedSceneAssetTypes()
 	}
 		return $selectedTypePaths;
 }
+
 
 global proc string openPipelineGetSelectedSceneAsset()
 {
@@ -1213,7 +1210,7 @@ global proc openPipelineHelpLaunch()
 global proc openPipelineNewAssetTypeUI()
 {
 	string $assetType;
-  string $error="";
+	string $error="";
 	string $result = `promptDialog 
 		-title "new asset type"
 		-message "asset type name:\n(no spaces or special characters\nmax length: 16 characters)"
@@ -1249,8 +1246,10 @@ global proc openPipelineNewAssetTypeUI()
 
 global proc openPipelineNewAssetUI()
 {
+	global string $openPipelineNewAssetName = "";
+
 	//string $libPath = `openPipelineGetPath "lib"`;
-  string $error="";
+	string $error="";
 	string $result = `promptDialog 
 		-title "new asset"
 		-message "asset name:\n(no spaces or special characters\nmax length: 12 characters)"
@@ -1260,8 +1259,9 @@ global proc openPipelineNewAssetUI()
 	
 	if($result == "create")
 	{
-		
  		$assetName = strip(`promptDialog -query -text`);
+ 		
+		$openPipelineNewAssetName = $assetName;
 		
  		if (size($assetName)>12)
 			$error+="Asset Name too long (max 12 chars.).\n";
@@ -1280,6 +1280,7 @@ global proc openPipelineNewAssetUI()
 		}
 	}
 }
+
 
 global proc string openPipelineGetFolderFromPath(string $path, int $offsetFromLast)
 {
@@ -1321,7 +1322,8 @@ global proc openPipelineNewAssetComponentUI()
 
 global proc openPipelineNewSceneUI()
 {
-	//string $assetComponent;
+	global string $openPipelineNewSceneName = "";
+	
 	string $error;
 	string $result = `promptDialog 
 		-title "new scene"
@@ -1341,10 +1343,8 @@ global proc openPipelineNewSceneUI()
 		{
 			confirmDialog -title "openPipeline Error" -message $error
  				-button "OK" -defaultButton "OK";
-		}
-		else
-		{
-			//openPipelineNewSceneProcess($sceneName);
+		}else{
+			$openPipelineNewSceneName = $sceneName;
 			openPipelineNewSceneProcess($sceneName);
 			openPipelineUpdateSceneList();
 		}
@@ -1525,6 +1525,14 @@ global proc	openPipelineAssetInformation()
 		$masterExists = `filetest -f $expectedMasterFile`;
 	}
 	
+	// current version
+	if($versionNum == 0)
+	{
+		$currentVersion = 0;
+	}else{
+		$currentVersion = ($versionNum + 1);	
+	}
+
 	// mastered?
 	string $fileMastered;
 	string $masterDate;
@@ -1540,14 +1548,6 @@ global proc	openPipelineAssetInformation()
 		$fileMastered = ("Mastered?: No \n");
 	}
 
-	// current version
-	if($versionNum >= 0)
-	{
-		$currentVersion = ($versionNum + 1);
-	}else{
-		$currentVersion = 0;	
-	}
-	
 	// format information
 	string $assetInfoHeader = ($openPipeline_menuCurrentAsset + " : " + 
 			$openPipeline_menuCurrentAssetComponent + "\n");
@@ -1560,6 +1560,67 @@ global proc	openPipelineAssetInformation()
 	// fill box
 	scrollField -e -text $outputText op_infoField;
 	
+}
+
+// fill the scene information box with the collected info
+//
+global proc	openPipelineSceneInformation()
+{
+	global string $openPipeline_menuCurrentScene;
+	string $scene = `openPipelineGetSelectedScene`;
+	$openPipeline_menuCurrentScene = openPipelineGetFolderFromPath($scene, 0);	
+
+	string $scenePath = `optionVar -q "op_scenePath"`; 
+	$scenePath = ($scenePath + $openPipeline_menuCurrentScene + "/");
+	
+	int $workshopNum;	
+	int $versionNum;
+	int $masterExists;
+	int $currentVersion;
+	string $expectedMasterFile;
+	
+	$workshop = ($scenePath + "/workshop/");
+	$workshopFiles = `getFileList -folder $workshop -filespec ($openPipeline_menuCurrentScene + "_workshop_*.mb")`;
+	$workshopNum = `size($workshopFiles)`; 
+	$version = ($scenePath + "/version/");
+	$versionFiles = `getFileList -folder $version -filespec ($openPipeline_menuCurrentScene + "_version_*.mb")`;
+	$versionNum = `size($versionFiles)`;
+	$expectedMasterFile = ($scenePath + $openPipeline_menuCurrentScene + "_scene.mb");
+	$masterExists = `filetest -f $expectedMasterFile`;
+	
+	// current version
+	if($versionNum == 0)
+	{
+		$currentVersion = 0;
+	}else{
+		$currentVersion = ($versionNum + 1);	
+	}
+
+	// mastered?
+	string $fileMastered;
+	string $masterDate;
+	if($masterExists == 1)
+	{
+		// windows solution
+		$expectedMasterFile = `toNativePath($expectedMasterFile)`;
+		string $str = `system ("dir " + $expectedMasterFile)`;
+		string $masterDate = `match "[0-9]+/[0-9]+/[0-9]+" $str`;
+		
+		$fileMastered = ("Mastered?: Yes" + " (" + $currentVersion + ")\nDate: " + $masterDate + "\n");
+	} else {
+		$fileMastered = ("Mastered?: No \n");
+	}
+
+	// format information
+	string $assetInfoHeader = ($openPipeline_menuCurrentScene + "\n");
+
+	string $workshopTotal = ("Workshops: " + $workshopNum + "\n");		
+	string $versionTotal = ("Versions: " + $versionNum + "\n");	
+
+	string $outputText = ($assetInfoHeader + $workshopTotal + $versionTotal + $fileMastered);
+	
+	// fill box
+	scrollField -e -text $outputText op_sceneInfoField;
 }
 
 

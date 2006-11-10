@@ -1,6 +1,5 @@
 global proc openPipelineLoadAssetNote()
 {
-
 	string $notePath = `openPipelineGetPath "note"`;
 
 	if(`filetest -f $notePath` == 0)
@@ -14,16 +13,47 @@ global proc openPipelineLoadAssetNote()
 	scrollField -edit -text $assetNoteText op_commentField;
 }
 
+
+global proc openPipelineLoadSceneNote()
+{
+	string $notePath = `openPipelineGetPath "scenenote"`;
+
+	if(`filetest -f $notePath` == 0)
+	{
+		openPipelineSceneNoteWriter "creation";
+	}
+
+	string $sceneNoteTextArray[] = `openPipelineReadXML $notePath`;
+	string $sceneNoteText = stringArrayToString($sceneNoteTextArray, "");
+		
+	scrollField -edit -text $sceneNoteText op_sceneCommentField;
+}
+
+
 global proc openPipelineLoadCurrentAssetNote()
 {
-
-	string $notePath = `openPipelineGetPath "note"`;
-
+	string $notePath = `openPipelineGetPath "openedassetnote"`;
 	string $assetNoteTextArray[] = `openPipelineReadLatestNote $notePath`;
 	string $assetNoteText = stringArrayToString($assetNoteTextArray, "");
 		
-	scrollField -edit -text $assetNoteText op_currentNoteField;
+	scrollField -edit -text $assetNoteText op_currentAssetNoteField;
 }
+
+
+global proc openPipelineClearCurrentAssetNote()
+{
+	scrollField -edit -text "" op_currentAssetNoteField;	
+}
+
+global proc openPipelineLoadCurrentSceneNote()
+{
+	string $notePath = `openPipelineGetPath "openedassetnote"`;
+	string $sceneNoteTextArray[] = `openPipelineReadLatestNote $notePath`;
+	string $sceneNoteText = stringArrayToString($sceneNoteTextArray, "");
+		
+	scrollField -edit -text $sceneNoteText op_currentSceneNoteField;
+}
+
 
 global proc string[] openPipelineReadLatestNote(string $inputPath)
 {
@@ -68,14 +98,9 @@ global proc openPipelineReviveWorkshopNotesCallback()
 
 global proc string[] openPipelineReadXML(string $inputPath)
 {
-
 	string $outputString[];
 
-//	int $countNotes = `openPipelineCountNotes($inputPath)`;
 	string $notes[] = `openPipelineReadAllNotes($inputPath)`;
-//	string $notes = `openPipelineReadIndividualNote $inputPath 3`;
-//	string $notes[] = `openPipelineReadNotesByType $inputPath "workshop"`;
-//	string $notes[] = `openPipelineReadNotesByVersion $inputPath 2`;	
 	
 	// format string for display...
 	int $i=0;
@@ -196,8 +221,16 @@ global proc int openPipelineCountNotes(string $inputPath)
 
 global proc string openPipelineReadIndividualNote(string $inputPath, int $index)
 {
+//string $noteContents;
+//return $noteContents;
+	string $noteContents;
 	string $allTheNotes[] = openPipelineReadAllNotes($inputPath);
-	string $noteContents = $allTheNotes[$index];
+	if(($index >=0) && ($allTheNotes[$index] != ""))
+	{
+		$noteContents = $allTheNotes[$index];
+	}else{
+		$noteContents = "";
+	}
 	return $noteContents;
 }
 
@@ -310,7 +343,6 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 		
 		$fileId=`fopen $creationPath "w"`;
 		fprint $fileId "<?xml version=\"1.0\"?>\n";
-//		fprint $fileId "<openpipelinenotes>\n";
 		fprint $fileId "	<note>\n";
 		fprint $fileId "		<notetype>creation</notetype>\n";
 		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
@@ -327,7 +359,6 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 		string $creationPath = `openPipelineGetPath "note"`;			
 		$fileId=`fopen $creationPath "w"`;
 		fprint $fileId "<?xml version=\"1.0\"?>\n";
-//		fprint $fileId "<openpipelinenotes>\n";
 		fprint $fileId "	<note>\n";
 		fprint $fileId "		<notetype>creation</notetype>\n";
 		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
@@ -354,7 +385,7 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 				// get master version
 				string $versions = ($currPath + "version/");
 				string $versionFiles[] = `getFileList -folder $versions -filespec ("*_version_*.mb")`;
-				int $masterVersion = size($versionFiles);
+				int $masterVersion = (size($versionFiles) + 1);
 
 				// get comment
 				string $masterPrepend = (" (Mastered as Version " + $masterVersion + ")");
@@ -399,13 +430,114 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 }
 
 
-global proc openPipelineShotNoteWriter(string $inputMode)
+global proc int openPipelineSceneNoteWriter(string $inputMode)
 {
-	// nothing.
+	global string $openPipeline_userName;	
+	
+	int $fileId;
+	
+	//get the date and time
+	string $dateNow = `system("date /t")`;
+	string $timeNow = `system("time /t")`;
+	string $dateStrip = `strip $dateNow`;
+	string $timeStrip = `strip $timeNow`;
+		
+	$dateStrip = `match "[A-Za-z][A-Za-z][A-Za-z] [0-9]+/[0-9]+/[0-9]+" $dateStrip`;
+	$timeStrip = `match "[0-9]+:[0-9]+ [AP]M" $timeStrip`;
+	
+	if($inputMode=="creation")
+	{	
+		string $creationPath = `openPipelineGetPath "newscenenote"`;
+		
+		$fileId=`fopen $creationPath "w"`;
+		fprint $fileId "<?xml version=\"1.0\"?>\n";
+		fprint $fileId "	<note>\n";
+		fprint $fileId "		<notetype>creation</notetype>\n";
+		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
+		fprint $fileId ("		<date>" + $dateStrip + "</date>\n");
+		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
+		fprint $fileId ("		<event>asset created</event>\n");
+		fprint $fileId "	</note>\n";
+ 		fclose $fileId;
+
+ 		openPipelineFilePermisson "+R" $creationPath;
+ 		return 1;
+
+	}else if($inputMode == "missing"){
+		string $creationPath = `openPipelineGetPath "scenenote"`;			
+		$fileId=`fopen $creationPath "w"`;
+		fprint $fileId "<?xml version=\"1.0\"?>\n";
+		fprint $fileId "	<note>\n";
+		fprint $fileId "		<notetype>creation</notetype>\n";
+		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
+		fprint $fileId ("		<date>" + $dateStrip + "</date>\n");
+		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
+		fprint $fileId ("		<event>asset created - note missing</event>\n");
+		fprint $fileId "	</note>\n";
+ 		fclose $fileId;
+ 		
+ 		openPipelineFilePermisson "+R" $creationPath;
+ 		return 1;
+
+	}else{
+		string $currPath = `optionVar -q "op_currOpenPath"`;
+
+		// get workshop version
+		string $workshop = ($currPath + "workshop/");
+		string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_workshop_*.mb")`;
+		int $version = size($workshopFiles);
+
+		switch($inputMode)
+		{
+			case "master":
+				// get master version
+				string $versions = ($currPath + "version/");
+				string $versionFiles[] = `getFileList -folder $versions -filespec ("*_version_*.mb")`;
+				int $masterVersion = (size($versionFiles) + 1);
+
+				// get comment
+				string $masterPrepend = (" (Mastered as Version " + $masterVersion + ")");
+				string $commentAdded = `textField -q -text op_masterCommentField`;
+				$commentAdded = (`strip $commentAdded` + $masterPrepend);
+			break;
+		
+			case "workshop":
+				// get comment
+				string $commentAdded = `textField -q -text op_saveWorkshopCommentField`;	
+				$commentAdded = `strip $commentAdded`;
+			break;
+		}
+		
+		string $notePath = `openPipelineGetPath "scenenote"`;
+		
+		if(`filetest -f $notePath`)
+		{
+			openPipelineFilePermisson "-R" $notePath;
+			$fileId=`fopen $notePath "a"`;
+		}else{
+			$fileId=`fopen $notePath "w"`;
+		}
+					
+		fprint $fileId "	<note>\n";
+		fprint $fileId ("		<notetype>" + $inputMode + "</notetype>\n");
+		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
+		fprint $fileId ("		<date>" + $dateStrip + "</date>\n");
+		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
+		fprint $fileId ("		<event>workshop</event>\n");
+		fprint $fileId ("		<version>" + $version + "</version>\n");
+		fprint $fileId ("		<comment>" + $commentAdded + "</comment>\n");
+		fprint $fileId "	</note>\n";
+	 	fclose $fileId;
+	 	
+	 	openPipelineFilePermisson "+R" $notePath;
+	 	
+	 	//reload the note
+	 	openPipelineLoadSceneNote;
+	}
+	return 1;
 }
 
 
-//
 //change the file permission in Windows
 //
 // + set
@@ -418,139 +550,3 @@ global proc openPipelineFilePermisson(string $inputMode, string $input_Path)
 	string $exeCommand = "ATTRIB " + $inputMode + " " + $input_Path;
 	system($exeCommand);
 }
-
-
-
-//////////////////old
-//global proc int openPipelineCountNotes_old(string $inputPath)
-//{
-//	$fileId = `fopen $inputPath "r"`;
-//	string $nextLine = `fgetline $fileId`;
-//	string $lineArray[];
-//
-//	int $count = 0;
-//
-//	while(size($nextLine)>0)
-//	{
-//		$nextLine = `strip($nextLine)`; // may not be needed
-//		$nextLine = `encodeString($nextLine)`;	
-//		$lineArray = stringToStringArray($nextLine, " ");
-//		$count += stringArrayCount("<note>", $lineArray);
-//		$nextLine = `fgetline $fileId`;
-//	}
-//	fclose $fileId;
-//	return $count;
-//}
-//
-//global proc string openPipelineReadIndividualNote(string $inputPath, int $index)
-//{
-//	$fileId = `fopen $inputPath "r"`;
-//	string $nextLine = `fgetline $fileId`;
-//	string $noteContents;
-//	int $noteMatch;
-//	int $count;
-//	while(size($nextLine)>0)
-//	{
-//		$nextLine = openPipelineGetCleanLineXML($nextLine);
-//		$noteMatch = gmatch($nextLine, "<note>");
-//		$count += $noteMatch;
-//		if(($noteMatch == 1)&&($count == $index))
-//		{
-//			$nextLine = `fgetline $fileId`;
-//			$nextLine = openPipelineGetCleanLineXML($nextLine);
-//			while(`match "</note>" $nextLine` == "")
-//			{
-//				$noteContents += $nextLine;
-//				$nextLine = `fgetline $fileId`;
-//				$nextLine = openPipelineGetCleanLineXML($nextLine);
-//				
-//			}	
-//		}
-//		else{
-//			$nextLine = `fgetline $fileId`;
-//			$nextLine = openPipelineGetCleanLineXML($nextLine);
-//		}
-//	}
-//	fclose $fileId;
-//	return $noteContents;
-//}
-//
-////
-////This Proc reads TXT file.
-////It will return an string[] without the empty lines and the comments.
-////
-//global proc string[] openPipelineReadTxt_old(string $inputPath, string $inputMode)
-//{
-//	int $i=0;
-//	string $outputString[]={};
-//		
-//	if(`filetest -r $inputPath`)
-//	{
-//		$fileId = `fopen $inputPath "r"`;
-//		string $nextLine = `fgetline $fileId`;
-//		
-//		while(size($nextLine)>0)
-//		{
-//			switch($inputMode)
-//			{
-//				case "clean":
-//					string $stripNextLine = `strip $nextLine`;
-//					if(size($stripNextLine)>0 && startString($stripNextLine, 2)!="//" )
-//					{
-//						$outputString[$i] = $nextLine;
-//						$i++;
-//					}
-//					$nextLine = `fgetline $fileId`;				
-//					break;
-//					
-//				case "everything":
-//					$outputString[$i] = $nextLine;
-//					$i++;
-//					$nextLine = `fgetline $fileId`;
-//					break;
-//			}
-//		}
-//		fclose $fileId;		
-//	}else{
-//		warning ("No file exists in " + $inputPath);
-//	}
-//	return $outputString;
-//}
-//
-//// formats the specified XML array
-//global proc string openpipelineFormatXML_old(string $line)
-//{
-//	int $debug = 0;
-//
-//	string $tag;
-//	string $content;
-//	string $tagAndContent;
-//
-//	// keep track of tags...
-//
-//	// cull leading white space escape quotes
-//	$line = `strip($line)`; // may not be needed
-//	$line = `encodeString($line)`;	
-//
-//	// search for header
-//	int $headerMatch = `gmatch $line "*?xml*"`;
-//	if($headerMatch == 1) return $tagAndContent;
-//
-//	// match for the tag
-//	$tag = `match "<[a-zA-Z0-9 \"=\\]*>" $line`;
-//	$tag = substituteAllString($tag, "<", "");	
-//	$tag = substituteAllString($tag, ">", "");
-//	
-//	// everything else is the content
-//	$content = `match ">[:/a-zA-Z0-9 \"=\\]*<" $line`;
-//	$content = substituteAllString($content, "<", "");	
-//	$content = substituteAllString($content, ">", "");
-//
-//	// check for bum data
-//	if(($tag == "") && ($content =="")) return $tagAndContent;
-//
-//	// finally return tag and content
-//	$tagAndContent = ($tag + ": " + $content);
-//	if ($debug) print ($tagAndContent+"\n");
-//	return $tagAndContent;
-//}
