@@ -155,7 +155,7 @@ global proc openPipelineRemoveProject(int $projIndex, string $projName)
 		
 		$projectsList[$projIndex]="";
 		$projectsList[$projIndex+1]="";
-		if ((($openPipeline_currentProjIndex-1)*2)>=$projIndex))
+		if ((($openPipeline_currentProjIndex-1)*2)>=$projIndex)
 			{
 			if ($openPipeline_currentProjIndex>1)
 				$openPipeline_currentProjIndex--;
