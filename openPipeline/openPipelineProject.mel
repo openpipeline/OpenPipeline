@@ -45,7 +45,7 @@ global proc openPipelineProjectUI()
 		
 		text -label "..."  ;
 		text -label "..."  ;
-		button -label "New..." -c "openPipelineNewProject"; 
+		button -label "New..." -c "openPipelineNewProject" -bgc .6 .8 .5; 
 		text -label " "  ;
 		
 	
@@ -60,8 +60,8 @@ global proc openPipelineProjectUI()
 		textField -ed 0 -text $projList[$i+1]  -bgc 1 1 1;
 		$edit_command = "openPipelineEditProject("+$i+")";
 		$remove_command = "openPipelineRemoveProject( " + $i + ",\""+$projList[$i]+"\")";
-		button -label "Edit..." -c $edit_command; 
-		button -label "Remove" -c $remove_command -bgc .9 .2 .2;
+		button -label "Edit..." -c $edit_command -bgc .5 .7 .7; 
+		button -label "Remove" -c $remove_command -bgc .8 .3 .3;
 	}
 	
 	setParent "mainLayout";
@@ -122,7 +122,8 @@ global proc string[] openPipelineGetProjectList()
 
 global proc openPipelineCloseProjUI()
 {
-	deleteUI openPipelineProjUI;
+	if (`window -q -exists openPipelineProjUI`)
+		deleteUI openPipelineProjUI;
 	if (`window -q -exists openPipelineProjDialog`)
 		deleteUI openPipelineProjDialog;
 }
@@ -154,12 +155,11 @@ global proc openPipelineRemoveProject(int $projIndex, string $projName)
 		
 		$projectsList[$projIndex]="";
 		$projectsList[$projIndex+1]="";
-		if ($openPipeline_currentProjIndex*2>=$projIndex)
+		if ((($openPipeline_currentProjIndex-1)*2)>=$projIndex))
 			{
-			if ($openPipeline_currentProjIndex>0)
-				
+			if ($openPipeline_currentProjIndex>1)
 				$openPipeline_currentProjIndex--;
-				optionVar -iv "op_currProject" $openPipeline_currentProjIndex;
+			optionVar -iv "op_currProject" $openPipeline_currentProjIndex;
 			}
 		openPipelineRewriteProjFile($projectsList);
 	}
@@ -315,11 +315,14 @@ global proc openPipelineProjDialogCallback(int $mode, int $index)
 					$done=1;
 					
 			}
-			if ($j<=($openPipeline_currentProjIndex*2))
+			if ($openPipeline_currentProjIndex==0)
+				optionVar -iv "op_currProject" 1;
+			else if (($j+2)<=(($openPipeline_currentProjIndex-1)*2))
 			{
 				$openPipeline_currentProjIndex++;
 				optionVar -iv "op_currProject" $openPipeline_currentProjIndex;
 			}
+			
 			$projectsList[$j+2]=$newName;
 			$projectsList[$j+3]=$newPath;
 			openPipelineRewriteProjFile($projectsList);

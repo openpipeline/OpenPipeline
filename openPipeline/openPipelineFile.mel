@@ -3,7 +3,6 @@
 //
 global proc string openPipelineNewAssetTypeProcess(string $name)
 {
-	//string $libPath = `openPipelineGetPath "lib"`;
 	string $libPath = `optionVar -q "op_libPath"`;
 	string $assetTypePath = ($libPath + $name);
 	if(`filetest -d ($assetTypePath)` == 0)
@@ -143,8 +142,8 @@ global proc int openPipelineAssetAction(string $type, int $versionOffset, string
 		optionVar -iv "op_currOpenVersion" $version;
 		optionVar -sv "op_currOpenCategory" "asset";
 		//if (!$currentlyOpen)
-			openPipelineAssetTypeSelected();
-		
+		openPipelineAssetTypeSelected(1);
+		openPipelineUpdateCurrentlyOpen();
 		return 1; // success
 	}
 	else if (($action=="import")&&($fileExists))
@@ -210,9 +209,8 @@ global proc int openPipelineComponentAction(string $type, int $versionOffset, st
 		optionVar -sv "op_currOpenType" $type;
 		optionVar -iv "op_currOpenVersion" $version;
 		optionVar -sv "op_currOpenCategory" "component";
-		//if (!$currentlyOpen)
-			openPipelineAssetTypeSelected();
-		
+		openPipelineAssetTypeSelected(1);
+		openPipelineUpdateCurrentlyOpen();
 		return 1; // success
 	}
 	else if (($action=="import")&&($fileExists))
@@ -281,8 +279,8 @@ global proc int openPipelineSceneAction(string $type, int $versionOffset, string
 		optionVar -iv "op_currOpenVersion" $version;
 		optionVar -sv "op_currOpenCategory" "scene";
 		//if (!$currentlyOpen)
-			openPipelineUpdateSceneList();
-		
+		openPipelineUpdateSceneList();
+		openPipelineUpdateCurrentlyOpen();
 		return 1; // success
 	}
 	else if (($action=="import")&&($fileExists))
@@ -325,33 +323,6 @@ global proc int openPipelineSceneAssetAction(string $action)
 	return 1;
 }
 
-
-global proc openPipelineSaveMasterFileWrapper()
-{
-	string $currCat = `optionVar -q "op_currOpenCategory"`;	
-	
-	openPipelineProcessAssetSave master;
-
-	// notes
-	if ($currCat=="asset")
-	{
-		openPipelineAssetNoteWriter master;
-		openPipelineLoadCurrentAssetNote;
-	}else if ($currCat=="component"){
-		openPipelineAssetNoteWriter master;
-		openPipelineLoadCurrentAssetNote;
-	}else if ($currCat=="scene"){
-		openPipelineSceneNoteWriter master;
-		openPipelineLoadCurrentSceneNote; 
-	}else{
-		warning("openPipelineSaveMasterFileWrapper error: invalid category");
-	}
-	
-	// delete mastering ui
-	deleteUI op_masterFileUI;
-}
-
-
 global proc openPipelineProcessAssetSave(string $saveType)
 {
 	string $currCat = `optionVar -q "op_currOpenCategory"`;
@@ -369,13 +340,26 @@ global proc openPipelineProcessAssetSave(string $saveType)
 			else
 				warning("openPipelineProcessAssetSave error: invalid category");
 
-			deleteUI op_saveWorkshopUI;
+			//deleteUI op_secondaryUI;
 			break;
 		case "master":
 			openPipelineSaveWorkshop;			
 			openPipelineSaveMaster;
-			break;
-	}
+			if ($currCat=="asset")
+			{
+				openPipelineAssetNoteWriter master;
+				openPipelineLoadCurrentAssetNote;
+			}else if ($currCat=="component"){
+				openPipelineAssetNoteWriter master;
+				openPipelineLoadCurrentAssetNote;
+			}else if ($currCat=="scene"){
+				openPipelineSceneNoteWriter master;
+				openPipelineLoadCurrentSceneNote; 
+			}else{
+				warning("openPipelineProcessAssetSave error: invalid category");
+			}
+					break;
+			}
 
 	if ($currCat=="asset")
 		openPipelineAssetAction workshop 0 open 1;	
@@ -556,7 +540,7 @@ global proc openPipelineRemoveFolder(string $category)
 		$checkExtent=2;
 		$confirmText = "Are you sure you want to remove the selected Asset?\n(files and folders will be moved to the 'archives' folder)";
 		$paths[0] = openPipelineGetSelectedAsset();
-		$refreshCmd = "openPipelineAssetTypeSelected";
+		$refreshCmd = "openPipelineAssetTypeSelected 1";
 		if ($currCat=="asset")
 			$currCheckOffset=0;
 		else
@@ -568,7 +552,7 @@ global proc openPipelineRemoveFolder(string $category)
 		$confirmText = "Are you sure you want to remove the selected Component?\n(files and folders will be moved to the 'archives' folder)";
 		$paths[0] = openPipelineGetSelectedComponent();
 		//$destinationPrefix = "components/";
-		$refreshCmd = "openPipelineAssetSelected";
+		$refreshCmd = "openPipelineAssetSelected 1";
 		if ($currCat=="component")
 			$currCheckOffset=0;
 	}
@@ -594,14 +578,13 @@ global proc openPipelineRemoveFolder(string $category)
 		{
 			if (($currCheckOffset>-1)&&($currPath!=""))
 			{
-				//check if the currently open asset or component is being deleted
+				//check if the currently open asset, component or scene is being deleted
 				int $isCurrent=1;
 				int $k;
 				for ($k=0;$k<$checkExtent;$k++)
 				{
 					string $one=openPipelineGetFolderFromPath($paths[$i],$k);
 					string $two=openPipelineGetFolderFromPath($currPath,$k+$currCheckOffset);
-					//print("is "+$one+" the same as "+$two+"?\n");
 					if ($one!=$two)
 					{
 						$isCurrent=0;
@@ -610,13 +593,13 @@ global proc openPipelineRemoveFolder(string $category)
 				}
 				if ($isCurrent)
 				{
-					if (`confirmDialog -t "Remove Files" -m "You are removing an asset or component which is currently open. Continue?" -ma "center" -b "Yes" -b "No" -db "Yes" -cb "No"`=="Yes")
+					if (`confirmDialog -t "Remove Files" -m "You are removing an asset, component or scene which is currently open. Continue?" -ma "center" -b "Yes" -b "No" -db "Yes" -cb "No"`=="Yes")
 					{
 						optionVar -sv "op_currOpenPath" "";
 						optionVar -sv "op_currOpenType" "";
 						optionVar -sv "op_currOpenCategory" "";
 						optionVar -iv "op_currOpenVersion" 0;
-						//openPipelineUpdateCurrentlyOpen();
+						openPipelineUpdateCurrentlyOpen();
 					}
 					else
 					{
@@ -636,7 +619,6 @@ global proc openPipelineRemoveFolder(string $category)
 				$destinationFolderName = openPipelineGetFolderFromPath($paths[$i],3)+"_"+openPipelineGetFolderFromPath($paths[$i],2)+"_"+openPipelineGetFolderFromPath($paths[$i],0);
 			}
 			
-			//$archivePath
 			int $j = 0;
 			while (`filetest -d ($archivePath+$destinationFolderName+"_archive_"+$j)`)
 			{
@@ -651,8 +633,5 @@ global proc openPipelineRemoveFolder(string $category)
 			print(system($copyCmd));
 		}
 		eval($refreshCmd);
-	
 	}
-	
-	
 }
