@@ -4,7 +4,7 @@ global proc openPipelineLoadAssetNote()
 
 	if(`filetest -f $notePath` == 0)
 	{
-		openPipelineAssetNoteWriter "creation";
+//		openPipelineAssetNoteWriter "creation";
 	}
 
 	string $assetNoteTextArray[] = `openPipelineReadXML $notePath`;
@@ -20,7 +20,7 @@ global proc openPipelineLoadSceneNote()
 
 	if(`filetest -f $notePath` == 0)
 	{
-		openPipelineSceneNoteWriter "creation";
+//		openPipelineSceneNoteWriter "creation";
 	}
 
 	string $sceneNoteTextArray[] = `openPipelineReadXML $notePath`;
@@ -45,6 +45,7 @@ global proc openPipelineClearCurrentAssetNote()
 	scrollField -edit -text "" op_currentAssetNoteField;	
 }
 
+
 global proc openPipelineLoadCurrentSceneNote()
 {
 	string $notePath = `openPipelineGetPath "openedassetnote"`;
@@ -52,6 +53,12 @@ global proc openPipelineLoadCurrentSceneNote()
 	string $sceneNoteText = stringArrayToString($sceneNoteTextArray, "");
 		
 	scrollField -edit -text $sceneNoteText op_currentSceneNoteField;
+}
+
+
+global proc openPipelineClearCurrentSceneNote()
+{
+	scrollField -edit -text "" op_currentSceneNoteField;	
 }
 
 
@@ -178,9 +185,15 @@ global proc string openPipelineFormatXML(string $line)
 
 global proc string[] openPipelineReadAllNotes(string $inputPath)
 {
+	string $noteContents[];
+
+	if(`filetest -f $inputPath` == 0)
+	{
+		return $noteContents;
+	}
+
 	$fileId = `fopen $inputPath "r"`;
 	string $nextLine = `fgetline $fileId`;
-	string $noteContents[];
 
 	int $i = 0;
 	while(size($nextLine)>0)

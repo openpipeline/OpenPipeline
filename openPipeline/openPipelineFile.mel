@@ -55,16 +55,17 @@ global proc string openPipelineNewComponentProcess(string $componentName)
 	string $assets[] = `optionVar -q "op_assets"`;
 	string $assetPath = $assets[$indexSelected[0]-1];
 	string $componentPath = $assetPath + "components/" + $componentName;
+	
 	if (`filetest -d $componentPath`)
-			$error+=("component \""+$componentName+"\" already exists!");
-
+	{
+		$error+=("component \""+$componentName+"\" already exists!");
+	}
+	
 	if($error != "")
 	{
-			confirmDialog -title "openPipeline Error" -message $error
- 				-button "OK" -defaultButton "OK";
-	}	
-	else
-	{
+		confirmDialog -title "openPipeline Error" -message $error
+ 			-button "OK" -defaultButton "OK";
+	}else{
 		sysFile -makeDir $componentPath;
 		sysFile -makeDir ($componentPath + "/" + "workshop");
 		sysFile -makeDir ($componentPath + "/" + "version");	
@@ -82,8 +83,8 @@ global proc string openPipelineNewSceneProcess(string $scene)
 			$error+=("scene \""+$scene+"\" already exists!");
 	if($error != "")
 	{
-			confirmDialog -title "openPipeline Error" -message $error
- 				-button "OK" -defaultButton "OK";
+		confirmDialog -title "openPipeline Error" -message $error
+ 			-button "OK" -defaultButton "OK";
 	}	
 	else
 	{
@@ -343,14 +344,11 @@ global proc openPipelineSaveMasterFileWrapper()
 		openPipelineSceneNoteWriter master;
 		openPipelineLoadCurrentSceneNote; 
 	}else{
-		warning("openPipelineProcessAssetSave error: invalid category");
+		warning("openPipelineSaveMasterFileWrapper error: invalid category");
 	}
 	
 	// delete mastering ui
 	deleteUI op_masterFileUI;
-	
-	// update notes
-//	openPipelineLoadCurrentAssetNote;
 }
 
 
@@ -435,8 +433,6 @@ global proc openPipelineSaveMaster()
 	string $currType = `optionVar -q "op_currOpenType"`;
 	string $currCat = `optionVar -q "op_currOpenCategory"`;
 	int $currVersion = `optionVar -q "op_currOpenVersion"`;
-
-	//string $scenePath = `openPipelineGetPath "scenes"`;
 	
 	string $masterFile;
 	string $versions;

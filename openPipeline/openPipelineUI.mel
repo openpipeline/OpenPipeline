@@ -503,14 +503,13 @@ global proc openPipelineUI()
 
 global proc openPipelineUpdateCurrentlyOpen()
 {
-
 	string $currPath = `optionVar -q "op_currOpenPath"`;
 	string $currType = `optionVar -q "op_currOpenType"`;
 	string $currCat = `optionVar -q "op_currOpenCategory"`;
 	int $currVersion = `optionVar -q "op_currOpenVersion"`;
 
 	// clear the currently opened notes field
-	openPipelineClearCurrentAssetNote;	
+//	openPipelineClearCurrentAssetNote;	
 
 	string $workshop = ($currPath + "workshop/");
 	string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_workshop_*.mb")`;
@@ -549,6 +548,9 @@ global proc openPipelineUpdateCurrentlyOpen()
 			string $assetType = openPipelineGetFolderFromPath($currPath,3);
 			string $compName = openPipelineGetFolderFromPath($currPath,0);
 			$displayString+=($assetType+": "+ $assetName+": "+$compName+"  ("+$currType+")");
+
+			// update current comment field
+			openPipelineLoadCurrentAssetNote;
 		}
 		else if ($currCat=="scene")
 		{
@@ -617,7 +619,7 @@ global proc openPipelineUpdateCurrentlyOpen()
 			button -e -en 1 op_masterButton;
 			button -e -en 0 op_masterSceneButton;//other side
 		}
-	openPipelineRemoveSecondaryWindows();
+		openPipelineRemoveSecondaryWindows();
 	}
 }
 
@@ -918,7 +920,7 @@ global proc string[] openPipelineGetSelectedSceneAssetTypes()
 			}
 		}
 	}
-		return $selectedTypePaths;
+	return $selectedTypePaths;
 }
 
 
@@ -1097,7 +1099,7 @@ global proc openPipelineAssetSelected()
 	if ($selected)
 	{
 		//$openPipeline_menuCurrentAsset = openPipelineGetFolderFromPath($currAsset,0);//*******************global
-		string $compPath = ($currAsset +"/components/");
+		string $compPath = ($currAsset + "components/");
 		string $compFiles[] = `getFileList -folder $compPath`;
 		int $numComps = `size($compFiles)`;
 			

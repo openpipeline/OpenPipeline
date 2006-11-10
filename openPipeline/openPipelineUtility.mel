@@ -62,7 +62,14 @@ global proc string openPipelineGetPath(string $inputMode)
 			break;
 
 		case "openedassetnote":
-			$outputString = ($currPath + "notes/" + $name + "_AssetNote.xml");
+			string $notesPath;
+			if($selectedAssetComponent == "")
+			{
+				$outputString = ($currPath + "notes/" + $name + "_AssetNote.xml");
+			}else{
+				$outputString = ($currPath + "notes/" + $openPipeline_menuCurrentAsset + "_" + $name + "_AssetNote.xml");
+			}		
+
 			break;
 		
 		case "newnote":
