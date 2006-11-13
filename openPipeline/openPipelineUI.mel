@@ -540,7 +540,7 @@ global proc openPipelineUpdateCurrentlyOpen()
 			$displayString+=($sceneName+"  ("+$currType+")");
 			// update scene comment field and clear the asset comment field
 			openPipelineLoadCurrentSceneNote;
-			openPipelineClearCurrentAssetNote();//other side
+			openPipelineClearCurrentAssetNote;//other side
 			//update Buttons
 			button -e -en $reviveEnabled  op_reviveSceneButton;
 			button -e -en 0 op_reviveButton;//other side

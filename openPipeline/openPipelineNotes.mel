@@ -51,7 +51,6 @@ global proc openPipelineLoadCurrentSceneNote()
 	string $notePath = `openPipelineGetPath "openedassetnote"`;
 	string $sceneNoteTextArray[] = `openPipelineReadLatestNote $notePath`;
 	string $sceneNoteText = stringArrayToString($sceneNoteTextArray, "");
-		
 	scrollField -edit -text $sceneNoteText op_currentSceneNoteField;
 }
 
