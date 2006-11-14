@@ -141,7 +141,6 @@ global proc int openPipelineAssetAction(string $type, int $versionOffset, string
 		optionVar -sv "op_currOpenType" $type;
 		optionVar -iv "op_currOpenVersion" $version;
 		optionVar -sv "op_currOpenCategory" "asset";
-		//if (!$currentlyOpen)
 		openPipelineAssetTypeSelected(1);
 		openPipelineUpdateCurrentlyOpen();
 		return 1; // success
@@ -278,7 +277,6 @@ global proc int openPipelineSceneAction(string $type, int $versionOffset, string
 		optionVar -sv "op_currOpenType" $type;
 		optionVar -iv "op_currOpenVersion" $version;
 		optionVar -sv "op_currOpenCategory" "scene";
-		//if (!$currentlyOpen)
 		openPipelineUpdateSceneList();
 		openPipelineUpdateCurrentlyOpen();
 		return 1; // success
@@ -296,7 +294,6 @@ global proc int openPipelineSceneAction(string $type, int $versionOffset, string
 		warning ("openPipeline: No " + $type +" File Exists In: " + $selectedScenePath + " \n");
 		return 0; // failure
 	}
-		//return 1;
 }
 
 
@@ -340,7 +337,6 @@ global proc openPipelineProcessAssetSave(string $saveType)
 			else
 				warning("openPipelineProcessAssetSave error: invalid category");
 
-			//deleteUI op_secondaryUI;
 			break;
 		case "master":
 			openPipelineSaveWorkshop;			
@@ -374,7 +370,6 @@ global proc openPipelineProcessAssetSave(string $saveType)
 
 global proc openPipelineSaveWorkshop()
 {
-	//string $scenePath = `openPipelineGetPath "scenes"`;
 	string $currPath = `optionVar -q "op_currOpenPath"`;
 	string $currType = `optionVar -q "op_currOpenType"`;
 	string $currCat = `optionVar -q "op_currOpenCategory"`;
@@ -411,8 +406,6 @@ global proc openPipelineSaveWorkshop()
 
 global proc openPipelineSaveMaster()
 {
-	//global string $openPipeline_menuCurrentAssetType;
-	
 	string $currPath = `optionVar -q "op_currOpenPath"`;
 	string $currType = `optionVar -q "op_currOpenType"`;
 	string $currCat = `optionVar -q "op_currOpenCategory"`;
@@ -551,17 +544,14 @@ global proc openPipelineRemoveFolder(string $category)
 		$checkExtent=4;
 		$confirmText = "Are you sure you want to remove the selected Component?\n(files and folders will be moved to the 'archives' folder)";
 		$paths[0] = openPipelineGetSelectedComponent();
-		//$destinationPrefix = "components/";
 		$refreshCmd = "openPipelineAssetSelected 1";
 		if ($currCat=="component")
 			$currCheckOffset=0;
 	}
 	else if ($category == "scene")
 	{
-		//$checkExtent=4;
 		$confirmText = "Are you sure you want to remove the selected Scene?\n(files and folders will be moved to the 'archives' folder)";
 		$paths[0] = openPipelineGetSelectedScene();
-		//$destinationPrefix = "components/";
 		$refreshCmd = "openPipelineUpdateSceneList";
 		if ($currCat=="scene")
 			$currCheckOffset=0;
