@@ -48,7 +48,6 @@ global proc openPipelineUI()
 	global string $openPipeline_version;
 		
 	global string $openPipeline_userName;
-	//global int $openPipeline_currentProjIndex;
 	global int $openPipeline_winPos[];
 	
 	//get list of existing projects
@@ -1000,8 +999,6 @@ global proc string openPipelineGetSelectedScene()
 
 global proc openPipelineAssetTypeSelected(int $preserveSelection)
 {
-	//global string $openPipeline_menuCurrentAssetType="";//***********global
-	//string $lastSelection[] = `textScrollList -q -si "op_assetScrollList"`;
 	string $lastSelectedPath = openPipelineGetSelectedAsset();
 	textScrollList -e -ra "op_assetScrollList";
 	optionVar -ca "op_assets";
@@ -1014,7 +1011,6 @@ global proc openPipelineAssetTypeSelected(int $preserveSelection)
 		for ($i=0; $i<(size($selectedTypes)); $i++)
 		{
 			string $currType = $selectedTypes[$i];
-			//$openPipeline_menuCurrentAssetType = openPipelineGetFolderFromPath($currType,0); //***********global
 			string $assetFiles[] = `getFileList -folder $currType`;
 			int $numAssets = `size($assetFiles)`;
 			if ($numAssets)
@@ -1063,7 +1059,6 @@ global proc openPipelineAssetTypeSelected(int $preserveSelection)
 
 global proc openPipelineAssetSelected(int $preserveSelection)
 {
-	//global string $openPipeline_menuCurrentAsset="";//*******************global
 	string $lastSelectedPath = openPipelineGetSelectedComponent();
 	textScrollList -e -ra "op_componentScrollList";
 	optionVar -ca "op_components";
@@ -1089,7 +1084,6 @@ global proc openPipelineAssetSelected(int $preserveSelection)
 	
 	if ($selected)
 	{
-		//$openPipeline_menuCurrentAsset = openPipelineGetFolderFromPath($currAsset,0);//*******************global
 		string $compPath = ($currAsset + "components/");
 		string $compFiles[] = `getFileList -folder $compPath`;
 		int $numComps = `size($compFiles)`;
@@ -1139,7 +1133,6 @@ global proc openPipelineAssetSelected(int $preserveSelection)
 
 global proc openPipelineComponentSelected()
 {
-	//global string $openPipeline_menuCurrentAssetComponent="";//*****************global
 	string $currComponent = openPipelineGetSelectedComponent();
 	int $selected = 1;
 	if ($currComponent=="")
@@ -1158,9 +1151,7 @@ global proc openPipelineComponentSelected()
 	
 	if ($selected)
 	{
-		//$openPipeline_menuCurrentAssetComponent=openPipelineGetFolderFromPath($currComponent,0);//*****************global
 		openPipelineUpdateComponentMenus($currComponent);
-		
 	}
 	openPipelineAssetInformation();
 	openPipelineLoadAssetNote;	
@@ -1184,7 +1175,7 @@ global proc openPipelineAboutDialog()
 			-text ("openPipeline\n\nopenPipeline is an open source, free, " + 
 				"and customizable pipeline for production (in Autodesk Maya)." + 
 				"\n\nCreated by:\n Rob O'Neill (roneill@dal.pratt.edu)\n " +
-				"Meng-Han Ho (mho@pratt.edu)\n Paris Mavroidis (pmavroid@pratt.edu)" + 
+				"Meng-Han Ho (mho@pratt.edu)\n Paris Mavroidis (paris@parismav.com)" + 
 				"\n\nMore information may be found at:\n http://openpipeline.sourceforge.net/")
 				-editable false;
 				
@@ -1241,8 +1232,6 @@ global proc openPipelineNewAssetTypeUI()
 global proc openPipelineNewAssetUI()
 {
 	global string $openPipelineNewAssetName = "";
-
-	//string $libPath = `openPipelineGetPath "lib"`;
 	string $error="";
 	string $result = `promptDialog 
 		-title "new asset"
@@ -1285,7 +1274,6 @@ global proc string openPipelineGetFolderFromPath(string $path, int $offsetFromLa
 
 global proc openPipelineNewAssetComponentUI()
 {
-	//string $assetComponent;
 	string $error;
 	string $result = `promptDialog 
 		-title "new component"
@@ -1387,11 +1375,9 @@ global proc openPipelineSaveMasterFileGUI()
 
 global proc openPipelineSaveWorkshopGUI()
 {
-	//openPipelineSaveFile workshop
 	string $windowExists = `window -exists op_secondaryUI`;
 	if($windowExists == 1)
 	{
-		//print "here!";
 		deleteUI op_secondaryUI;
 	}
 	
@@ -1453,10 +1439,7 @@ global proc openPipelineReviveGUI()
 global proc openPipelineReviveWorkshopCallback()
 {
 	string $currPath = `optionVar -q "op_currOpenPath"`;
-	//string $currType = `optionVar -q "op_currOpenType"`;
 	string $currCat = `optionVar -q "op_currOpenCategory"`;
-	//int $currVersion = `optionVar -q "op_currOpenVersion"`;
-	//string $assetName = openPipelineGetFolderFromPath($currPath,0);
 	string $workshop = ($currPath + "workshop/");
 	string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_workshop_*.mb")`;
 	int $numVersions = `size($workshopFiles)`;
@@ -1468,7 +1451,6 @@ global proc openPipelineReviveWorkshopCallback()
 		openPipelineComponentAction workshop $versionOffset open 1;
 	else if ($currCat=="scene")
 		openPipelineSceneAction workshop $versionOffset open 1;
-	//deleteUI op_reviveUI;
 }
 
 // fill the asset information box with the collected info
