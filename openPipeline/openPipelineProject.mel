@@ -97,13 +97,26 @@ global proc string[] openPipelineGetProjectList()
 				$filePath+=$buffer[$j]+" ";
 			if (($numTokens>=4)&&($buffer[0]=="ProjName:")&&($buffer[2]=="ProjPath:"))
 			{
-				$projectsList[$i] = strip($buffer[1]);
-				$projectsList[$i+1] = strip($filePath);
-				$i+=2;
+				if (`filetest -d (strip($filePath))`)
+				{
+					$projectsList[$i] = strip($buffer[1]);
+					$projectsList[$i+1] = strip($filePath);
+					$i+=2;
+				}
+				else
+				{
+					//if the project folder no long exists (user manually renamed it or deleted it)
+					confirmDialog -title "Project Folder Missing" -bgc .9 .9 .9 
+						-message ("Warning: the folder for project \"" + strip($buffer[1]) + "\" (" + strip($filePath) + ") could not be found.\nIt will be removed from the Project List.")
+						-button "Ok" -defaultButton "Ok";
+				}
 			}
 			else if (($buffer[0]!="")&&((substring($buffer[0],1,1))!="*"))
 			{
-				error("Project File format error");
+				//if the line contains a formatting error
+				confirmDialog -title "Project Inventory Error" -bgc .9 .9 .9 
+						-message ("Warning: there is a formatting error in the project inventory file (openPipeline_projects.txt).\nThis file should not be edited manually.")
+						-button "Ok" -defaultButton "Ok";
 			}
 				
 			$nextLine = `fgetline $fileId`;
@@ -117,6 +130,7 @@ global proc string[] openPipelineGetProjectList()
 		else
 			error("Project File does not exist, could not be opened, or could not be created.");
 	}
+	openPipelineRewriteProjFile($projectsList);
 	return $projectsList;
 }
 
@@ -162,6 +176,8 @@ global proc openPipelineRemoveProject(int $projIndex, string $projName)
 			optionVar -iv "op_currProject" $openPipeline_currentProjIndex;
 			}
 		openPipelineRewriteProjFile($projectsList);
+		openPipelineUI();
+		openPipelineProjectUI();
 	}
 }
 
@@ -187,8 +203,8 @@ global proc openPipelineRewriteProjFile(string $projList[])
 	}else{ 
 		error("Project File " + $projFile + " could not be found, or is not writable.");			
 	}
-	openPipelineUI();
-	openPipelineProjectUI();
+	//openPipelineUI();
+	//openPipelineProjectUI();
 }
 
 
@@ -331,6 +347,8 @@ global proc openPipelineProjDialogCallback(int $mode, int $index)
 			$projectsList[$index+1]=$newPath;
 			openPipelineRewriteProjFile($projectsList);
 		}
+	openPipelineUI();
+	openPipelineProjectUI();
 	}else{
 		confirmDialog -title "Edit Project Error" -bgc .9 .9 .9 -message $error_msg 
  		-button "Ok" -defaultButton "Ok";

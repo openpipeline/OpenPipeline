@@ -50,6 +50,16 @@ global proc openPipelineUI()
 	global string $openPipeline_userName;
 	global int $openPipeline_winPos[];
 	
+	//if optionVars for currently open file don't exist, create them
+	if (!`optionVar -ex "op_currOpenPath"`)
+		optionVar -sv "op_currOpenPath" "";
+	if (!`optionVar -ex "op_currOpenType"`)
+		optionVar -sv "op_currOpenType" "";
+	if (!`optionVar -ex "op_currOpenCategory"`)
+		optionVar -sv "op_currOpenCategory" "";
+	if (!`optionVar -ex "op_currOpenVersion"`)
+		optionVar -sv "op_currOpenVersion" "";
+		
 	//get list of existing projects
 	string $projList[] = openPipelineGetProjectList();
 	
@@ -93,23 +103,28 @@ global proc openPipelineUI()
 	//
 	//call proc openPipelineGetProjectList to get the existed proj size and name one by one
 	//proc located in openPipelineUtility.mel
-	string $projList[] = openPipelineGetProjectList();
+
+	//string $projList[] = openPipelineGetProjectList();
 	int $numProjects = size($projList)/2;
 	for($i=0; $i<$numProjects; $i++)
 	{
 		string $temp_projName = $projList[$i*2];
-		menuItem -label $temp_projName;
+		if (`filetest -d $projList[$i*2+1]`)
+			menuItem -label $temp_projName;
+	
 	}
 			
 	int $currProj = 1;
-	if (`optionVar -ex "op_currProject"`)
+	if ((`optionVar -ex "op_currProject"`)&&(`optionVar -q "op_currProject"`<=`optionMenuGrp -q -ni projNameMenu`))
 	{
 		$currProj = `optionVar -q "op_currProject"`;
 	}
 	else
 		optionVar -iv "op_currProject" 1;
-			
+	
+
 	optionMenuGrp -e -sl $currProj projNameMenu;
+	
 	
 	button -label "Project Manager..." -c "openPipelineProjectUI" -ann $anno_projectManager projManagerButton;
 	setParent..;
@@ -460,7 +475,8 @@ global proc openPipelineUI()
 	openPipelineUpdateCurrentlyOpen();
 	
 	showWindow $window;
-	
+	if (`window -q -exists openPipelineProjUI`)
+		openPipelineProjectUI();
 	}else{//if NO projects exist, open Project Manager
 		if (`window -q -exists openPipelineUI`)
 		{
@@ -674,6 +690,15 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 	optionVar -iv "op_currProject" $projIndex;
 	int $currentProjIndex = $projIndex-1;
 	string $projList[] = openPipelineGetProjectList();
+	
+	if ((size($projList)/2)<`optionMenuGrp -q -ni projNameMenu`)
+	{
+		//if the number of projects does not match the number of projects listed in the menu, refresh the window
+		//this would happen in the case that the user manually deleted or renamed a project folder 
+		openPipelineUI();
+		return;
+	}
+
 	string $currentProject = $projList[$currentProjIndex*2+1];
 	setProject $currentProject;
 	textFieldGrp -e -text $currentProject projPath;
@@ -683,13 +708,14 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 	string $currentProjectShort = $buffer[$numDepth - 1];
 	string $libPath = `openPipelineGetPath "lib"`;
 	optionVar -sv "op_libPath" $libPath;
-
+	
 	string $scenePath = ($currentProject + "/scenes/");
 	string $archivePath = ($currentProject + "/archive/");
 	optionVar -sv "op_scenePath" $scenePath;
 	optionVar -sv "op_archivePath" $archivePath;
 	if ($refreshCurrOpen)
 	{
+		//if necessary, the info about the currently open file is cleared
 		optionVar -sv "op_currOpenPath" "";
 		optionVar -sv "op_currOpenType" "";
 		optionVar -sv "op_currOpenCategory" "";
@@ -699,6 +725,7 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 	
 	string $buffer[];
 	int $numDepth = `tokenize $currentProject "/" $buffer`;
+	//update asset type list and scene list
 	openPipelineUpdateAssetTypeList();
 	openPipelineUpdateSceneList();
 }
