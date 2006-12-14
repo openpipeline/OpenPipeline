@@ -58,7 +58,7 @@ global proc openPipelineUI()
 	if (!`optionVar -ex "op_currOpenCategory"`)
 		optionVar -sv "op_currOpenCategory" "";
 	if (!`optionVar -ex "op_currOpenVersion"`)
-		optionVar -sv "op_currOpenVersion" "";
+		optionVar -iv "op_currOpenVersion" 0;
 		
 	//get list of existing projects
 	string $projList[] = openPipelineGetProjectList();
