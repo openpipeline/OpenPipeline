@@ -3,43 +3,116 @@
 // Developed by:
 // Rob O'Neill (roneill@dal.pratt.edu)
 // Meng-Han Ho (mho@pratt.edu)
-// Paris Mavroidis (pmavroid@pratt.edu)
+// Paris Mavroidis ( paris@parismav.com)
 //
 
-global proc sourceModule(string $path)
+global proc openPipelineSetMainPath(string $path, string $type)
 {
-
-	// find all the files in that path (and potentially subpath) and source
-	//
-	string $melFiles[] = `getFileList -folder $path -filespec "*.mel"`;
-	string $eachFile;
-
-	print ("----- Sourcing " + $path + "------\n");
-	print ("//////////////////////////////////////////////////////\n");
-
-	for ($eachFile in $melFiles)
-	{
-		string $scriptFile = ($path + $eachFile);
-	
-		string $cmdString = ("source \"" + $scriptFile + "\"");
-			
-		print ("//// Source: " + $cmdString + "\n");
-
-		catch(`eval $cmdString`);
-	}
+    textField -e -tx $path mainPathTextField;    
 }
 
+global proc openPipelineWriteMainScript() 
+{
+    string $error="";
+    string $folder = `textField -q -tx mainPathTextField`;
+    if (!endsWith($folder,"/"))
+        $folder += "/";
+    string $fileName = $folder+"openPipeline.mel";
+    string $folderName = $folder +"openPipeline";
+    if (!`filetest -r $fileName`) 
+        $error += "File \"openPipeline.mel\" was not found in the specified location.\n"; 
+    if (!`filetest -d $folderName`) 
+        $error += "Folder \"openPipeline\" was not found in the specified location.\n";
+    if ($error!="")
+        confirmDialog -t "Error" -m ($error+"\nPlease check the path and try again") -b "Close";      
+    else
+        {
+            int $fileId = `fopen $fileName "w"`;
+            
+fprint $fileId "// openPipeline \n";
+fprint $fileId "// \n";
+fprint $fileId "// Developed by: \n"; 
+fprint $fileId "// Rob O'Neill (roneill@dal.pratt.edu) \n";
+fprint $fileId "// Meng-Han Ho (mho@pratt.edu) \n";
+fprint $fileId "// Paris Mavroidis (paris@parismav.com) \n";
+fprint $fileId "// \n";
+fprint $fileId "\n";
+fprint $fileId "global proc sourceModule(string $path) \n"; 
+
+fprint $fileId "{ \n";
+fprint $fileId " \n";
+fprint $fileId "// find all the files in that path (and potentially subpath) and source \n";
+fprint $fileId "// \n";
+fprint $fileId "string $melFiles[] = `getFileList -folder $path -filespec \"*.mel\"`; \n";
+fprint $fileId "string $eachFile; \n";
+fprint $fileId "\n";
+fprint $fileId "print (\"----- Sourcing \" + $path + \"------\\n\"); \n"; 
+
+fprint $fileId "print (\"//////////////////////////////////////////////////////\\n\"); \n";
+fprint $fileId "\n";
+fprint $fileId "for ($eachFile in $melFiles) \n";
+fprint $fileId "{ \n"; 
+fprint $fileId "string $scriptFile = ($path + $eachFile); \n";
+fprint $fileId "\n";
+fprint $fileId "string $cmdString = (\"source \\\"\" + $scriptFile + \"\\\"\");"; 
+fprint $fileId "\n";
+
+fprint $fileId "print (\"//// Source: \" + $cmdString + \"\\n\"); \n";
+fprint $fileId "\n";
+fprint $fileId "catch(`eval $cmdString`); \n"; 
+fprint $fileId "} \n";
+fprint $fileId "} \n";
+fprint $fileId "\n";
+fprint $fileId "\n";
+fprint $fileId "global proc openPipeline() \n";
+fprint $fileId "{ \n"; 
+fprint $fileId "global string $openPipeline_ntPath; \n";
+fprint $fileId ("$openPipeline_ntPath = \""+$folderName+"/\"; \n");
+fprint $fileId "\n";
+fprint $fileId "if (!endsWith($openPipeline_ntPath,\"/\")) \n"; 
+fprint $fileId "$openPipeline_ntPath += \"/\"; \n";
+fprint $fileId "\n";
+fprint $fileId "sourceModule($openPipeline_ntPath); \n";
+fprint $fileId "\n";
+fprint $fileId "catch(`eval \"openPipelineUI\"`); \n"; 
+fprint $fileId "} \n";
+
+        fclose $fileId;
+        deleteUI openPipelineInitSetupWindow;
+        string $cmd = ("source \"" + $fileName + "\"");
+             
+
+        catch(`eval $cmd`);
+        openPipeline;
+        }
+}
 
 global proc openPipeline()
 {
-	global string $openPipeline_ntPath;
-	$openPipeline_ntPath = "C:/BIN/scripts/openPipeline/openPipeline";
-	if (!endsWith($openPipeline_ntPath,"/"))
-		$openPipeline_ntPath += "/";
-		
-	sourceModule($openPipeline_ntPath);
-
-	catch(`eval "openPipelineUI"`);
-}
-
-openPipeline;
+    string $defPath;
+    string $windowExists = `window -q -exists openPipelineInitSetupWindow`;
+    if ($windowExists == 1)
+    {
+        deleteUI openPipelineInitSetupWindow;
+    }
+    string $title_txt = "openPipeline Setup";
+    workspace -dir $defPath;
+    
+    window  -w 300 -h 200 -sizeable 0 -mxb 0 -rtf 0 -title $title_txt openPipelineInitSetupWindow; 
+        columnLayout -width 280 -rs 5 -co "both" 10; 
+            
+            text -fn "boldLabelFont" -label "openPipeline Setup:" -align "left" -width 280;
+            text -label "Please specify the folder in which the \" openPipeline.mel\" file and the\n\"openPipeline\" folder are located.\n\n You will only have to do this once." -align "left" -width 380;
+            textField -h 20 -text $defPath -width 380 mainPathTextField ; 
+            rowLayout -nc 2  -cw2 320 60 ;
+                text -label ""; 
+                button -label "Browse..." -c "fileBrowserDialog -m 4 -fc \"openPipelineSetMainPath\" -an \"Find Location\" " -w 60; 
+            setParent..;
+            
+            separator -h 10 -style "none";
+            rowLayout -nc 2 -cw2 190 190;
+                button -label "Accept" -w 190 -c "openPipelineWriteMainScript"; 
+                button -label "Cancel" -w 190  -c "deleteUI openPipelineInitSetupWindow";
+    window  -e -w 405 -h 220 openPipelineInitSetupWindow;
+    showWindow;
+} 

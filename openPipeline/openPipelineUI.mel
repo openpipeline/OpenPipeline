@@ -5,7 +5,31 @@
 //build user interface
 global proc openPipelineUI()
 {
+	
 	//set annotation strings
+	string $mbString;
+	int $mbInt;
+	int $windowHeight;
+	int $infoHeight;
+	//windows
+	if (`about -os`=="nt")
+	{
+		$mbString = "left";
+		$mbInt = 1;
+		$windowHeight = 770;
+		$infoHeight = 106;
+	}
+	//mac and unix
+	else
+	{
+		$mbString = "right";
+		$mbInt = 3;
+		$windowHeight = 830;
+		$infoHeight = 122;
+	}
+	string $anno_assetList="Choose from the available Assets. Hold down " +$mbString+" mouse button for options.";
+	string $anno_componentList="Choose from the available Components. Hold down " +$mbString+" mouse button for options.";
+	string $anno_sceneList="Choose from the available Scenes. Hold down " +$mbString+" mouse button for options.";	
 	string $anno_projectList="Select from the available Projects.";
 	string $anno_projectManager="Open the Project Manager, where you can add or remove Projects.";
 	string $anno_saveWorkshop="Save a workshop file for the current Asset/Component/Scene.";
@@ -13,17 +37,14 @@ global proc openPipelineUI()
 	string $anno_revive="Revive an old version of the current Asset/Component/Scene.";
 	string $anno_assetTypeList="Choose from the available Asset Types. You can select more than one.";
 	string $anno_newAssetType="Create a new Asset Type";
-	string $anno_removeAssetType="Remove the selected Asset Type(s) from the inverntory.";
-	string $anno_assetList="Choose from the available Assets. Hold down left mouse button for options.";
+	string $anno_removeAssetType="Remove the selected Asset Type(s) from the inventory.";
 	string $anno_newAsset="Create a new Asset for the selected Asset Type.";
 	string $anno_removeAsset="Remove the selected Asset from the inventory.";
-	string $anno_componentList="Choose from the available Components. Hold down left mouse button for options.";
 	string $anno_newComponent="Create a new Component for the selected Asset.";
 	string $anno_removeComponent="Remove the selected Component from the inventory.";
-	string $anno_sceneList="Choose from the available Scenes. Hold down left mouse button for options.";
 	string $anno_newScene="Create a new Scene.";
 	string $anno_removeScene="Remove the selected Scene from the inventory.";
-	string $anno_sceneAssetList="Choose an Asset. Mastered Assets can be imported or referenced into the scene.";
+	string $anno_sceneAssetList="Choose an Asset to import or reference into the scene.";
 	string $anno_close="Close openPipeline.";
 	string $anno_editAsset="Open the Asset for editing.";
 	string $anno_viewAsset="Open the master file for the Asset.";
@@ -88,8 +109,10 @@ global proc openPipelineUI()
 
 
 	//starting formlayout
-	string $form = `formLayout`;	
-
+	//string $form = `formLayout`;	
+	
+	columnLayout -co "left" 10;
+	columnLayout ;
 	//--------------------------------------------
 	//columnLayout for basic info on the top of UI
 	//including Login User, Proj Name, Proj Path
@@ -129,7 +152,7 @@ global proc openPipelineUI()
 	button -label "Project Manager..." -c "openPipelineProjectUI" -ann $anno_projectManager projManagerButton;
 	setParent..;
 	textFieldGrp -label "Project Path : " -editable false projPath;
-
+	separator -style "none" -w 410 -h 15;
 	setParent ..;
 	setParent..;
 
@@ -138,12 +161,13 @@ global proc openPipelineUI()
 	//--------------------------
 				 		
 	//tab layout for switching btw project and Scenes Inventory
-	string $tabs = `tabLayout -scr 0 -innerMarginWidth 0 -innerMarginHeight 0`;
+	string $tabs = `tabLayout -scr 0 -innerMarginWidth 0 -innerMarginHeight 0 -sc "openPipelineUpdateSceneList;openPipelineUpdateAssetTypeList;"`;
 
 	//-------------------------
 	//main column : Project Tab
 	//this is the first column that will be attached to the tab layout
 	//
+	
 	columnLayout mainColumnLayout;
 		
 				//------------------------------
@@ -154,10 +178,10 @@ global proc openPipelineUI()
 			  
 				columnLayout;
 					rowLayout -numberOfColumns 2 -cw2 345 55 -cal 1 "left" -cal 2 "right";
-						text -fn "boldLabelFont" -w 345 -label "CURRENTLY OPEN ASSET / COMPONENT:"  -al "left" op_currOpenTitle;
-						text -fn "boldLabelFont" -w 55 -label ""  -al "right" op_currOpenHeadingVersion;
+						text -fn "boldLabelFont" -w 300 -label "CURRENTLY OPEN ASSET / COMPONENT:"  -al "left" op_currOpenTitle;
+						text -fn "boldLabelFont" -w 100 -label ""  -al "right" op_currOpenHeadingVersion;
 						setParent..;
-					text -fn "boldLabelFont" -w 345 -label ""  -al "left" op_currOpenHeading;
+					text -fn "boldLabelFont" -w 345 -h 30 -label ""  -al "left" op_currOpenHeading;
 					setParent..;
 				separator -style "double" -w 410;
 				separator -style "none" -w 410 -h 5;
@@ -167,8 +191,8 @@ global proc openPipelineUI()
 							text -fn "boldLabelFont" -label "Actions" -w 70 -al "left";
 							setParent..;
 						rowLayout -numberOfColumns 2 -cw2 100 65;
-							button -l "Save Workshop..." -bgc .8 .6 .5 -c "openPipelineSaveWorkshopGUI" -ann $anno_saveWorkshop op_saveWorkshopButton;
-							button -l "MASTER..." -bgc .9 .7 .4 -c "openPipelineSaveMasterFileGUI" -ann $anno_master op_masterButton;
+							button -l "Save Workshop..." -w 100 -bgc .8 .6 .5 -c "openPipelineSaveWorkshopGUI" -ann $anno_saveWorkshop op_saveWorkshopButton;
+							button -l "MASTER..." -w 65 -bgc .9 .7 .4 -c "openPipelineSaveMasterFileGUI" -ann $anno_master op_masterButton;
 							
 							setParent..;
 						
@@ -177,7 +201,7 @@ global proc openPipelineUI()
 							setParent..;
 						columnLayout -rs 5;
 							text -fn "boldLabelFont" -label "Latest Comment" -w 180 -al "left";
-							scrollField -w 220 -h 50 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_currentAssetNoteField;
+							scrollField -w 220 -h 80 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_currentAssetNoteField;
 							setParent..;
 					setParent ..;
 
@@ -189,7 +213,7 @@ global proc openPipelineUI()
 				rowLayout -numberOfColumns 3 -w 410 -cw3 135 135 135 -cl3 "right" "right" "right";
 					columnLayout -w 120 -rs 0 -cal "center";
 						text -l "Asset Types" -w 125 -fn "boldLabelFont" -al "left";
-						textScrollList -w 125 -h 120 -ams 1 -sc "openPipelineAssetTypeSelected 0" -fn "smallPlainLabelFont" -ann $anno_assetTypeList op_assetTypeScrollList;
+						textScrollList -w 125 -h 150 -ams 1 -sc "openPipelineAssetTypeSelected 0" -fn "smallPlainLabelFont" -ann $anno_assetTypeList op_assetTypeScrollList;
 							separator -style "none" -w 125 -h 5;
 								rowLayout -numberOfColumns 2 -cw2 65 60;			
 						button -l "New..." -bgc .6 .8 .5 -w 65 -c "openPipelineNewAssetTypeUI" -ann $anno_newAssetType op_assetTypeNewButton; 
@@ -199,7 +223,7 @@ global proc openPipelineUI()
 				
 					columnLayout -w 120 -rs 0 -cal "center";
 						text -fn "boldLabelFont" -l "Assets" -w 125 -al "left";
-						menuBarLayout -bgc .9 .3 .3 -w 125;
+						menuBarLayout -bgc .9 .3 .3 -w 125 -h 175;
 							menu -label "OPTIONS..." op_assetMenu;
 								menuItem -label "Edit Asset" -subMenu 0 -command "openPipelineAssetAction workshop 0 open 0" -ann $anno_editAsset op_assetMenuEdit;
 								menuItem -label "View Master" -subMenu 0 -command "openPipelineAssetAction master 0 open 0" -ann $anno_viewAsset op_assetMenuView;
@@ -213,8 +237,8 @@ global proc openPipelineUI()
 								menuItem -label "Master" -command "openPipelineAssetAction master 0 reference 0" -ann $anno_referenceAssetMaster op_assetMenuReferenceMaster;
 									setParent -menu ..;
 								columnLayout;
-									textScrollList -w 125 -h 101 -sc "openPipelineAssetSelected 0" -fn "smallPlainLabelFont" -ann $anno_assetList op_assetScrollList;
-									popupMenu -p op_assetScrollList -b 1 -mm 1 -pmc "openPipelineAssetSelected 1";
+									textScrollList -w 125 -h 131 -sc "openPipelineAssetSelected 0" -fn "smallPlainLabelFont" -ann $anno_assetList op_assetScrollList;
+									popupMenu -p op_assetScrollList -b $mbInt -mm 1 -pmc "openPipelineAssetSelected 1";
 										
 											menuItem -label "Edit Asset" -command "openPipelineAssetAction workshop 0 open 0" -ann $anno_editAsset op_assetMenuEdit2;
 											menuItem -label "View Master" -command "openPipelineAssetAction master 0 open 0" -ann $anno_viewAsset op_assetMenuView2;
@@ -250,8 +274,8 @@ global proc openPipelineUI()
 							setParent -menu ..;
 							
 						columnLayout;
-							textScrollList -w 125 -h 101 -en 0 -sc "openPipelineComponentSelected" -fn "smallPlainLabelFont" -ann $anno_componentList op_componentScrollList;
-							popupMenu -p op_componentScrollList -b 1 -mm 1 -pmc "openPipelineComponentSelected";
+							textScrollList -w 125 -h 131 -en 0 -sc "openPipelineComponentSelected" -fn "smallPlainLabelFont" -ann $anno_componentList op_componentScrollList;
+							popupMenu -p op_componentScrollList -b $mbInt -mm 1 -pmc "openPipelineComponentSelected";
 										menuItem -label "Edit Component" -subMenu 0 -command "openPipelineComponentAction workshop 0 open 0" -ann $anno_editComponent op_compMenuEdit2;
 											menuItem -label "View Master" -command "openPipelineComponentAction master 0 open 0" -ann $anno_viewComponent op_compMenuView2;
 
@@ -273,19 +297,19 @@ global proc openPipelineUI()
 				setParent..;
 			setParent ..;
 			//end of framelayout:Asset Notes
-			separator -style "none" -w 125 -h 10;
+			separator -style "none" -w 5 -h 10;
 			rowLayout -numberOfColumns 2 -w 395 -cw2 135 260 -cl2 "center" "center" ;
 				columnLayout;
 					text -fn "boldLabelFont" -l "Info" -w 130 -al "center";
-					scrollField -w 130 -h 75 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_infoField;
+					scrollField -w 130 -h $infoHeight -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_infoField;
 					setParent ..;
 				columnLayout;
 					text -fn "boldLabelFont" -l "Comments" -w 260 -al "center";
-					scrollField -w 260 -h 75 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_commentField;
+					scrollField -w 260 -h $infoHeight -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_commentField;
 					setParent ..;
 					
 				setParent..;
-	
+				separator -style "none" -w 5 -h 10;
 		setParent ..;		
 		//UI of Pipeline Tools ends
 		//-------------------------	
@@ -305,25 +329,25 @@ global proc openPipelineUI()
 				//
 				separator -style "none" -w 410 -h 10;
 				separator -style "double" -w 410;
-			  
+			  //*************************************************
 				columnLayout;
-					rowLayout -numberOfColumns 2 -cw2 345 55 -cal 1 "left" -cal 2 "right";
-						text -fn "boldLabelFont" -w 345 -label "CURRENTLY OPEN SCENE:"  -al "left" op_currOpenSceneTitle;
-						text -fn "boldLabelFont" -w 55 -label ""  -al "right" op_currOpenSceneHeadingVersion;
+					rowLayout -numberOfColumns 2 -cw2 305 95 -cal 1 "left" -cal 2 "right";
+						text -fn "boldLabelFont" -w 305 -label "CURRENTLY OPEN SCENE:"  -al "left" op_currOpenSceneTitle;
+						text -fn "boldLabelFont" -w 95 -label ""  -al "right" op_currOpenSceneHeadingVersion;
 						setParent..;
-					text -fn "boldLabelFont" -w 345 -label ""  -al "left" op_currOpenSceneHeading;
+					text -fn "boldLabelFont" -w 345 -h 30 -label ""  -al "left" op_currOpenSceneHeading;
 					setParent..;
 				separator -style "double" -w 410;
-				separator -style "none" -w 410 -h 5;
-		rowLayout -numberOfColumns 2 -cw2 180 230;
+				separator -style "none" -w 10 -h 5;
+				rowLayout -numberOfColumns 2 -cw2 180 230;
 					columnLayout -rs 5;
 						rowLayout -numberOfColumns 2 -cw2 70 160;
 							text -fn "boldLabelFont" -label "Actions" -w 70 -al "left";
 							text -fn "boldLabelFont" -label "" -w 160 -al "left" op_currOpenSceneLabel;
 							setParent..;
 						rowLayout -numberOfColumns 2 -cw2 100 65;
-							button -l "Save Workshop..." -bgc .8 .6 .5 -c "openPipelineSaveWorkshopGUI" -ann $anno_saveWorkshop op_saveSceneWorkshopButton;
-							button -l "MASTER..." -bgc .9 .7 .4 -c "openPipelineSaveMasterFileGUI" -ann $anno_master op_masterSceneButton;
+							button -l "Save Workshop..." -w 100 -bgc .8 .6 .5 -c "openPipelineSaveWorkshopGUI" -ann $anno_saveWorkshop op_saveSceneWorkshopButton;
+							button -l "MASTER..." -w 65 -bgc .9 .7 .4 -c "openPipelineSaveMasterFileGUI" -ann $anno_master op_masterSceneButton;
 							
 							setParent..;
 						
@@ -332,19 +356,20 @@ global proc openPipelineUI()
 							setParent..;
 						columnLayout -rs 5;
 							text -fn "boldLabelFont" -label "Latest Comment" -w 180 -al "left";
-							scrollField -w 220 -h 50 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_currentSceneNoteField;
+							scrollField -w 220 -h 80 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_currentSceneNoteField;
 							setParent..;
 					setParent ..;
 
-				separator -style "none" -w 410 -h 10;
+				separator -style "none" -w 10 -h 10;
 				separator -style "double" -w 410;
+				//*********************************************************************
 				text -fn "boldLabelFont" -label "SCENE BROWSER" -w 410 -al "left";
 				separator -style "double" -w 410;
-				separator -style "none" -w 410 -h 5;
+				separator -style "none" -w 10 -h 5;
 				rowLayout -numberOfColumns 2 -w 410 -cw2 180 230 -cl2 "left" "left";
 					columnLayout -w 180 -rs 0 -cal "center";	
 						text -fn "boldLabelFont" -l "Scenes" -w 125 -al "left";
-						menuBarLayout -bgc .9 .3 .3 -w 164;
+						menuBarLayout -bgc .9 .3 .3 -w 164 -h 180 ;
 								menu -label "OPTIONS..." op_sceneMenu;
 									menuItem -label "Edit Scene" -subMenu 0 -command "openPipelineSceneAction workshop 0 open 0" -ann $anno_editScene op_sceneMenuEdit;
 									menuItem -label "View Master" -subMenu 0 -command "openPipelineSceneAction master 0 open 0" -ann $anno_viewScene op_sceneMenuView;
@@ -358,8 +383,8 @@ global proc openPipelineUI()
 									menuItem -label "Master" -command "openPipelineSceneAction master 0 reference 0" -ann $anno_referenceSceneMaster op_sceneMenuReferenceMaster;
 										setParent -menu ..;
 									columnLayout;
-										textScrollList -w 164 -h 100 -sc "openPipelineSceneSelected" -fn "smallPlainLabelFont" -ann $anno_sceneList op_sceneScrollList;
-										popupMenu -p op_sceneScrollList -b 1 -mm 1 -pmc "openPipelineSceneSelected";
+										textScrollList -w 164 -h 130 -sc "openPipelineSceneSelected" -fn "smallPlainLabelFont" -ann $anno_sceneList op_sceneScrollList;
+										popupMenu -p op_sceneScrollList -b $mbInt -mm 1 -pmc "openPipelineSceneSelected";
 											
 												menuItem -label "Edit Scene" -command "openPipelineSceneAction workshop 0 open 0" -ann $anno_editScene op_sceneMenuEdit2;
 												menuItem -label "View Master" -command "openPipelineSceneAction master 0 open 0" -ann $anno_viewScene op_sceneMenuView2;
@@ -381,33 +406,36 @@ global proc openPipelineUI()
 						setParent..;
 								columnLayout -rs 0;
 								text -fn "tinyBoldLabelFont" -label "Info" -w 180 -al "left";
-								scrollField -w 220 -h 60 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_sceneInfoField;
+								scrollField -w 220 -h 80 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_sceneInfoField;
 								text -fn "tinyBoldLabelFont" -label "Comments" -w 180 -al "left";
-								scrollField -w 220 -h 70 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_sceneCommentField;
+								scrollField -w 220 -h 80 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_sceneCommentField;
 								setParent..;
 						setParent ..;
-						separator -style "none" -w 410 -h 10;
+						separator -style "none" -w 10 -h 10;
 				separator -style "double" -w 410;
+				//*******************************************************************
 				text -fn "boldLabelFont" -label "AVAILABLE ASSETS" -w 410 -al "left";
 				separator -style "double" -w 410;
-				separator -style "none" -w 410 -h 5;
-					rowLayout -numberOfColumns 3 -w 410 -cw3 145 145 115;
-				columnLayout -w 120 -rs 0 -cal "center";
+				separator -style "none" -w 10 -h 5;
+				rowLayout -numberOfColumns 3 -w 410 -cw3 145 145 115;
+					columnLayout -w 120 -rs 0 -cal "center";
 						text -l "Asset Types" -w 135 -fn "boldLabelFont" -al "left";
-						textScrollList -w 135 -h 50 -ams 1 -sc "openPipelineSceneAssetTypeSelected" -fn "smallPlainLabelFont" -ann $anno_assetTypeList op_sceneAssetTypeList;
+						textScrollList -w 135 -h 80 -ams 1 -sc "openPipelineSceneAssetTypeSelected" -fn "smallPlainLabelFont" -ann $anno_assetTypeList op_sceneAssetTypeList;
 					setParent..;
 					columnLayout -w 135 -rs 0 -cal "center";
 						text -l "Assets" -w 135 -fn "boldLabelFont" -al "left";
-						textScrollList -w 135 -h 50 -sc "openPipelineSceneAssetSelected" -fn "smallPlainLabelFont" -ams 0 -ann $anno_sceneAssetList op_sceneAssetList;
+						textScrollList -w 135 -h 80 -sc "openPipelineSceneAssetSelected" -fn "smallPlainLabelFont" -ams 0 -ann $anno_sceneAssetList op_sceneAssetList;
 					setParent..;
 					columnLayout -w 115 -rs 0 -cal "left";
-							separator -style "none" -w 410 -h 15;
-							button -l "Import" -w 110 -h 25-bgc .6 .7 .7 -c "openPipelineSceneAssetAction import" op_importToSceneButton;
+							separator -style "none" -w 1 -h 15;
+							button -l "Import" -w 110 -h 25 -bgc .6 .7 .7 -c "openPipelineSceneAssetAction import" op_importToSceneButton;
 							button -l "Reference" -w 110 -h 25 -bgc .7 .6 .6 -c "openPipelineSceneAssetAction reference" op_referenceToSceneButton;
 						setParent..;
 					setParent..;
+					separator -style "none" -w 5 -h 10;
+				//**************************************************************
 				setParent..;
-				
+
 			
 		
 			setParent..;
@@ -418,16 +446,16 @@ global proc openPipelineUI()
 			//columnLayout : Reresh UI
 			columnLayout -cal "center" -cw 410 -cat "left" 2 refreshUIColumn;
 			separator -style "none" -w 410 -h 10;
-			frameLayout -labelVisible false -w 410;
+			frameLayout -labelVisible false -w 410 -h 20;
 				helpLine -w 395;
 				setParent..;
 			
 				separator -style "none" -w 125 -h 10;
 				
 			
-				rowLayout -numberOfColumns 2 -cw2 205 205 -cl2 "center" "center";
-					button -label "Refresh UI" -width 205 -command "openPipelineUI;";
-					button -label "Close" -width 205 -command "openPipelineCloseUI" -ann $anno_close;
+				rowLayout -numberOfColumns 2 -h 30 -cw2 205 205 -cl2 "center" "center";
+					button -h 30 -label "Refresh UI" -width 205 -command "openPipelineUI;";
+					button -h 30 -label "Close" -width 205 -command "openPipelineCloseUI" -ann $anno_close;
 				setParent..;
 			setParent ..;
 			//
@@ -437,8 +465,8 @@ global proc openPipelineUI()
 		//------------------------------------------
 		//tabLayout editing, giving tabs diff names
 		//
-		tabLayout -edit -sc "openPipelineUpdateSceneList;openPipelineUpdateAssetTypeList;"
-		  			-tabLabel mainColumnLayout "Asset Management" -tabLabel secColumnLayout "Scene Management" $tabs ;
+		tabLayout -edit 
+		  			-tabLabel mainColumnLayout "Asset Management" -tabLabel secColumnLayout "Scene Management" $tabs;
 		
 		//
 		//end of tabLayou editing
@@ -447,6 +475,7 @@ global proc openPipelineUI()
 		//
 		//formLayout editing
 		//
+		/*
 		formLayout -edit
 				-attachForm    	infoUI     "top"   5
 		 		-attachForm     infoUI     "left"   1
@@ -463,6 +492,7 @@ global proc openPipelineUI()
 		 		-attachForm     refreshUIColumn     "bottom" 5
 		 		-attachForm     refreshUIColumn     "right"  5
 		 $form;
+		 */
 		//
 		//end of formLayout editing
 		//
@@ -470,7 +500,7 @@ global proc openPipelineUI()
 
 	// display final window, window position is depending on Global Var $openPipeline_winPos[]
 	
-	window -e -w 430 -h 670 -tlc $openPipeline_winPos[0] $openPipeline_winPos[1] openPipelineUI;
+	window -e -w 450 -h $windowHeight openPipelineUI;
 	openPipelineProjSelected(0);
 	openPipelineUpdateCurrentlyOpen();
 	
@@ -685,7 +715,7 @@ global proc openPipelineRemoveSecondaryWindows()
 
 //
 global proc openPipelineProjSelected(int $refreshCurrOpen)
-{	
+{
 	int $projIndex = `optionMenuGrp -q -sl projNameMenu`;
 	optionVar -iv "op_currProject" $projIndex;
 	int $currentProjIndex = $projIndex-1;
@@ -1225,7 +1255,7 @@ global proc openPipelineNewAssetTypeUI()
 	string $error="";
 	string $result = `promptDialog 
 		-title "new asset type"
-		-message "asset type name:\n(no spaces or special characters\nmax length: 16 characters)"
+		-message "asset type name: \n(no spaces or special characters\nmax length: 16 characters)\n "
 		-button "create" -button "cancel"
 		-defaultButton "create" -cancelButton "cancel"
 		-dismissString "cancel"`;
@@ -1262,7 +1292,7 @@ global proc openPipelineNewAssetUI()
 	string $error="";
 	string $result = `promptDialog 
 		-title "new asset"
-		-message "asset name:\n(no spaces or special characters\nmax length: 12 characters)"
+		-message "asset name:\n(no spaces or special characters\nmax length: 12 characters)\n  "
 		-button "create" -button "cancel"
 		-defaultButton "create" -cancelButton "cancel"
 		-dismissString "cancel"`;
@@ -1303,8 +1333,8 @@ global proc openPipelineNewAssetComponentUI()
 {
 	string $error;
 	string $result = `promptDialog 
-		-title "new component"
-		-message "component name:\n(no spaces or special characters\nmax length: 12 characters)"
+		-title "new component" 
+		-message "component name:\n(no spaces or special characters\nmax length: 12 characters)\n "
 		-button "create" -button "cancel"
 		-defaultButton "create" -cancelButton "cancel"
 		-dismissString "cancel"`;
@@ -1315,7 +1345,7 @@ global proc openPipelineNewAssetComponentUI()
 		if (size($componentName)>12)
 			$error+="Component Name too long (max 12 chars.).\n";
 		if (!isValidString($componentName, "([a-zA-Z0-9_])*"))
-			$error+="Invalid Component Name (no special characters or spaces allowed).\n";
+			$error+="Invalid Component Name (no special characters or spaces allowed).\n  ";
 		if($error != "")
 		{
 			confirmDialog -title "openPipeline Error" -message $error
@@ -1336,7 +1366,7 @@ global proc openPipelineNewSceneUI()
 	string $error;
 	string $result = `promptDialog 
 		-title "new scene"
-		-message "scene name:\n(no spaces or special characters\nmax length: 18 characters)"
+		-message "scene name:\n(no spaces or special characters\nmax length: 18 characters)\n  "
 		-button "create" -button "cancel"
 		-defaultButton "create" -cancelButton "cancel"
 		-dismissString "cancel"`;

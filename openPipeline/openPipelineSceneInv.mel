@@ -638,4 +638,3 @@ global proc openPipelineRefInvUI()
 									
 									//scrollLayout -e -p col_RefInv allRefScroll;
 }
-

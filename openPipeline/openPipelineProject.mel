@@ -239,7 +239,7 @@ global proc openPipelineProjDialogWindow(int $mode, int $index, string $defName,
 			rowLayout -nc 2 -cw2 140 140;
 				button -label "Accept" -w 140 -c $accept_str;
 				button -label "Cancel" -w 140  -c "openPipelineCloseProjDialog";
-	window  -e -w 305 -h 210 openPipelineProjDialog;
+	window  -e -w 305 -h 240 openPipelineProjDialog;
 	showWindow;
 }
 	

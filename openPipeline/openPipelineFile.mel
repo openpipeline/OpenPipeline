@@ -446,9 +446,18 @@ global proc openPipelineSaveMaster()
 		$destinationFile = ($versions + $sceneName + "_version_" + $versionNum + ".mb");	
 	} 
 	// copy current master to version dir
-	string $copyCmd = ("copy " + $masterFile + " " + $destinationFile);
-	string $copyCmd = ("substituteAllString(\"" + $copyCmd + "\", \"\/\", \"\\\\\")");
-	string $cleanCmd = `eval($copyCmd)`;
+	string $copyCmd;
+	string $cleanCmd;
+	//windows
+	if (`about -os`=="nt")
+	{
+		$copyCmd = ("copy " + $masterFile + " " + $destinationFile);
+		$copyCmd = ("substituteAllString(\"" + $copyCmd + "\", \"\/\", \"\\\\\")");
+		$cleanCmd = `eval($copyCmd)`;
+	}
+	//mac and unix
+	else
+		$cleanCmd = ("mv " + $masterFile + " " + $destinationFile);
 	
 	system($cleanCmd);
 
@@ -617,8 +626,22 @@ global proc openPipelineRemoveFolder(string $category)
 			int $nameSize = size(openPipelineGetFolderFromPath($paths[$i],0));
 			int $pathSize = size($paths[$i]);
 			string $renamedPath = (substring($paths[$i], 1, ($pathSize-$nameSize-1)) + $destinationFolderName + "_archive_" + $j);
-			string $renameCmd = ("move " + substring($paths[$i], 1, size($paths[$i])-1) + " " + $renamedPath);
-			string $copyCmd = ("move " + $renamedPath + " " + $archivePath);
+			string $renameCmd;
+			string $copyCmd;
+			//move folder(s) to archive
+			//windows
+			if (`about -os`=="nt")
+			{
+				$renameCmd = ("move " + substring($paths[$i], 1, size($paths[$i])-1) + " " + $renamedPath);
+				$copyCmd = ("move " + $renamedPath + " " + $archivePath);
+			}
+			//mac and unix
+			else
+			{
+				$renameCmd = ("mv " + substring($paths[$i], 1, size($paths[$i])-1) + " " + $renamedPath);
+				$copyCmd = ("mv " + $renamedPath + " " + $archivePath);
+			}
+			
 			print(system($renameCmd));
 			print(system($copyCmd));
 		}

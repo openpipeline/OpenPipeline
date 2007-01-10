@@ -98,5 +98,3 @@ global proc string openPipelineGetPath(string $inputMode)
 	}
 	return $outputString;
 }
-
-
