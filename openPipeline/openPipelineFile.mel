@@ -449,13 +449,13 @@ global proc openPipelineSaveMaster()
 	string $copyCmd;
 	string $cleanCmd;
 	//windows
-	if (`about -os`=="nt")
+	if ((`about -os`=="nt")||(`about -os`=="win64"))
 	{
 		$copyCmd = ("copy " + $masterFile + " " + $destinationFile);
 		$copyCmd = ("substituteAllString(\"" + $copyCmd + "\", \"\/\", \"\\\\\")");
 		$cleanCmd = `eval($copyCmd)`;
 	}
-	//mac and unix
+	//mac
 	else
 		$cleanCmd = ("mv " + $masterFile + " " + $destinationFile);
 	
@@ -630,12 +630,12 @@ global proc openPipelineRemoveFolder(string $category)
 			string $copyCmd;
 			//move folder(s) to archive
 			//windows
-			if (`about -os`=="nt")
+			if ((`about -os`=="nt")||(`about -os`=="win64"))
 			{
 				$renameCmd = ("move " + substring($paths[$i], 1, size($paths[$i])-1) + " " + $renamedPath);
 				$copyCmd = ("move " + $renamedPath + " " + $archivePath);
 			}
-			//mac and unix
+			//mac
 			else
 			{
 				$renameCmd = ("mv " + substring($paths[$i], 1, size($paths[$i])-1) + " " + $renamedPath);

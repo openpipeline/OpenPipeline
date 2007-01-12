@@ -5,21 +5,20 @@
 //build user interface
 global proc openPipelineUI()
 {
-	
-	//set annotation strings
+	//set platform-specific UI settings
 	string $mbString;
 	int $mbInt;
 	int $windowHeight;
 	int $infoHeight;
 	//windows
-	if (`about -os`=="nt")
+	if ((`about -os`=="nt")||(`about -os`=="win64"))
 	{
 		$mbString = "left";
 		$mbInt = 1;
 		$windowHeight = 770;
 		$infoHeight = 106;
 	}
-	//mac and unix
+	//mac
 	else
 	{
 		$mbString = "right";
@@ -27,6 +26,7 @@ global proc openPipelineUI()
 		$windowHeight = 830;
 		$infoHeight = 122;
 	}
+	//set annotation strings
 	string $anno_assetList="Choose from the available Assets. Hold down " +$mbString+" mouse button for options.";
 	string $anno_componentList="Choose from the available Components. Hold down " +$mbString+" mouse button for options.";
 	string $anno_sceneList="Choose from the available Scenes. Hold down " +$mbString+" mouse button for options.";	
@@ -44,7 +44,7 @@ global proc openPipelineUI()
 	string $anno_removeComponent="Remove the selected Component from the inventory.";
 	string $anno_newScene="Create a new Scene.";
 	string $anno_removeScene="Remove the selected Scene from the inventory.";
-	string $anno_sceneAssetList="Choose an Asset to import or reference into the scene.";
+	string $anno_sceneAssetList="Choose a mastered Asset to import or reference into the scene.";
 	string $anno_close="Close openPipeline.";
 	string $anno_editAsset="Open the Asset for editing.";
 	string $anno_viewAsset="Open the master file for the Asset.";
@@ -69,7 +69,6 @@ global proc openPipelineUI()
 	global string $openPipeline_version;
 		
 	global string $openPipeline_userName;
-	global int $openPipeline_winPos[];
 	
 	//if optionVars for currently open file don't exist, create them
 	if (!`optionVar -ex "op_currOpenPath"`)
@@ -90,7 +89,6 @@ global proc openPipelineUI()
 		string $windowExists = `window -q -exists openPipelineUI`;
 		if ($windowExists == 1)
 		{
-			openPipelineRefreshUIPos;
 			deleteUI openPipelineUI;
 		}
 	
@@ -362,7 +360,6 @@ global proc openPipelineUI()
 
 				separator -style "none" -w 10 -h 10;
 				separator -style "double" -w 410;
-				//*********************************************************************
 				text -fn "boldLabelFont" -label "SCENE BROWSER" -w 410 -al "left";
 				separator -style "double" -w 410;
 				separator -style "none" -w 10 -h 5;
@@ -413,7 +410,6 @@ global proc openPipelineUI()
 						setParent ..;
 						separator -style "none" -w 10 -h 10;
 				separator -style "double" -w 410;
-				//*******************************************************************
 				text -fn "boldLabelFont" -label "AVAILABLE ASSETS" -w 410 -al "left";
 				separator -style "double" -w 410;
 				separator -style "none" -w 10 -h 5;
@@ -433,11 +429,7 @@ global proc openPipelineUI()
 						setParent..;
 					setParent..;
 					separator -style "none" -w 5 -h 10;
-				//**************************************************************
 				setParent..;
-
-			
-		
 			setParent..;
 			//
 			//end of Tab Layout
@@ -471,34 +463,8 @@ global proc openPipelineUI()
 		//
 		//end of tabLayou editing
 		//-----------------------
-	
-		//
-		//formLayout editing
-		//
-		/*
-		formLayout -edit
-				-attachForm    	infoUI     "top"   5
-		 		-attachForm     infoUI     "left"   1
-		 		-attachNone	  	infoUI     "bottom" 
-		 		-attachPosition infoUI     "right"  0 100
-				
-		 		-attachForm     $tabs     "left"   1
-		 		-attachControl 	$tabs     "top" 	 5 infoUI
-		 		-attachControl  $tabs     "bottom" 5 refreshUIColumn
-		 		-attachPosition $tabs     "right"  0 100
-		 	
-		 		-attachNone     refreshUIColumn     "top"
-		 		-attachForm     refreshUIColumn     "left"   1
-		 		-attachForm     refreshUIColumn     "bottom" 5
-		 		-attachForm     refreshUIColumn     "right"  5
-		 $form;
-		 */
-		//
-		//end of formLayout editing
-		//
 
-
-	// display final window, window position is depending on Global Var $openPipeline_winPos[]
+	// display final window
 	
 	window -e -w 450 -h $windowHeight openPipelineUI;
 	openPipelineProjSelected(0);
@@ -510,7 +476,6 @@ global proc openPipelineUI()
 	}else{//if NO projects exist, open Project Manager
 		if (`window -q -exists openPipelineUI`)
 		{
-			openPipelineRefreshUIPos;
 			deleteUI openPipelineUI;
 		}
 		confirmDialog -title "No Projects Found" -bgc .9 .9 .9 -message "No Projects were found. Please add a Project using the Project Manager."
@@ -1654,15 +1619,6 @@ global proc	openPipelineSceneInformation()
 	
 	// fill box
 	scrollField -e -text $outputText op_sceneInfoField;
-}
-
-
-//query winPos
-global proc openPipelineRefreshUIPos()
-{
-	global int $openPipeline_winPos[];
-	
-	$openPipeline_winPos = `window -q -tlc openPipelineUI`;
 }
 
 global proc openPipelineUpdateSceneMenus(string $scenePath)

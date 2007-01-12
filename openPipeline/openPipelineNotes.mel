@@ -344,7 +344,7 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 	string $dateStrip;
 	string $timeStrip;
 	//windows
-	if (`about -os`=="nt")
+	if ((`about -os`=="nt")||(`about -os`=="win64"))
 	{
 		string $dateNow = `system("date /t")`;
 		string $timeNow = `system("time /t")`;
@@ -353,7 +353,7 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 		$dateStrip = `match "[A-Za-z][A-Za-z][A-Za-z] [0-9]+/[0-9]+/[0-9]+" $dateStrip`;
 		$timeStrip = `match "[0-9]+:[0-9]+ [AP]M" $timeStrip`;
 	}
-	//mac and unix
+	//mac
 	else
 	{
 		$dateStrip = `system("date \"+%a %m/%d/%y\"")`;
@@ -463,7 +463,7 @@ global proc int openPipelineSceneNoteWriter(string $inputMode)
 	string $dateStrip;
 	string $timeStrip;
 	//windows
-	if (`about -os`=="nt")
+	if ((`about -os`=="nt")||(`about -os`=="win64"))
 	{
 		string $dateNow = `system("date /t")`;
 		string $timeNow = `system("time /t")`;
