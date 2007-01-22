@@ -1,7 +1,7 @@
 //
 // CUSTOMIZATION AND SETUP
 global string $openPipeline_name = "openPipeline";
-global string $openPipeline_version = "0.2";
+global string $openPipeline_version = "0.21";
 global string $openPipeline_projList_nt = "openPipeline_projects.txt";
 global string $openPipeline_libraryDirectoryName;
 $openPipeline_libraryDirectoryName = "lib";
