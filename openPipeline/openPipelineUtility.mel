@@ -1,100 +1,144 @@
+//
+// openPipeline Info Retrieval functions
+//
+
+//***	The following is a full list of optionVars used. 
+//		These can be accessed for pertinent information while openPipeline is running***
+//
+//CURRENTLY OPEN FILE INFO
+//op_currOpenPath (string) - full path of the location of the currently open file
+//op_currOpenType (string) - whether it's a workshop or master
+//op_currOpenCategory (string) - whether it's a scene, asset type, asset or component
+//op_currOpenVersion (int) - version of currently open file.  0 means no workshops have been created yet.
+//
+//CURRENT PROJECT INFO
+//op_currProject (int) - 1-based index. corresponds to index in the project drop-down menu
+//op_currProjectName (string) - project name
+//op_currProjectPath (string) - full project path
+//op_libPath (string) - full path to asset library
+//op_scenePath (string) - full path to scenes folder
+//op_archivePath (string) - full path to archive folder
+//op_workshopFormat (string) - file format for workshops (ma or mb)
+//op_masterFormat (string) - file format for master (ma or mb)
+//op_workshopName (string) - display name for workshop files
+//op_masterName (string) - display name for master files
+//
+//LISTS (all string arrays. each string within an array is a full path)
+//op_scenes - list of scenes within the current project
+//op_sceneAssets - list of assets listed under the selected asset type (scene management tab)
+//op_assetTypes - list of asset types within the current project
+//op_assets - list of assets under the selected asset type (asset management tab)
+//op_components - list of components under the selected asset
+
+//*** returns the path and filename for the appropriate note file
+//      $inputMode - 'note', 'scenenote', 'openednote' or 'newnote'. 
+//          See below for specific explanations of the different modes.
 global proc string openPipelineGetPath(string $inputMode)
 {
 	string $currPath = `optionVar -q "op_currOpenPath"`;
 	string $name = openPipelineGetFolderFromPath($currPath,0);
-
-	global string $openPipeline_menuCurrentAssetType;
-	string $assetType[] = `openPipelineGetSelectedAssetTypes`;
-	$openPipeline_menuCurrentAssetType = openPipelineGetFolderFromPath($assetType[0], 0);
-
-	global string $openPipeline_menuCurrentAsset;
+    string $currCategory = `optionVar -q "op_currOpenCategory"`;
+    string $creationPath = `optionVar -q "op_creationPath"`;
+    string $creationType = `optionVar -q "op_creationType"`;
 	string $asset = `openPipelineGetSelectedAsset`;
-	$openPipeline_menuCurrentAsset = openPipelineGetFolderFromPath($asset, 0);	
-
-	global string $openPipeline_menuCurrentAssetComponent;
+	string $openPipeline_menuCurrentAsset = openPipelineGetFolderFromPath($asset, 0);	
 	string $component = `openPipelineGetSelectedComponent`;
-	$openPipeline_menuCurrentAssetComponent = openPipelineGetFolderFromPath($component, 0);	
-
-	global string $openPipeline_menuCurrentAsset;
+	string $openPipeline_menuCurrentAssetComponent = openPipelineGetFolderFromPath($component, 0);	
 	string $scene = `openPipelineGetSelectedScene`;
-	string $selectedScene = openPipelineGetFolderFromPath($scene, 0);	
-
-	global string $openPipeline_libraryDirectoryName;
-	global string $openPipeline_sceneDirectoryName;
-
-	string $selectedAssetComponent = `openPipelineGetSelectedComponent`;
-
-	global string $openPipelineNewAssetName;
-	global string $openPipelineNewSceneName;
-	
+	string $selectedScene = openPipelineGetFolderFromPath($scene, 0);
 	string $outputString;
-	string $projString = `workspace -q -fn`;
-	
 	switch($inputMode)
 	{
-		case "proj":
-			$outputString = ($projString + "/");
-			break;
-		
-		case "lib":
-			string $libPath = ($projString + "/" + $openPipeline_libraryDirectoryName + "/");
-			$outputString = $libPath;	
-			break;
-		
-		case "scenes":
-			$outputString = ($projString + "/" + $openPipeline_sceneDirectoryName + "/");	
-			break;
-
-		case "archive":
-			$outputString = ($projString + "/archive/");
-			break;
-		
+		//returns the note file for the currently selected asset / component
 		case "note":
 			string $notesPath;
-			if($selectedAssetComponent == "")
+			if (size($asset))
 			{
-				$notesPath = $projString + "/" + $openPipeline_libraryDirectoryName + "/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset + "/notes/";
+				$notesPath = $asset + "notes/";
 				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_AssetNote.xml";
-			}else{
-				$notesPath = $projString + "/" + $openPipeline_libraryDirectoryName + "/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset + "/components/" + $openPipeline_menuCurrentAssetComponent + "/notes/";
-				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_AssetNote.xml";
 			}
+			else if (size($component))
+			{
+				$notesPath = $component + "notes/";
+				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_ComponentNote.xml";
+			}
+			else
+			    $outputString = "";
 			break;
-
-		case "openedassetnote":
-			string $notesPath;
-			if($selectedAssetComponent == "")
+        
+        //returns the note file for the currently selected scene
+        case "scenenote":
+			if (size($scene))
+			{
+    			string $notesPath = ($scene + "notes/");
+    			$outputString = $notesPath + $selectedScene + "_SceneNote.xml";
+    	    }
+    	    else
+    	    {
+    	        $outputString = "";
+    	    }
+			break;
+			
+		//returns the note file for the asset / component / scene which is currently open for editing
+		case "openednote":
+			
+			if ($currCategory == "asset")
 			{
 				$outputString = ($currPath + "notes/" + $name + "_AssetNote.xml");
-			}else{
-				$outputString = ($currPath + "notes/" + $openPipeline_menuCurrentAsset + "_" + $name + "_AssetNote.xml");
+			}
+			else if ($currCategory == "scene")
+			{
+			    $outputString = ($currPath + "notes/" + $name + "_SceneNote.xml");
+			}
+			else if ($currCategory == "component")
+			{
+				string $aName = openPipelineGetFolderFromPath($currPath,2);
+				$outputString = ($currPath + "notes/" + $aName + "_" + $name + "_ComponentNote.xml");
 			}		
-
+            else
+            {
+                $outputString = "";
+            }
 			break;
 		
+		//returns the note file for the most recently created asset / component / scene
 		case "newnote":
-			string $notesPath;
-			
-			if($selectedAssetComponent == "")
+			string $notesPath = $creationPath + "notes/";
+
+			if ($creationType == "asset")
 			{
-				$notesPath = $projString + "/" + $openPipeline_libraryDirectoryName + "/" + $openPipeline_menuCurrentAssetType + "/" + $openPipelineNewAssetName + "/notes/";
-				$outputString = $notesPath + $openPipelineNewAssetName + "_AssetNote.xml";
-			}else{
-				$notesPath = $projString + "/" + $openPipeline_libraryDirectoryName + "/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset + "/components/" + $openPipeline_menuCurrentAssetComponent + "/notes/";
-				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_AssetNote.xml";
+				string $assetName = openPipelineGetFolderFromPath($creationPath,0);
+				$outputString = $notesPath + $assetName + "_AssetNote.xml";
+			}
+			else if ($creationType == "component")
+			{
+				string $assetName = openPipelineGetFolderFromPath($creationPath,2);
+				string $componentName = openPipelineGetFolderFromPath($creationPath,0);
+				$outputString = $notesPath + $assetName + "_" + $componentName + "_ComponentNote.xml";
+			}
+			else if ($creationType == "scene")
+			{
+			    string $sceneName = openPipelineGetFolderFromPath($creationPath,0);
+			    $outputString = $notesPath + $sceneName + "_SceneNote.xml"; 
 			}
 			break;
-		
-		case "scenenote":
-			string $notesPath = ($scene + "notes/");
-			$outputString = $notesPath + $selectedScene + "_AssetNote.xml";
-			break;
-			
-		case "newscenenote":
-			string $notesPath;
-			$notesPath = $projString + "/" + $openPipeline_sceneDirectoryName + "/" + $openPipelineNewSceneName + "/notes/";
-			$outputString = $notesPath + $openPipelineNewSceneName + "_AssetNote.xml";
-			break;				
 	}
 	return $outputString;
+}
+
+//*** returns the current date
+global proc string openPipelineGetDate()
+{
+	string $date = `about -cd`;
+	string $dateSeparated[];
+	tokenize($date,"/",$dateSeparated);
+	$date = $dateSeparated[1]+"/"+$dateSeparated[2]+"/"+$dateSeparated[0];
+	return $date;
+}
+
+//*** returns the current time
+global proc string openPipelineGetTime()
+{
+	string $time = `about -ct`;
+	return $time;
 }

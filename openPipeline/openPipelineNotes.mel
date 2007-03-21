@@ -1,38 +1,45 @@
+//
+// openPipeline Notes Functions
+//
+
 global proc openPipelineLoadAssetNote()
 {
 	string $notePath = `openPipelineGetPath "note"`;
-
-	if(`filetest -f $notePath` == 0)
-	{
-//		openPipelineAssetNoteWriter "creation";
-	}
-
-	string $assetNoteTextArray[] = `openPipelineReadXML $notePath`;
-	string $assetNoteText = stringArrayToString($assetNoteTextArray, "");
-		
+    string $assetNoteText = "";
+    if (size($notePath))
+    {
+    	if(`filetest -f $notePath` == 0)
+    	{
+            openPipelineAssetNoteWriter "creation";
+    	}
+    
+    	string $assetNoteTextArray[] = `openPipelineReadXML $notePath`;
+    	$assetNoteText = stringArrayToString($assetNoteTextArray, "");
+    }	
 	scrollField -edit -text $assetNoteText op_commentField;
 }
-
 
 global proc openPipelineLoadSceneNote()
 {
 	string $notePath = `openPipelineGetPath "scenenote"`;
-
-	if(`filetest -f $notePath` == 0)
+    string $sceneNoteText = "";
+	if (size($notePath))
 	{
-//		openPipelineSceneNoteWriter "creation";
-	}
-
-	string $sceneNoteTextArray[] = `openPipelineReadXML $notePath`;
-	string $sceneNoteText = stringArrayToString($sceneNoteTextArray, "");
-		
+    	if(`filetest -f $notePath` == 0)
+    	{
+            openPipelineSceneNoteWriter "creation";
+    	}
+    
+    	string $sceneNoteTextArray[] = `openPipelineReadXML $notePath`;
+    	$sceneNoteText = stringArrayToString($sceneNoteTextArray, "");
+    }
 	scrollField -edit -text $sceneNoteText op_sceneCommentField;
 }
 
 
 global proc openPipelineLoadCurrentAssetNote()
 {
-	string $notePath = `openPipelineGetPath "openedassetnote"`;
+	string $notePath = `openPipelineGetPath "openednote"`;
 	string $assetNoteTextArray[] = `openPipelineReadLatestNote $notePath`;
 	string $assetNoteText = stringArrayToString($assetNoteTextArray, "");
 		
@@ -48,7 +55,7 @@ global proc openPipelineClearCurrentAssetNote()
 
 global proc openPipelineLoadCurrentSceneNote()
 {
-	string $notePath = `openPipelineGetPath "openedassetnote"`;
+	string $notePath = `openPipelineGetPath "openednote"`;
 	string $sceneNoteTextArray[] = `openPipelineReadLatestNote $notePath`;
 	string $sceneNoteText = stringArrayToString($sceneNoteTextArray, "");
 	scrollField -edit -text $sceneNoteText op_currentSceneNoteField;
@@ -82,7 +89,7 @@ global proc string[] openPipelineReadLatestNote(string $inputPath)
 
 global proc openPipelineReviveWorkshopNotesCallback()
 {
-	string $notePath = `openPipelineGetPath "note"`;
+	string $notePath = `openPipelineGetPath "openednote"`;
 	string $outputString[];
 	string $selectedVersionNumber = `optionMenu -q -v op_reviveVersionMenu`;
 	int $version = $selectedVersionNumber;
@@ -233,8 +240,6 @@ global proc int openPipelineCountNotes(string $inputPath)
 
 global proc string openPipelineReadIndividualNote(string $inputPath, int $index)
 {
-//string $noteContents;
-//return $noteContents;
 	string $noteContents;
 	string $allTheNotes[] = openPipelineReadAllNotes($inputPath);
 	if(($index >=0) && ($allTheNotes[$index] != ""))
@@ -333,7 +338,6 @@ global proc string openPipelineGetCleanLineXML(string $nextLine)
 	return $nextLine;
 }
 
-
 global proc int openPipelineAssetNoteWriter(string $inputMode)
 {
 	global string $openPipeline_userName;	
@@ -341,29 +345,11 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 	int $fileId;
 	
 	//get the date and time
-	string $dateStrip;
-	string $timeStrip;
-	//windows
-	if ((`about -os`=="nt")||(`about -os`=="win64"))
-	{
-		string $dateNow = `system("date /t")`;
-		string $timeNow = `system("time /t")`;
-		$dateStrip = `strip $dateNow`;
-		$timeStrip = `strip $timeNow`;	
-		$dateStrip = `match "[A-Za-z][A-Za-z][A-Za-z] [0-9]+/[0-9]+/[0-9]+" $dateStrip`;
-		$timeStrip = `match "[0-9]+:[0-9]+ [AP]M" $timeStrip`;
-	}
-	//mac
-	else
-	{
-		$dateStrip = `system("date \"+%a %m/%d/%y\"")`;
-		$timeStrip = `system("date +%H:%M")`;	
-	}
-	
+	string $dateStrip = openPipelineGetDate();
+	string $timeStrip = openPipelineGetTime();
 	if($inputMode=="creation")
 	{	
 		string $creationPath = `openPipelineGetPath "newnote"`;
-		
 		$fileId=`fopen $creationPath "w"`;
 		fprint $fileId "<?xml version=\"1.0\"?>\n";
 		fprint $fileId "	<note>\n";
@@ -371,14 +357,17 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
 		fprint $fileId ("		<date>" + $dateStrip + "</date>\n");
 		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
-		fprint $fileId ("		<event>asset created</event>\n");
+		fprint $fileId ("		<event>created</event>\n");
 		fprint $fileId "	</note>\n";
  		fclose $fileId;
 
  		openPipelineFilePermisson "+R" $creationPath;
  		return 1;
 
-	}else if($inputMode == "missing"){
+	}
+	
+	else if ($inputMode == "missing")
+	{
 		string $creationPath = `openPipelineGetPath "note"`;			
 		$fileId=`fopen $creationPath "w"`;
 		fprint $fileId "<?xml version=\"1.0\"?>\n";
@@ -387,19 +376,23 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
 		fprint $fileId ("		<date>" + $dateStrip + "</date>\n");
 		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
-		fprint $fileId ("		<event>asset created - note missing</event>\n");
+		fprint $fileId ("		<event>created - note missing</event>\n");
 		fprint $fileId "	</note>\n";
  		fclose $fileId;
  		
  		openPipelineFilePermisson "+R" $creationPath;
  		return 1;
 
-	}else{
+	}
+	else
+	{
 		string $currPath = `optionVar -q "op_currOpenPath"`;
-
+        string $mExt = `optionVar -q "op_masterFormat"`;
+	    string $wExt = `optionVar -q "op_workshopFormat"`;
+	    string $wName = `optionVar -q "op_workshopName"`;
 		// get workshop version
-		string $workshop = ($currPath + "workshop/");
-		string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_workshop_*.mb")`;
+		string $workshop = ($currPath + $wName + "/");
+		string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_" + $wName + "_*." + $wExt)`;
 		int $version = size($workshopFiles);
 
 		switch($inputMode)
@@ -407,7 +400,7 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 			case "master":
 				// get master version
 				string $versions = ($currPath + "version/");
-				string $versionFiles[] = `getFileList -folder $versions -filespec ("*_version_*.mb")`;
+				string $versionFiles[] = `getFileList -folder $versions -filespec ("*_version_*." + $mExt)`;
 				int $masterVersion = (size($versionFiles) + 1);
 
 				// get comment
@@ -423,7 +416,7 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 			break;
 		}
 		
-		string $notePath = `openPipelineGetPath "note"`;
+		string $notePath = `openPipelineGetPath "openednote"`;
 		
 		if(`filetest -f $notePath`)
 		{
@@ -433,15 +426,15 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 			$fileId=`fopen $notePath "w"`;
 		}
 					
-		fprint $fileId "	<note>\n";
-		fprint $fileId ("		<notetype>" + $inputMode + "</notetype>\n");
+		fprint $fileId  "   <note>\n";
+		fprint $fileId ("       <notetype>" + $inputMode + "</notetype>\n");
 		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
 		fprint $fileId ("		<date>" + $dateStrip + "</date>\n");
 		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
 		fprint $fileId ("		<event>workshop</event>\n");
 		fprint $fileId ("		<version>" + $version + "</version>\n");
 		fprint $fileId ("		<comment>" + $commentAdded + "</comment>\n");
-		fprint $fileId "	</note>\n";
+		fprint $fileId  "   </note>\n";
 	 	fclose $fileId;
 	 	
 	 	openPipelineFilePermisson "+R" $notePath;
@@ -460,28 +453,11 @@ global proc int openPipelineSceneNoteWriter(string $inputMode)
 	int $fileId;
 	
 	//get the date and time
-	string $dateStrip;
-	string $timeStrip;
-	//windows
-	if ((`about -os`=="nt")||(`about -os`=="win64"))
-	{
-		string $dateNow = `system("date /t")`;
-		string $timeNow = `system("time /t")`;
-		$dateStrip = `strip $dateNow`;
-		$timeStrip = `strip $timeNow`;	
-		$dateStrip = `match "[A-Za-z][A-Za-z][A-Za-z] [0-9]+/[0-9]+/[0-9]+" $dateStrip`;
-		$timeStrip = `match "[0-9]+:[0-9]+ [AP]M" $timeStrip`;
-	}
-	//mac and unix
-	else
-	{
-		$dateStrip = `system("date \"+%a %m/%d/%y\"")`;
-		$timeStrip = `system("date +%H:%M")`;	
-	}
-	
+	string $dateStrip = openPipelineGetDate();
+	string $timeStrip = openPipelineGetTime();
 	if($inputMode=="creation")
 	{	
-		string $creationPath = `openPipelineGetPath "newscenenote"`;
+		string $creationPath = `openPipelineGetPath "newnote"`;
 		
 		$fileId=`fopen $creationPath "w"`;
 		fprint $fileId "<?xml version=\"1.0\"?>\n";
@@ -490,7 +466,7 @@ global proc int openPipelineSceneNoteWriter(string $inputMode)
 		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
 		fprint $fileId ("		<date>" + $dateStrip + "</date>\n");
 		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
-		fprint $fileId ("		<event>asset created</event>\n");
+		fprint $fileId ("		<event>created</event>\n");
 		fprint $fileId "	</note>\n";
  		fclose $fileId;
 
@@ -506,19 +482,23 @@ global proc int openPipelineSceneNoteWriter(string $inputMode)
 		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
 		fprint $fileId ("		<date>" + $dateStrip + "</date>\n");
 		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
-		fprint $fileId ("		<event>asset created - note missing</event>\n");
+		fprint $fileId ("		<event>created - note missing</event>\n");
 		fprint $fileId "	</note>\n";
  		fclose $fileId;
  		
  		openPipelineFilePermisson "+R" $creationPath;
  		return 1;
 
-	}else{
+	}
+	else
+	{
 		string $currPath = `optionVar -q "op_currOpenPath"`;
-
+        string $mExt = `optionVar -q "op_masterFormat"`;
+	    string $wExt = `optionVar -q "op_workshopFormat"`;
+	    string $wName = `optionVar -q "op_workshopName"`;
 		// get workshop version
-		string $workshop = ($currPath + "workshop/");
-		string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_workshop_*.mb")`;
+		string $workshop = ($currPath + $wName + "/");
+		string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_" + $wName + "_*." + $wExt)`;
 		int $version = size($workshopFiles);
 
 		switch($inputMode)
@@ -526,7 +506,7 @@ global proc int openPipelineSceneNoteWriter(string $inputMode)
 			case "master":
 				// get master version
 				string $versions = ($currPath + "version/");
-				string $versionFiles[] = `getFileList -folder $versions -filespec ("*_version_*.mb")`;
+				string $versionFiles[] = `getFileList -folder $versions -filespec ("*_version_*." + $mExt)`;
 				int $masterVersion = (size($versionFiles) + 1);
 
 				// get comment
@@ -542,7 +522,7 @@ global proc int openPipelineSceneNoteWriter(string $inputMode)
 			break;
 		}
 		
-		string $notePath = `openPipelineGetPath "scenenote"`;
+		string $notePath = `openPipelineGetPath "openednote"`;
 		
 		if(`filetest -f $notePath`)
 		{
