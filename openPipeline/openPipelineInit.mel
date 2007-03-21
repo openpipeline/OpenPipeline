@@ -1,14 +1,9 @@
 //
-// CUSTOMIZATION AND SETUP
+// openPipeline Initialization 
+//
 global string $openPipeline_name = "openPipeline";
-global string $openPipeline_version = "0.21";
-global string $openPipeline_projList_nt = "openPipeline_projects.txt";
-global string $openPipeline_libraryDirectoryName;
-$openPipeline_libraryDirectoryName = "lib";
-global string $openPipeline_sceneDirectoryName;
-$openPipeline_sceneDirectoryName = "scenes";
+global string $openPipeline_version = "0.3";
+global string $openPipeline_projList = "openPipeline_projects.xml";
+global string $openPipeline_iconFilename = "openPipelineIcon.jpg";
 global string $openPipeline_userName;
 $openPipeline_userName = `getenv USER`;
-
-///////////////////////////////////////////////////////////////////////////
-//
