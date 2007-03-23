@@ -2,117 +2,242 @@
 //
 // Developed by:
 // Rob O'Neill (roneill@dal.pratt.edu)
-// Meng-Han Ho (mho@pratt.edu)
 // Paris Mavroidis ( paris@parismav.com)
-//
+// Meng-Han Ho (mho@pratt.edu)
 
+
+//*** finds all the script files in a path (and potentially subpath) and sources them 
+global proc sourceModule(string $path)
+{ 
+	string $melFiles[] = `getFileList -folder $path -filespec "*.mel"`; 
+	string $eachFile; 
+	print ("----- Sourcing " + $path + "------\n"); 
+	print ("//////////////////////////////////////////////////////\n");
+	for ($eachFile in $melFiles) 
+	{ 
+		string $scriptFile = ($path + $eachFile); 	
+		string $cmdString = ("source \"" + $scriptFile + "\"");
+		print ("//// Source: " + $cmdString + "\n"); 
+		catch(`eval $cmdString`); 
+	} 
+} 
+
+//*** sets the text for the project file path text field
 global proc openPipelineSetMainPath(string $path, string $type)
 {
     textField -e -tx $path mainPathTextField;    
 }
 
-global proc openPipelineWriteMainScript() 
+//*** sets the text for the script path text field
+global proc openPipelineSetProjPathField(string $path, string $type)
 {
-    string $error="";
-    string $folder = `textField -q -tx mainPathTextField`;
-    if (!endsWith($folder,"/"))
-        $folder += "/";
-    string $fileName = $folder+"openPipeline.mel";
-    string $folderName = $folder +"openPipeline";
-    if (!`filetest -r $fileName`) 
-        $error += "File \"openPipeline.mel\" was not found in the specified location.\n"; 
-    if (!`filetest -d $folderName`) 
-        $error += "Folder \"openPipeline\" was not found in the specified location.\n";
-    if ($error!="")
-        confirmDialog -t "Error" -m ($error+"\nPlease check the path and try again") -b "Close";      
-    else
-        {
-            int $fileId = `fopen $fileName "w"`;
-            
-fprint $fileId "// openPipeline \n";
-fprint $fileId "// \n";
-fprint $fileId "// Developed by: \n"; 
-fprint $fileId "// Rob O'Neill (roneill@dal.pratt.edu) \n";
-fprint $fileId "// Meng-Han Ho (mho@pratt.edu) \n";
-fprint $fileId "// Paris Mavroidis (paris@parismav.com) \n";
-fprint $fileId "// \n";
-fprint $fileId "\n";
-fprint $fileId "global proc sourceModule(string $path) \n"; 
-
-fprint $fileId "{ \n";
-fprint $fileId " \n";
-fprint $fileId "// find all the files in that path (and potentially subpath) and source \n";
-fprint $fileId "// \n";
-fprint $fileId "string $melFiles[] = `getFileList -folder $path -filespec \"*.mel\"`; \n";
-fprint $fileId "string $eachFile; \n";
-fprint $fileId "\n";
-fprint $fileId "print (\"----- Sourcing \" + $path + \"------\\n\"); \n"; 
-
-fprint $fileId "print (\"//////////////////////////////////////////////////////\\n\"); \n";
-fprint $fileId "\n";
-fprint $fileId "for ($eachFile in $melFiles) \n";
-fprint $fileId "{ \n"; 
-fprint $fileId "string $scriptFile = ($path + $eachFile); \n";
-fprint $fileId "\n";
-fprint $fileId "string $cmdString = (\"source \\\"\" + $scriptFile + \"\\\"\");"; 
-fprint $fileId "\n";
-
-fprint $fileId "print (\"//// Source: \" + $cmdString + \"\\n\"); \n";
-fprint $fileId "\n";
-fprint $fileId "catch(`eval $cmdString`); \n"; 
-fprint $fileId "} \n";
-fprint $fileId "} \n";
-fprint $fileId "\n";
-fprint $fileId "\n";
-fprint $fileId "global proc openPipeline() \n";
-fprint $fileId "{ \n"; 
-fprint $fileId "global string $openPipeline_ntPath; \n";
-fprint $fileId ("$openPipeline_ntPath = \""+$folderName+"/\"; \n");
-fprint $fileId "\n";
-fprint $fileId "if (!endsWith($openPipeline_ntPath,\"/\")) \n"; 
-fprint $fileId "$openPipeline_ntPath += \"/\"; \n";
-fprint $fileId "\n";
-fprint $fileId "sourceModule($openPipeline_ntPath); \n";
-fprint $fileId "\n";
-fprint $fileId "catch(`eval \"openPipelineUI\"`); \n"; 
-fprint $fileId "} \n";
-
-        fclose $fileId;
-        deleteUI openPipelineInitSetupWindow;
-        string $cmd = ("source \"" + $fileName + "\"");
-             
-
-        catch(`eval $cmd`);
-        openPipeline;
-        }
+    textField -e -tx $path mainProjPathTextField;    
 }
 
-global proc openPipeline()
+//*** Toggles the text field for setting the project file path between Default and Custom
+global proc openPipelineProjPathFieldToggle()
 {
-    string $defPath;
+    global string $openPipeline_projectFilePath;
+    int $editable = `textField -q -editable mainProjPathTextField`;
+    if ($editable)
+    {
+        textField -e -editable 0 -tx "[Default]" mainProjPathTextField;    
+        button -e -l "Edit" -w 60 op_projPathToggleButton;
+        button -e -enable 0 op_projPathBrowseButton;
+    }
+    else
+    {
+        textField -e -editable 1 -tx $openPipeline_projectFilePath mainProjPathTextField;    
+        button -e -l "Default" -w 60 op_projPathToggleButton;
+        button -e -enable 1 op_projPathBrowseButton;
+    }
+}
+
+//*** Sets up the Project File Path and the Script Path depending on user input
+//		This method checks the user's input for validity 
+//		and then edits the 'openPipeline.mel' script to reflect the changes 
+//		to global variables $openPipeline_projectFilePath and $openPipeline_scriptPath
+global proc openPipelineSetupExec()
+{
+    string $newProjFilePath;
+    string $newScriptPath;
+    $newScriptPath = `textField -q -tx mainPathTextField`;
+    if (!endsWith($newScriptPath,"/")) 
+        $newScriptPath += "/"; 
+    if (`textField -q -editable mainProjPathTextField`)
+    {
+        $newProjFilePath = `textField -q -tx mainProjPathTextField`;
+    }
+    else
+    {
+        $newProjFilePath = $newScriptPath + "openPipeline/";
+    }
+    string $mainFile = $newScriptPath + "openPipeline.mel";
+    string $error = "";
+    if (!openPipelineIsValidScriptPath($newScriptPath))
+        $error += ("Script path not valid. Make sure path \"" + $newScriptPath + "\" exists and contains the \"openPipeline\" folder.\n");
+    else if (!openPipelineIsValidProjFilePath($newProjFilePath))
+	    $error += ("Project File path not valid. Make sure path \"" + $newProjFilePath + "\" exists.\n");
+    else if (!openPipelineIsEditableFile($mainFile))
+		$error += "openPipeline.mel not editable\n ";
+    if (!size($error))
+    {
+        string $newCode[];
+        int $fileId=`fopen $mainFile "r"`;
+        int $i=0;
+        string $nextLine= `fgetline $fileId`;
+        //read code and replace global variable assignments to new values
+        while ( size( $nextLine ) > 0 ) 
+        { 
+	        string $test1 = match("^[ 	]*global[ ]+string[ 	]+$openPipeline_projectFilePath[ 	]*[=]{1}*",$nextLine);
+	        string $test2 = match("^[ 	]*global[ ]+string[ 	]+$openPipeline_scriptPath[ 	]*[=]{1}*",$nextLine);
+	        if (size($test1))
+				$newCode[$i] = "	global string $openPipeline_projectFilePath = \""+$newProjFilePath+"\";\n";
+	        else if (size($test2))
+				$newCode[$i] = "	global string $openPipeline_scriptPath = \""+$newScriptPath+"\";\n";
+	        else
+	        $newCode[$i] = $nextLine;
+	        $nextLine= `fgetline $fileId`;
+	        $i++;
+        }
+        fclose $fileId;
+        $fileId=`fopen $mainFile "w"`;
+        for ($line in $newCode)
+        fprint $fileId $line;
+        fclose $fileId;
+        deleteUI openPipelineInitSetupWindow;
+        //source openPipeline.mel and run openPipeline
+        string $cmd = ("source \"" + $mainFile + "\";openPipeline;");
+        eval $cmd;
+     }
+     else
+     {
+        confirmDialog -title "openPipeline - Project Setup Error" -bgc .9 .9 .9 
+        -message ("Could not complete openPipeline setup:\n"+$error)
+        -button "Ok" -defaultButton "Ok";
+     }
+}
+
+//*** Creates the openPipeline Setup UI
+global proc openPipelineSetup()
+{
+    global string $openPipeline_scriptPath;
+    global string $openPipeline_projectFilePath;
+    string $defPath = $openPipeline_scriptPath;
     string $windowExists = `window -q -exists openPipelineInitSetupWindow`;
     if ($windowExists == 1)
     {
         deleteUI openPipelineInitSetupWindow;
     }
     string $title_txt = "openPipeline Setup";
-    workspace -dir $defPath;
+    if (`filetest -d $defPath`)
+		workspace -dir $defPath;
     
     window  -w 300 -h 200 -sizeable 0 -mxb 0 -rtf 0 -title $title_txt openPipelineInitSetupWindow; 
-        columnLayout -width 280 -rs 5 -co "both" 10; 
+        columnLayout -width 280 -rs 5 -co "both" 10;
             
-            text -fn "boldLabelFont" -label "openPipeline Setup:" -align "left" -width 280;
-            text -label "Please specify the folder in which the \" openPipeline.mel\" file and the\n\"openPipeline\" folder are located.\n\n You will only have to do this once." -align "left" -width 380;
+            text -fn "boldLabelFont" -label "Script Path Setup:" -align "left" -width 280;
+            text -label "Please specify the folder in which the \"openPipeline.mel\" file and the\n\"openPipeline\" folder are located." -align "left" -width 380;
             textField -h 20 -text $defPath -width 380 mainPathTextField ; 
             rowLayout -nc 2  -cw2 320 60 ;
                 text -label ""; 
                 button -label "Browse..." -c "fileBrowserDialog -m 4 -fc \"openPipelineSetMainPath\" -an \"Find Location\" " -w 60; 
             setParent..;
-            
+            separator -style "none" -height 10;
+            text -fn "boldLabelFont" -label "Project File Setup:" -align "left" -width 280;
+            text -label "By default, the Project File will be located in the \"openPipeline\" folder.\nYou may set a different location for the Project File here." -align "left" -width 380;
+            textField -h 20 -editable 0 -text "[Default]" -width 380 mainProjPathTextField ; 
+            rowLayout -nc 3  -cw3 260 60 60 ;
+                text -label ""; 
+                button -label "Edit" -c "openPipelineProjPathFieldToggle" -w 60 op_projPathToggleButton; 
+                button -label "Browse..." -en 0 -c "fileBrowserDialog -m 4 -fc \"openPipelineSetProjPathField\" -an \"Find Location\" " -w 60 op_projPathBrowseButton; 
+                setParent..;
             separator -h 10 -style "none";
             rowLayout -nc 2 -cw2 190 190;
-                button -label "Accept" -w 190 -c "openPipelineWriteMainScript"; 
+                button -label "Accept" -w 190 -c "openPipelineSetupExec"; 
                 button -label "Cancel" -w 190  -c "deleteUI openPipelineInitSetupWindow";
-    window  -e -w 405 -h 220 openPipelineInitSetupWindow;
+    if (size($openPipeline_projectFilePath))
+    {
+        openPipelineProjPathFieldToggle();
+        textField -e -text $openPipeline_projectFilePath mainProjPathTextField;
+    }
+    
+    window  -e -w 405 -h 350 openPipelineInitSetupWindow;
     showWindow;
 } 
+
+//*** Checks if the given folder is a valid script path
+//		a valid script path contains the file 'openPipeline.mel'
+//		and contains a folder name 'openPipeline'
+global proc  int openPipelineIsValidScriptPath(string $folder)
+{
+    int $valid = 1;
+    if (!endsWith($folder,"/"))
+        $folder += "/";
+    string $fileName = $folder+"openPipeline.mel";
+    string $folderName = $folder +"openPipeline";
+    if (!`filetest -d $folder`)
+        $valid = 0;
+    else if (!`filetest -r $fileName`) 
+        $valid = 0;
+    else if (!`filetest -d $folderName`) 
+        $valid = 0;
+    return $valid;       
+}
+
+//*** Checks if the given folder is a valid project path
+//		The path needs to be an existing path.
+global proc  int openPipelineIsValidProjFilePath(string $folder)
+{
+    int $valid = `filetest -d $folder`;
+    return $valid;       
+}
+
+//*** Checks of the given file is readable and writeable
+//		This is used to check if the openPipeline.mel file can be read and edited.
+global proc int openPipelineIsEditableFile(string $filename)
+{
+    int $result = 1;
+    if (!`filetest -w $filename`)
+    {
+        $result = 0;
+    }
+    else if (!`filetest -r $filename`)
+    {
+        $result = 0;
+    }
+    return $result;
+}
+
+//*** Main openPipeline procedure
+global proc openPipeline() 
+{
+	//the following two lines are edited by the script whenever the user changes the Script Path or the Project File Path
+	global string $openPipeline_scriptPath = "";
+	global string $openPipeline_projectFilePath = "";
+    string $scriptsFolderName = "openPipeline";
+    //Check if the paths are valid
+    if ((!endsWith($openPipeline_scriptPath,"/"))&&(size($openPipeline_scriptPath)))
+        $openPipeline_scriptPath += "/";
+    string $error = "";
+    if (!openPipelineIsValidScriptPath($openPipeline_scriptPath))
+    {   
+        $error+="Script path has yet been set or is not valid.\n";
+    }
+    if (!openPipelineIsValidProjFilePath($openPipeline_projectFilePath))
+    {
+        $error+="Project File path has not yet been set or could not be found.\n";
+    }
+    //If paths are valid, run the openPipeline UI
+    if (!size($error))
+    {
+		sourceModule($openPipeline_scriptPath+$scriptsFolderName+"/"); 
+        catch(`eval "openPipelineUI"`);
+    }
+    //If paths are not valid, run openPipeline setup.
+    else
+    {
+		openPipelineSetup();
+    }
+} 
+
