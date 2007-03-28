@@ -2,9 +2,9 @@
 //
 // Developed by:
 // Rob O'Neill (roneill@dal.pratt.edu)
-// Paris Mavroidis ( paris@parismav.com)
+// Paris Mavroidis (paris@parismav.com)
 // Meng-Han Ho (mho@pratt.edu)
-
+//
 
 //*** finds all the script files in a path (and potentially subpath) and sources them 
 global proc sourceModule(string $path)
@@ -219,6 +219,8 @@ global proc openPipeline()
     //Check if the paths are valid
     if ((!endsWith($openPipeline_scriptPath,"/"))&&(size($openPipeline_scriptPath)))
         $openPipeline_scriptPath += "/";
+    if ((!endsWith($openPipeline_projectFilePath,"/"))&&(size($openPipeline_projectFilePath)))
+        $openPipeline_projectFilePath += "/";
     string $error = "";
     if (!openPipelineIsValidScriptPath($openPipeline_scriptPath))
     {   
