@@ -126,18 +126,19 @@ global proc openPipelineUI()
  		menuItem -label "Help..." -command openPipelineHelpLaunch;
 	
 	columnLayout -co "left" 10;
-	columnLayout ;
 	separator -style "none" -h 5;
 	//--------------------------------------------
 	//columnLayout for basic info on the top of UI
 	//including Login User, Proj Name, Proj Path
 	//
 	columnLayout infoUI;
-			
-	textFieldGrp -label "Login User : " -text $openPipeline_userName -editable false -cw2 100 290 userName;
-	rowLayout -numberOfColumns 2 -cw2 290 100;
-	optionMenuGrp -label "Project Name : " -cl2 "right" "left" -columnWidth2 100 190  
-		-cc "openPipelineProjSelected 1" -ann $anno_projectList projNameMenu;
+	rowLayout -nc 2 -cal 1 "right" -cw2 100 290 -cal 2 "right";
+		text -label "Login User : " -w 100;
+		textField -text $openPipeline_userName -editable false -w 290 userName;
+		setParent..;
+	rowLayout -numberOfColumns 3 -cal 1 "right" -cw3 100 190 100;
+	text -label "Project Name : " -w 100;
+	optionMenu -cc "openPipelineProjSelected 1" -ann $anno_projectList -w 190 projNameMenu;
 	//
 	//call proc openPipelineGetProjectList to get the existed proj size and name one by one
 	//proc located in openPipelineUtility.mel
@@ -159,7 +160,7 @@ global proc openPipelineUI()
     if (`optionVar -ex "op_currProject"`)
     {
     	$currProj = `optionVar -q "op_currProject"`;
-    	if (($currProj>`optionMenuGrp -q -ni projNameMenu`)||($currProj<1))
+    	if (($currProj>`optionMenu -q -ni projNameMenu`)||($currProj<1))
     	{
     	    $currProj = 1;
     	    optionVar -iv "op_currProject" 1;
@@ -167,13 +168,17 @@ global proc openPipelineUI()
     }
     else
     	optionVar -iv "op_currProject" 1;
-    optionMenuGrp -e -sl $currProj projNameMenu;
+    
+	optionMenu -e -sl $currProj projNameMenu;
 
 	button -label "Project Manager..." -c "openPipelineProjectUI" -ann $anno_projectManager -w 100 -h 30 projManagerButton;
 	setParent..;
-	textFieldGrp -label "Project Path : " -editable false -cw2 100 290 projPath;
+	rowLayout -cal 1 "right" -nc 2 -cw2 100 290;
+	text -label "Project Path : " -w 100;
+	textField -editable false -w 290 projPath;
+	setParent..;
 	separator -style "none" -w 410 -h 10;
-	setParent ..;
+	//setParent ..;
 	setParent..;
     string $iconFile = $openPipeline_scriptPath+"openPipeline/"+$openPipeline_iconFilename;
     image -h 50 -w 415 -i $iconFile -bgc 0 0 0 op_iconImage;
@@ -200,9 +205,9 @@ global proc openPipelineUI()
 			  
 				columnLayout;
 					
-					rowLayout -numberOfColumns 2 -cw2 345 55 -cal 1 "left" -cal 2 "right";
+					rowLayout -numberOfColumns 2 -cw2 325 75 -cal 1 "left" -cal 2 "right";
 						text -fn "boldLabelFont" -w 300 -label "CURRENTLY OPEN ASSET / COMPONENT:"  -al "left" op_currOpenTitle;
-						text -fn "smallBoldLabelFont" -w 55 -label ""  -al "right" op_currOpenHeadingVersion;
+						text -fn "smallBoldLabelFont" -w 75 -label ""  -al "right" op_currOpenHeadingVersion;
 						setParent..;
 					text -fn "smallBoldLabelFont" -w 345 -h 30 -label ""  -al "left" op_currOpenHeading;
 					
@@ -355,9 +360,9 @@ global proc openPipelineUI()
 				separator -style "double" -w 410;
 			  //*************************************************
 				columnLayout;
-					rowLayout -numberOfColumns 2 -cw2 345 55 -cal 1 "left" -cal 2 "right";
+					rowLayout -numberOfColumns 2 -cw2 325 75 -cal 1 "left" -cal 2 "right";
 						text -fn "boldLabelFont" -w 300 -label "CURRENTLY OPEN SCENE:"  -al "left" op_currOpenSceneTitle;
-						text -fn "smallBoldLabelFont" -w 55 -label ""  -al "right" op_currOpenSceneHeadingVersion;
+						text -fn "smallBoldLabelFont" -w 75 -label ""  -al "right" op_currOpenSceneHeadingVersion;
 						setParent..;
 					text -fn "smallBoldLabelFont" -w 345 -h 30 -label ""  -al "left" op_currOpenSceneHeading;
 					setParent..;
@@ -738,8 +743,8 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 	global string $openPipeline_iconFilename;
 	progressWindow -min 0 -max 10 -pr 0 -st "Please Wait.." -title "Getting Project Info";
 	
-	int $projIndex = `optionMenuGrp -q -sl projNameMenu`;
-	string $projName = `optionMenuGrp -q -v projNameMenu`;
+	int $projIndex = `optionMenu -q -sl projNameMenu`;
+	string $projName = `optionMenu -q -v projNameMenu`;
 	string $projXml = openPipelineGetSingleProjectXml($projName);
 	string $projPath = openPipelineGetXmlData($projXml, "path");
 	if (!endsWith($projPath,"/")) 
@@ -774,7 +779,7 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 	//int $currentProjIndex = $projIndex-1;
 	string $projList[] = openPipelineGetProjectList();
 	
-	if ((size($projList))<`optionMenuGrp -q -ni projNameMenu`)
+	if ((size($projList))<`optionMenu -q -ni projNameMenu`)
 	{
 		//if the number of projects does not match the number of projects listed in the menu, refresh the window
 		//this would happen in the case that the user manually deleted or renamed a project folder 
@@ -784,7 +789,7 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 		progressWindow -e -s 1;
 	//string $currentProject = $projList[$currentProjIndex*2+1]; 
 	setProject $projPath;
-	textFieldGrp -e -text $projPath projPath;
+	textField -e -text $projPath projPath;
 	string $iconFile = $projPath+$openPipeline_iconFilename;
 	string $defIconFile = $openPipeline_scriptPath+"openPipeline/"+$openPipeline_iconFilename;
 	progressWindow -e -s 1;
