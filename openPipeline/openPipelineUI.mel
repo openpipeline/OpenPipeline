@@ -417,7 +417,7 @@ global proc openPipelineUI()
 												setParent -menu ..;
 											menuItem -label "Reference" -subMenu 1 -ann " " op_sceneMenuReference2;
 											menuItem -label "Workshop" -command "openPipelineSceneAction workshop 0 reference 0" -ann $anno_referenceSceneWorkshop op_sceneMenuReferenceWorkshop2;
-											menuItem -label "Master" -command "openPipelineSceneAction master reference 0" -ann $anno_referenceSceneMaster op_sceneMenuReferenceMaster2;	
+											menuItem -label "Master" -command "openPipelineSceneAction master 0 reference 0" -ann $anno_referenceSceneMaster op_sceneMenuReferenceMaster2;	
 											setParent -menu ..;
 										separator -style "none" -w 125 -h 5;
 									rowLayout -numberOfColumns 2 -cw2 82 82;
