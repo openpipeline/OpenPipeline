@@ -812,7 +812,6 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 		optionVar -sv "op_currOpenType" "";
 		optionVar -sv "op_currOpenCategory" "";
 		optionVar -iv "op_currOpenVersion" 0;
-		//NewScene; //********************** maybe not?
 	}
 	progressWindow -e -s 1;
 	//string $buffer[];
@@ -1572,7 +1571,7 @@ global proc openPipelineSaveWorkshopGUI()
 	setParent..;
 
 	rowLayout -numberOfColumns 2 -cw2 125 125 -cl2 "center" "center";
-		button -w 125 -l ("SAVE "+$wName) -c "openPipelineProcessAssetSave workshop" -bgc .8 .6 .5;
+		button -w 125 -l ("SAVE "+$wName) -c "openPipelineProcessAssetSave workshop;" -bgc .8 .6 .5;
 		button -w 125 -l "cancel" -c "deleteUI op_secondaryUI;" -bgc .8 .4 .4;
 	setParent..;
 
@@ -1758,7 +1757,9 @@ global proc	openPipelineSceneInformation()
     		string $masterDate = `match "[0-9]+/[0-9]+/[0-9]+" $str`;
     		
     		$fileMastered = ($mName+"?: Yes\nDate: " + $masterDate + "\n");
-    	} else {
+    	} 
+    	else 
+    	{
     		$fileMastered = ($mName+"?: No \n");
     	}
     
