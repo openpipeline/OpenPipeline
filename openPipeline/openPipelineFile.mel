@@ -130,8 +130,8 @@ global proc int openPipelineAssetAction(string $type, int $versionOffset, string
 	string $assetName = openPipelineGetFolderFromPath($selectedAssetPath,0);
 	int $version = 0;
 	string $file;
-	
-	if (($action=="open")&&(`file -q -mf`))
+	string $currOpen = `optionVar -q op_currOpenPath`;
+	if (($action=="open")&&(`file -q -mf`)&&(size($currOpen)))
 	{
 		string $confirm;
 		$confirm = `confirmDialog -t "openPipeline" -m "Would you like to Save Workshop before editing Asset?" -b "Save Workshop" -b "Don't Save" -b "Cancel" -db "Save Workshop"`;
@@ -214,8 +214,8 @@ global proc int openPipelineComponentAction(string $type, int $versionOffset, st
 	string $assetName = openPipelineGetFolderFromPath($selectedComponentPath,2);
 	int $version = 0;
 	string $file;
-	
-	if (($action=="open")&&(`file -q -mf`))
+	string $currOpen = `optionVar -q op_currOpenPath`;
+	if (($action=="open")&&(`file -q -mf`)&&(size($currOpen)))
 	{
 		string $confirm;
 		$confirm = `confirmDialog -t "openPipeline" -m "Would you like to Save Workshop before editing Component?" -b "Save Workshop" -b "Don't Save" -b "Cancel" -db "Save Workshop"`;
@@ -299,8 +299,8 @@ global proc int openPipelineSceneAction(string $type, int $versionOffset, string
 	string $sceneName = openPipelineGetFolderFromPath($selectedScenePath,0);
 	int $version = 0;
 	string $file;
-	
-	if (($action=="open")&&(`file -q -mf`))
+	string $currOpen = `optionVar -q op_currOpenPath`;
+	if (($action=="open")&&(`file -q -mf`)&&(size($currOpen)))
 	{
 		string $confirm;
 		$confirm = `confirmDialog -t "openPipeline" -m "Would you like to Save Workshop before editing Scene?" -b "Save Workshop" -b "Don't Save" -b "Cancel" -db "Save Workshop"`;
