@@ -1519,7 +1519,7 @@ global proc openPipelineSaveMasterFileGUI()
 		deleteUI op_secondaryUI;
 	}
 	
-	window -t ($mName+" File Switchboard") -w 300 -h 150 op_secondaryUI;
+	window -t ($mName+" File Switchboard") -w 300 -h 155 op_secondaryUI;
 
 	columnLayout -rs 5 -co "both" 10;
 	rowLayout -numberOfColumns 2 -cw2 150 150 -cl2 "center" "center";
@@ -1546,7 +1546,7 @@ global proc openPipelineSaveMasterFileGUI()
 		button -w 125 -l "cancel" -c "deleteUI op_secondaryUI;" -bgc .8 .4 .4;
 	setParent..;
 
-	window -e -w 280 -h 145 op_secondaryUI;
+	window -e -w 280 -h 155 op_secondaryUI;
 	showWindow op_secondaryUI;
 	
 }
@@ -1575,7 +1575,7 @@ global proc openPipelineSaveWorkshopGUI()
 		button -w 125 -l "cancel" -c "deleteUI op_secondaryUI;" -bgc .8 .4 .4;
 	setParent..;
 
-	window -e -w 280 -h 85 op_secondaryUI;
+	window -e -w 280 -h 90 op_secondaryUI;
 	showWindow op_secondaryUI;
 }
 
@@ -1612,7 +1612,7 @@ global proc openPipelineReviveGUI()
 		button -w 85 -l "cancel" -c "deleteUI op_secondaryUI" -bgc .8 .4 .4;
 	setParent..;
 	optionMenu -e -sl $numVersions op_reviveVersionMenu;
-	window -e -w 275 -h 200 op_secondaryUI;
+	window -e -w 275 -h 210 op_secondaryUI;
 	showWindow op_secondaryUI;
 	openPipelineReviveWorkshopNotesCallback;
 }
