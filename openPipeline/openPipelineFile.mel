@@ -186,7 +186,7 @@ global proc int openPipelineAssetAction(string $type, int $versionOffset, string
 	}
 	else if (($action=="reference")&&($fileExists))
 	{
-		file -reference -gl -loadReferenceDepth "all" -shd "displayLayers" -shd "shadingNetworks" -shd "renderLayersByName" -namespace $assetName $file;
+		file -reference -gl -loadReferenceDepth "all" -shd "renderLayersByName" -namespace $assetName -options "v=0;p=17" $file;
 		return 1; // success
 	}
 		
@@ -269,7 +269,7 @@ global proc int openPipelineComponentAction(string $type, int $versionOffset, st
 	}
 	else if (($action=="reference")&&($fileExists))
 	{
-		file -reference -gl -loadReferenceDepth "all" -shd "displayLayers" -shd "shadingNetworks" -shd "renderLayersByName" -namespace $componentName $file;
+		file -reference -gl -loadReferenceDepth "all" -shd "renderLayersByName" -namespace $componentName -options "v=0;p=17" $file;
 		return 1; // success
 	}
 	else
@@ -356,7 +356,7 @@ global proc int openPipelineSceneAction(string $type, int $versionOffset, string
 	}
 	else if (($action=="reference")&&($fileExists))
 	{
-		file -reference -gl -loadReferenceDepth "all" -shd "displayLayers" -shd "shadingNetworks" -shd "renderLayersByName" -namespace $sceneName $file;
+		file -reference -gl -loadReferenceDepth "all" -shd "renderLayersByName" -namespace $sceneName -options "v=0;p=17" $file;
 		return 1; // success
 	}else{
 		warning ("openPipeline: No " + $type +" File Exists In: " + $selectedScenePath + " \n");
@@ -378,7 +378,7 @@ global proc int openPipelineSceneAssetAction(string $action)
 		{
 			file -import -ra true -rdn -namespace $assetName -pr -loadReferenceDepth "all" $file;
 		}else if ($action=="reference"){
-			file -reference -gl -loadReferenceDepth "all" -shd "displayLayers" -shd "shadingNetworks" -shd "renderLayersByName" -namespace $assetName $file;
+			file -reference -gl -loadReferenceDepth "all" -shd "renderLayersByName" -namespace $assetName -options "v=0;p=17" $file;
 		}else{
 			error("invalid action passed into `openPipelineSceneAssetAction` procedure");
 			return 0;
