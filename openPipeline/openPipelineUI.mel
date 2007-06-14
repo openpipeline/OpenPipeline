@@ -92,18 +92,24 @@ global proc openPipelineUI()
 	{
 		string $temp_projName = openPipelineGetXmlData($projList[$i],"name");
 		string $temp_projPath = openPipelineGetXmlData($projList[$i],"path");
-		if (`filetest -d $temp_projPath`)
-		{	
-			$validProjList[$validProjects] = $projList[$i];
-			$validProjects++;
-	    }
-	    else
-	    {
-	        string $msg = "Folder \""+$temp_projPath+"\" could not be found.\nIn order to work on project \""+$temp_projName+ "\" please edit the location of this project using the Project Manager.";
-	        confirmDialog -title "openPipeline: Project Folder Not Found" -bgc .9 .9 .9 -message $msg -button "Ok" -defaultButton "Ok";	        
-	    }
+		string $temp_projStatus = openPipelineGetXmlData($projList[$i],"status");
+		if ($temp_projStatus =="")
+			$temp_projStatus = "1";
+		if (int($temp_projStatus))  //if project is active
+		{
+			if (`filetest -d $temp_projPath`) //check if project path exists
+			{
+				$validProjList[$validProjects] = $projList[$i];
+				$validProjects++;	
+		  }
+		  else
+		  {
+		  	string $msg = "Folder \""+$temp_projPath+"\" could not be found.\nIn order to work on project \""+$temp_projName+ "\" please edit the location of this project using the Project Manager.";
+		    confirmDialog -title "openPipeline: Project Folder Not Found" -bgc .9 .9 .9 -message $msg -button "Ok" -defaultButton "Ok";	        
+		  }
+		}
 	}
-	//if at least one valid project exists
+	//if at least one valid and active project exists
 	if ($validProjects)
 	{
 		string $windowExists = `window -q -exists openPipelineUI`;

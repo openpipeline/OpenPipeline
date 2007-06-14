@@ -152,6 +152,7 @@ global proc openPipelineProjectUISelection()
     string $description = openPipelineGetXmlData($data[$currProjIndex[0]-1], "description");
     string $date = openPipelineGetXmlData($data[$currProjIndex[0]-1], "date");
     string $deadline = openPipelineGetXmlData($data[$currProjIndex[0]-1], "deadline");
+    string $status = openPipelineGetXmlData($data[$currProjIndex[0]-1], "status");
     string $mastername = openPipelineGetXmlData($data[$currProjIndex[0]-1], "mastername");
     string $masterformat = openPipelineGetXmlData($data[$currProjIndex[0]-1], "masterformat");
     string $workshopname = openPipelineGetXmlData($data[$currProjIndex[0]-1], "workshopname");
@@ -159,11 +160,16 @@ global proc openPipelineProjectUISelection()
     string $libraryFolder = openPipelineGetXmlData($data[$currProjIndex[0]-1], "libraryfolder");
     string $scenesFolder = openPipelineGetXmlData($data[$currProjIndex[0]-1], "scenesfolder");
     string $archiveFolder = openPipelineGetXmlData($data[$currProjIndex[0]-1], "archivefolder");
-
+		
+		if ($status=="")
+			$status="1";
+		string $statusStrings[] = {"inactive","active"};
+		
     string $projectInfo = "Project Name: " + $name +"\n" + 
                           "Path: " + $path +"\n" +
                           "Description: " + $description +"\n" +
-                          "-------------------------------------\n"+
+                          "Status: " + $statusStrings[int($status)]+"\n" +
+                          "-------------------------------------\n" +
                           "Date Created: " + $date +"\n" +
                           "Deadline: " + $deadline +"\n" +
                           "-------------------------------------\n"+
@@ -284,6 +290,14 @@ global proc openPipelineProjDialogWindow(int $mode)
 			    text -fn "boldLabelFont" -label "Description:" -align "left" -width 80;
 			    textField -h 20 -width 260  op_descriptionField ;
 			    setParent..;
+			  separator -h 5 -w 340 -style "out";
+			rowLayout -nc 2 -cw2 100 240;
+			    text -fn "boldLabelFont" -label "Project Status:" -align "left" -width 100;
+			    optionMenu -w 160 op_projectStatus;
+			    	menuItem -label "inactive";
+            menuItem -label "active" ;
+			    setParent..;
+			    text -fn "smallPlainLabelFont" -label "(inactive projects won't appear in main openPipeline window)" -align "left" -width 340;
 		    separator -h 5 -st "out" -w 340;
 		    rowLayout -nc 4 -cw4 100 100 70 70;
 		        text -fn "boldLabelFont" -label "Creation Date:" -align "left" -width 100;
@@ -291,6 +305,7 @@ global proc openPipelineProjDialogWindow(int $mode)
 		        text -fn "boldLabelFont" -label "Deadline:" -align "left" -width 70;
 				textField -h 20 -width 70 op_projectDeadline;
 	            setParent..;
+			
 			separator -h 5 -w 340 -style "out";
 			rowLayout -nc 2 -cw2 100 240;
 			    text -fn "boldLabelFont" -label "Master Files:" -align "left" -width 100;
@@ -349,6 +364,7 @@ global proc openPipelineProjDialogWindow(int $mode)
 	    textField -e -text "archive" op_projectArchiveLocation;
 	    textField -e -text "master" op_projectMasterName;
 	    textField -e -text "workshop" op_projectWorkshopName;
+	    optionMenu -e -sl 2 op_projectStatus;
 	}
 	//if editing current project, set fields to current values
 	else
@@ -363,6 +379,7 @@ global proc openPipelineProjDialogWindow(int $mode)
 	        string $curr_name = openPipelineGetXmlData($projXml,"name");
 	        string $curr_path = openPipelineGetXmlData($projXml,"path");
 	        string $curr_description = openPipelineGetXmlData($projXml,"description");
+	        string $curr_status = openPipelineGetXmlData($projXml,"status");
 	        string $curr_date = openPipelineGetXmlData($projXml,"date");
 	        string $curr_deadline = openPipelineGetXmlData($projXml,"deadline");
 	        string $curr_mastername = openPipelineGetXmlData($projXml,"mastername");
@@ -383,7 +400,10 @@ global proc openPipelineProjDialogWindow(int $mode)
 	        textField -e -ed 0 -text $curr_mastername op_projectMasterName;
 	        optionMenu -e -en 0 -v $curr_masterformat op_projectMasterFormat;
 	        textField -e -ed 0 -text $curr_workshopname op_projectWorkshopName;
-	        optionMenu -e -en 0 -v $curr_workshopformat op_projectWorkshopFormat;     
+	        optionMenu -e -en 0 -v $curr_workshopformat op_projectWorkshopFormat;  
+	        if ($curr_status=="")
+	        	$curr_status="1";
+	        optionMenu -e -sl (int($curr_status)+1) op_projectStatus;   
 	        workspace -dir $curr_path;
 	    }
 	}
@@ -400,6 +420,8 @@ global proc openPipelineProjDialogCallback(int $mode, string $editProjName)
 	string $newDescription = strip(`textField -q -tx op_descriptionField`);
 	string $newDate = strip(`textField -q -tx op_projectCreationDate`);
 	string $newDeadline = strip(`textField -q -tx op_projectDeadline`);
+	int $newStatus = `optionMenu -q -sl op_projectStatus`;
+	$newStatus--; //convert from 1-based to 0-based
 	string $newMasterName = strip(`textField -q -tx op_projectMasterName`);
 	string $newMasterFormat = strip(`optionMenu -q -v op_projectMasterFormat`);
 	string $newWorkshopName = strip(`textField -q -tx op_projectWorkshopName`);
@@ -480,6 +502,7 @@ global proc openPipelineProjDialogCallback(int $mode, string $editProjName)
     	                  "<description>" + $newDescription + "</description>" +
     	                  "<date>" + $newDate + "</date>" +
     	                  "<deadline>" + $newDeadline + "</deadline>" +
+    	                  "<status>" + $newStatus + "</status>" +
     	                  "<mastername>" + $newMasterName + "</mastername>" +
     	                  "<masterformat>" + $newMasterFormat + "</masterformat>" +
     	                  "<workshopname>" + $newWorkshopName + "</workshopname>" +
