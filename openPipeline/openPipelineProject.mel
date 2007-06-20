@@ -39,7 +39,6 @@ global proc openPipelineProjectUI()
 	        setParent..;
 	    rowLayout -nc 2 -cw2 170 350;
 	        columnLayout -rs 5;
-	            //text -l "Project List" -fn "boldLabelFont" -al "center" -w 150;
 	            textScrollList -h 210 -w 150 -sc "openPipelineProjectUISelection" op_projectList;
 	            rowLayout -nc 2 -cw2 75 75;
     	            button -l "New..." -bgc .6 .8 .5 -c "openPipelineNewProject" -w 75 -ann "" op_projectNewButton; 
@@ -408,7 +407,7 @@ global proc openPipelineProjDialogWindow(int $mode)
 	    }
 	}
 	button -e -c $accept_str opProjAcceptButton;
-	window  -e -w 380 -h 520 -title $title_txt openPipelineProjDialog;
+	window  -e -w 380 -h 590 -title $title_txt openPipelineProjDialog;
 	showWindow;
 }
 	

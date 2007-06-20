@@ -143,3 +143,144 @@ global proc string openPipelineGetTime()
 	string $time = `about -ct`;
 	return $time;
 }
+
+//*** returns a padded string from non-negative integer
+global proc string openPipelinePad(int $num, int $padding)
+{
+	string $prefix;
+	string $numString = string($num);
+	int $length = size($numString);
+	int $i;
+	for ($i=$length; $i<$padding; $i++)
+		$prefix = $prefix + "0";
+	return ($prefix+$numString);
+}
+
+//*** returns an integer from a padded string
+global proc int openPipelineUnpad(string $numString)
+{
+	string $prefix = `match "^0*" $numString`;
+	int $padding = size($prefix);
+	int $size = size($numString);
+	string $subString;
+	$subString = endString($numString,($size-$padding));
+	return (int($subString));
+}
+
+//*** returns the version of an ma or mb file, assuming a padding of 4
+global proc int openPipelineGetVersionFromFile(string $file)
+{
+	string $suffix = endString($file,7);
+	$suffix = startString($suffix,4);
+	int $version = openPipelineUnpad($suffix);
+	return $version;
+}
+
+//*** checks if a given asset, or scene has at least one workshop
+global proc int openPipelineAssetHasWorkshop(string $path)
+{
+	string $wExt = `optionVar -q "op_workshopFormat"`;
+	string $wName = `optionVar -q "op_workshopName"`;
+	string $name = openPipelineGetFolderFromPath($path,0);
+	string $workshopFiles[] = `getFileList -folder ($path+$wName+"/") -filespec ($name + "_" + $wName + "_*." + $wExt)`;
+	return size($workshopFiles);
+}
+
+//*** checks if a given component has at least one workshop
+global proc int openPipelineComponentHasWorkshop(string $path)
+{	
+	string $wExt = `optionVar -q "op_workshopFormat"`;
+	string $wName = `optionVar -q "op_workshopName"`;
+	string $name = openPipelineGetFolderFromPath($path,0);
+	string $asset =openPipelineGetFolderFromPath($path,2);
+	string $workshopFiles[] = `getFileList -folder ($path+$wName+"/") -filespec ($asset + "_" + $name + "_" + $wName + "_*." + $wExt)`;
+	return size($workshopFiles);
+}
+
+//*** returns the number of workshops that exist for a scene, asset or component
+global proc int openPipelineNumWorkshops(string $path)
+{
+	string $wExt = `optionVar -q "op_workshopFormat"`;
+	string $wName = `optionVar -q "op_workshopName"`;
+	string $name = openPipelineGetFolderFromPath($path,0);
+	string $workshopFiles[] = `getFileList -folder ($path+$wName+"/") -filespec ("*" + $name + "_" + $wName + "_*." + $wExt)`;
+	return size($workshopFiles);
+}
+
+//*** returns the number of old versions that exist for a scene, asset or component
+global proc int openPipelineNumVersions(string $path)
+{
+	string $mExt = `optionVar -q "op_masterFormat"`;
+	string $name = openPipelineGetFolderFromPath($path,0);
+	string $versionFiles[] = `getFileList -folder ($path+"version/") -filespec ("*" + $name + "_version_*." + $mExt)`;
+	return size($versionFiles);
+}
+
+
+//*** checks if a given asset has been mastered at least once
+global proc int openPipelineAssetHasMaster(string $path)
+{
+	string $mExt = `optionVar -q "op_masterFormat"`;
+	string $name = openPipelineGetFolderFromPath($path,0);
+	string $expectedMasterFile = ($path + $name + "_asset."+$mExt);
+	int $exists = `filetest -f $expectedMasterFile`;
+	return $exists;
+}
+
+//*** checks if a given scene has been mastered at least once
+global proc int openPipelineSceneHasMaster(string $path)
+{
+	string $mExt = `optionVar -q "op_masterFormat"`;
+	string $name = openPipelineGetFolderFromPath($path,0);
+	string $expectedMasterFile = ($path + $name + "_scene."+$mExt);
+	int $exists = `filetest -f $expectedMasterFile`;
+	return $exists;
+}
+
+//*** checks if a given component has been mastered at least once
+global proc int openPipelineComponentHasMaster(string $path)
+{	
+	string $mExt = `optionVar -q "op_masterFormat"`;
+	string $name = openPipelineGetFolderFromPath($path,0);
+	string $asset = openPipelineGetFolderFromPath($path,2);
+	string $expectedMasterFile = ($path + $asset + "_" + $name + "." + $mExt);
+	int $masterExists = `filetest -f $expectedMasterFile`;
+	return $masterExists;
+}
+
+//*** returns the workshop files for a given asset or scene
+global proc string[] openPipelineGetWorkshops(string $path)
+{
+	string $wExt = `optionVar -q "op_workshopFormat"`;
+	string $wName = `optionVar -q "op_workshopName"`;
+	string $name = openPipelineGetFolderFromPath($path,0);
+	string $workshopFiles[] = `getFileList -folder ($path+$wName+"/") -filespec ("*"+$name + "_" + $wName + "_*." + $wExt)`;
+	string $workshopFullPaths[];
+	for ($i=0; $i<size($workshopFiles); $i++)
+		$workshopFullPaths[$i] = $path+$wName+"/"+$workshopFiles[$i];
+	return $workshopFullPaths;
+}
+
+//*** returns the version files for a given asset or scene
+global proc string[] openPipelineGetVersions(string $path)
+{
+	string $mExt = `optionVar -q "op_masterFormat"`;
+	string $name = openPipelineGetFolderFromPath($path,0);
+	string $versionFiles[] = `getFileList -folder ($path+"version/") -filespec ("*"+$name + "_version_*." + $mExt)`;
+	string $versionFullPaths[];
+	for ($i=0; $i<size($versionFiles); $i++)
+		$versionFullPaths[$i] = $path+"version/"+$versionFiles[$i];
+	
+	return $versionFullPaths;
+}
+
+
+global proc string openPipelineGetFolderFromPath(string $path, int $offsetFromLast)
+{
+	string $tokenizedPath[];
+	int $depth = tokenize($path,"/",$tokenizedPath);
+	if (($depth-1-$offsetFromLast)>=0)
+	    return ($tokenizedPath[$depth-1-$offsetFromLast]);
+	else
+	    return "";
+}

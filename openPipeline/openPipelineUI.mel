@@ -44,6 +44,7 @@ global proc openPipelineUI()
 	string $anno_assetTypeList="Choose from the available Asset Types. You can select more than one.";
 	string $anno_newAssetType="Create a new Asset Type";
 	string $anno_removeAssetType="Remove the selected Asset Type(s) from the inventory.";
+	string $anno_archive="Archive old workshops and versions.";
 	string $anno_newAsset="Create a new Asset for the selected Asset Type.";
 	string $anno_removeAsset="Remove the selected Asset from the inventory.";
 	string $anno_newComponent="Create a new Component for the selected Asset.";
@@ -184,7 +185,6 @@ global proc openPipelineUI()
 	textField -editable false -w 290 projPath;
 	setParent..;
 	separator -style "none" -w 410 -h 10;
-	//setParent ..;
 	setParent..;
     string $iconFile = $openPipeline_scriptPath+"openPipeline/"+$openPipeline_iconFilename;
     image -h 50 -w 415 -i $iconFile -bgc 0 0 0 op_iconImage;
@@ -225,12 +225,7 @@ global proc openPipelineUI()
 						rowLayout -numberOfColumns 2 -cw2 70 160;
 							text -fn "smallBoldLabelFont" -label "Actions" -w 70 -al "left";
 							setParent..;
-					
 							button -l "Save Workshop..." -w 164 -bgc .8 .6 .5 -c "openPipelineSaveWorkshopGUI" -ann $anno_saveWorkshop op_saveWorkshopButton;
-							
-							
-						
-						
 								button -l "Revive Workshop..."  -bgc .5 .7 .7 -w 164 -c "openPipelineReviveGUI" -ann $anno_revive op_reviveButton;
 								button -l "MASTER..." -w 164 -bgc .9 .7 .4 -c "openPipelineSaveMasterFileGUI" -ann $anno_master op_masterButton;
 							setParent..;
@@ -252,7 +247,7 @@ global proc openPipelineUI()
 						separator -style "none" -w 125 -h 5;
 						rowLayout -numberOfColumns 2 -cw2 65 60;			
     						button -l "New..." -bgc .6 .8 .5 -w 65 -c "openPipelineNewAssetTypeUI" -ann $anno_newAssetType op_assetTypeNewButton; 
-    						button -l "Remove" -bgc .8 .3 .3 -w 60 -c "openPipelineRemoveFolder type" -ann $anno_removeAssetType op_assetTypeRemoveButton;
+    						button -l "Delete" -bgc .8 .3 .3 -w 60 -c "openPipelineRemoveFolder type" -ann $anno_removeAssetType op_assetTypeRemoveButton;
 							setParent..;	
 						setParent ..;
 				
@@ -286,9 +281,10 @@ global proc openPipelineUI()
 										menuItem -label "Master" -command "openPipelineAssetAction master 0 reference 0" -ann $anno_referenceAssetMaster op_assetMenuReferenceMaster2;	
 										setParent -menu ..;
 									separator -style "none" -w 125 -h 5;
-									rowLayout -numberOfColumns 2 -cw2 65 60;			
-										button -l "New..." -bgc .6 .8 .5 -w 65 -c "openPipelineNewAssetUI" -ann $anno_newAsset op_assetNewButton; 
-										button -l "Remove" -bgc .8 .3 .3 -w 60 -c "openPipelineRemoveFolder asset" -ann $anno_removeAsset op_assetRemoveButton;
+									rowLayout -numberOfColumns 3 -cw3 45 40 40;			
+										button -l "New..." -bgc .6 .8 .5 -w 45 -c "openPipelineNewAssetUI" -ann $anno_newAsset op_assetNewButton; 
+										button -l "Arch." -bgc .6 .7 .9 -w 40 -c "openPipelineArchiveDialog asset" -ann $anno_archive op_assetArchiveButton;
+										button -l "Delete" -bgc .8 .3 .3 -w 40 -c "openPipelineRemoveFolder asset" -ann $anno_removeAsset op_assetRemoveButton;
 										setParent..;	
 									setParent ..;
 								setParent..;
@@ -323,9 +319,10 @@ global proc openPipelineUI()
 										menuItem -label "Master" -command "openPipelineComponentAction master 0 reference 0" -ann $anno_referenceComponentMaster op_compMenuReferenceMaster2;	
 										setParent -menu ..;
 							separator -style "none" -w 125 -h 5;
-							rowLayout -numberOfColumns 2 -cw2 65 60;			
-							button -l "New..." -bgc .6 .8 .5 -w 65 -c "openPipelineNewAssetComponentUI" -ann $anno_newComponent op_componentNewButton; 
-							button -l "Remove" -bgc .8 .3 .3 -w 60 -c "openPipelineRemoveFolder component" -ann $anno_removeComponent op_componentRemoveButton;	
+							rowLayout -numberOfColumns 3 -cw3 45 40 40;			
+							button -l "New..." -bgc .6 .8 .5 -w 45 -c "openPipelineNewAssetComponentUI" -ann $anno_newComponent op_componentNewButton; 
+							button -l "Arch." -bgc .6 .7 .9 -w 40 -c "openPipelineArchiveDialog component" -ann $anno_archive op_componentArchiveButton;
+							button -l "Delete" -bgc .8 .3 .3 -w 40 -c "openPipelineRemoveFolder component" -ann $anno_removeComponent op_componentRemoveButton;	
 							setParent..;	
 						setParent ..;
 					setParent..;
@@ -364,7 +361,6 @@ global proc openPipelineUI()
 				//
 				separator -style "none" -w 410 -h 10;
 				separator -style "double" -w 410;
-			  //*************************************************
 				columnLayout;
 					rowLayout -numberOfColumns 2 -cw2 325 75 -cal 1 "left" -cal 2 "right";
 						text -fn "boldLabelFont" -w 300 -label "CURRENTLY OPEN SCENE:"  -al "left" op_currOpenSceneTitle;
@@ -426,9 +422,10 @@ global proc openPipelineUI()
 											menuItem -label "Master" -command "openPipelineSceneAction master 0 reference 0" -ann $anno_referenceSceneMaster op_sceneMenuReferenceMaster2;	
 											setParent -menu ..;
 										separator -style "none" -w 125 -h 5;
-									rowLayout -numberOfColumns 2 -cw2 82 82;
-										button -l "New..." -bgc .6 .8 .5 -w 82 -c "openPipelineNewSceneUI" -ann $anno_newScene op_sceneNewButton; 
-										button -l "Remove" -bgc .8 .3 .3 -w 82 -c "openPipelineRemoveFolder scene" -ann $anno_removeScene op_sceneRemoveButton;
+									rowLayout -numberOfColumns 3 -cw3 64 50 50;
+										button -l "New..." -bgc .6 .8 .5 -w 64 -c "openPipelineNewSceneUI" -ann $anno_newScene op_sceneNewButton; 
+										button -l "Archive" -bgc .6 .7 .9 -w 50 -c "openPipelineArchiveDialog scene" -ann $anno_archive op_sceneArchiveButton;
+										button -l "Delete" -bgc .8 .3 .3 -w 50 -c "openPipelineRemoveFolder scene" -ann $anno_removeScene op_sceneRemoveButton;
 									setParent..;	
 								setParent..;
 							setParent..;
@@ -515,10 +512,6 @@ global proc openPipelineUI()
 		{
 			deleteUI openPipelineUI;
 		}
-		//confirmDialog -title "No Projects Found" -bgc .9 .9 .9 -message "No Projects were found. Please add a Project using the Project Manager."
-		//	-button "Ok" -defaultButton "Ok";	
-		
-		//optionVar -iv "op_currProject" 0;
 
 		optionVar -sv "op_currOpenPath" "";
 
@@ -540,7 +533,7 @@ global proc openPipelineCloseUI()
 }
 
 //updates the "Currently Open" displays on both "Asset Management" and "Scene Management" tabs
-global proc openPipelineUpdateCurrentlyOpen() 
+global proc openPipelineUpdateCurrentlyOpen()
 {
 	//get information about the currently open file
 	string $currPath = `optionVar -q "op_currOpenPath"`;
@@ -566,15 +559,16 @@ global proc openPipelineUpdateCurrentlyOpen()
 	}else{ //if there IS a file currently open...
 		
 		//get the number of workshop versions for the currently open file 
-		
-		
-		
+
 		string $wExt = `optionVar -q "op_workshopFormat"`;
 		string $mExt = `optionVar -q "op_masterFormat"`;
 		string $wName = `optionVar -q "op_workshopName"`;
 		string $workshop = ($currPath + $wName +"/");
 		string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_"+ $wName +"_*."+$wExt)`;
 		int $numVersions = `size($workshopFiles)`;
+		int $latestVersion = 0;
+		if ($numVersions)
+			$latestVersion = openPipelineGetVersionFromFile($workshopFiles[$numVersions-1]);
 		int $reviveEnabled = 0;
 		string $displayType;
             if ($currType=="workshop")
@@ -618,7 +612,7 @@ global proc openPipelineUpdateCurrentlyOpen()
 			//update Version Info
 			if ($versionString!="")
 			{
-				if ($numVersions==$currVersion)
+				if ($latestVersion==$currVersion)
 					text -e -bgc 1 1 1 op_currOpenSceneHeadingVersion;
 				else
 					text -e -bgc .5 .7 .7 op_currOpenSceneHeadingVersion;
@@ -662,7 +656,7 @@ global proc openPipelineUpdateCurrentlyOpen()
 			//update Version Info
 			if ($versionString!="")
 			{
-				if ($numVersions==$currVersion)
+				if ($latestVersion==$currVersion)
 					text -e -bgc 1 1 1 op_currOpenHeadingVersion;
 				else
 					text -e -bgc .5 .7 .7 op_currOpenHeadingVersion;
@@ -681,59 +675,7 @@ global proc openPipelineUpdateCurrentlyOpen()
 	openPipelineRemoveSecondaryWindows();
 }
 
-//checks if a given asset, or scene has at least one workshop
-global proc int openPipelineAssetHasWorkshop(string $path)
-{
-	string $wExt = `optionVar -q "op_workshopFormat"`;
-	string $wName = `optionVar -q "op_workshopName"`;
-	string $name = openPipelineGetFolderFromPath($path,0);
-	string $expectedWorkshopFile = ($path + "/" + $wName + "/"+$name+"_" + $wName + "_1." + $wExt);
-	int $exists = `filetest -f $expectedWorkshopFile`;
-	return $exists;
-}
 
-//checks if a given asset has been mastered at least once
-global proc int openPipelineAssetHasMaster(string $path)
-{
-	string $mExt = `optionVar -q "op_masterFormat"`;
-	string $name = openPipelineGetFolderFromPath($path,0);
-	string $expectedMasterFile = ($path + $name + "_asset."+$mExt);
-	int $exists = `filetest -f $expectedMasterFile`;
-	return $exists;
-}
-
-//checks if a given scene has been mastered at least once
-global proc int openPipelineSceneHasMaster(string $path)
-{
-	string $mExt = `optionVar -q "op_masterFormat"`;
-	string $name = openPipelineGetFolderFromPath($path,0);
-	string $expectedMasterFile = ($path + $name + "_scene."+$mExt);
-	int $exists = `filetest -f $expectedMasterFile`;
-	return $exists;
-}
-
-//checks if a given component has at least one workshop
-global proc int openPipelineComponentHasWorkshop(string $path)
-{	
-	string $wExt = `optionVar -q "op_workshopFormat"`;
-	string $wName = `optionVar -q "op_workshopName"`;
-	string $name = openPipelineGetFolderFromPath($path,0);
-	string $asset =openPipelineGetFolderFromPath($path,2);
-	string $expectedWorkshopFile = ($path + $wName +"/"+ $asset + "_" + $name + "_" + $wName + "_1."+$wExt);
-	int $workshopExists = `filetest -f $expectedWorkshopFile`;
-	return $workshopExists;
-}
-
-//checks if a given component has been mastered at least once
-global proc int openPipelineComponentHasMaster(string $path)
-{	
-	string $mExt = `optionVar -q "op_masterFormat"`;
-	string $name = openPipelineGetFolderFromPath($path,0);
-	string $asset = openPipelineGetFolderFromPath($path,2);
-	string $expectedMasterFile = ($path + $asset + "_" + $name + "." + $mExt);
-	int $masterExists = `filetest -f $expectedMasterFile`;
-	return $masterExists;
-}
 
 //removes secondary windows
 global proc openPipelineRemoveSecondaryWindows()
@@ -793,7 +735,6 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 		return;
 	}
 		progressWindow -e -s 1;
-	//string $currentProject = $projList[$currentProjIndex*2+1]; 
 	setProject $projPath;
 	textField -e -text $projPath projPath;
 	string $iconFile = $projPath+$openPipeline_iconFilename;
@@ -820,8 +761,6 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 		optionVar -iv "op_currOpenVersion" 0;
 	}
 	progressWindow -e -s 1;
-	//string $buffer[];
-	//int $numDepth = `tokenize $currentProject "/" $buffer`;
 	//update asset type list and scene list
 	openPipelineUpdateAssetTypeList();
 	progressWindow -e -s 1;
@@ -952,6 +891,7 @@ global proc openPipelineSceneSelected()
 	if ($selScenePath!="")
 	{
 			button -e -en 1 op_sceneRemoveButton;
+			button -e -en 1 op_sceneArchiveButton;
 			menuItem -e -en 1 op_sceneMenuEdit;
 			menuItem -e -en 1 op_sceneMenuEdit2;
 			menuItem -e -en 1 op_sceneMenuImport;
@@ -961,6 +901,7 @@ global proc openPipelineSceneSelected()
 			openPipelineUpdateSceneMenus($selScenePath);
 	}else{
 		button -e -en 0 op_sceneRemoveButton;
+		button -e -en 0 op_sceneArchiveButton;
 		menuItem -e -en 0 op_sceneMenuEdit;
 		menuItem -e -en 0 op_sceneMenuView;
 		menuItem -e -en 0 op_sceneMenuImport;
@@ -969,8 +910,6 @@ global proc openPipelineSceneSelected()
 		menuItem -e -en 0 op_sceneMenuView2;
 		menuItem -e -en 0 op_sceneMenuImport2;
 		menuItem -e -en 0 op_sceneMenuReference2;
-		button -e -en 0 op_sceneRemoveButton;
-		button -e -en 0 op_componentNewButton;
 	}
 	
 	openPipelineSceneInformation;
@@ -981,11 +920,10 @@ global proc openPipelineSceneSelected()
 
 global proc openPipelineSceneAssetTypeSelected()
 {
-	//string $lastSelectedPath = openPipelineGetSelectedSceneAsset();
 	textScrollList -e -ra "op_sceneAssetList";
 	optionVar -ca "op_sceneAssets";
 	int $active = 0;
-	
+
 	string $selectedTypes[] = openPipelineGetSelectedSceneAssetTypes();
 
 	if (size($selectedTypes))
@@ -1007,6 +945,7 @@ global proc openPipelineSceneAssetTypeSelected()
 				
 				int $masterExists = openPipelineAssetHasMaster($assetPath);
 				int $workshopExists = openPipelineAssetHasWorkshop($assetPath);
+				
 				if($masterExists)
 				{
 					$post+=" +";
@@ -1022,8 +961,6 @@ global proc openPipelineSceneAssetTypeSelected()
 					$post+=" *";
 				}
 				textScrollList -e -a ($pre+$assetFiles[$j]+$post) "op_sceneAssetList";
-				//if ($lastSelectedPath==$assetPath)
-				//	textScrollList -e -si ($pre+$assetFiles[$j]+$post) "op_sceneAssetList";
 			}
 		}
 	}
@@ -1227,9 +1164,7 @@ global proc openPipelineAssetTypeSelected(int $preserveSelection)
 				if (($lastSelectedPath==$assetPath)&&($preserveSelection))
 					textScrollList -e -si ($pre+$assetFiles[$j]+$post) "op_assetScrollList";
 			}
-			
-		}
-		
+		}	
 	}
 		button -e -en (size($selectedTypes)) op_assetTypeRemoveButton;
 		if (size($selectedTypes)==1)
@@ -1264,6 +1199,7 @@ global proc openPipelineAssetSelected(int $preserveSelection)
 		menuItem -e -en $selected op_assetMenuReference2;
 		
 		button -e -en $selected op_assetRemoveButton;
+		button -e -en $selected op_assetArchiveButton;
 		button -e -en $selected op_componentNewButton;
 	
 	if ($selected)
@@ -1307,10 +1243,7 @@ global proc openPipelineAssetSelected(int $preserveSelection)
 			if (($lastSelectedPath==$componentPath)&&($preserveSelection))
 				textScrollList -e -si ($pre+$compFiles[$j]+$post) "op_componentScrollList";
 		}
-				
-		
 	}
-
 	textScrollList -e -en $active "op_componentScrollList";
 	openPipelineComponentSelected();
 }
@@ -1331,7 +1264,7 @@ global proc openPipelineComponentSelected()
 	menuItem -e -en $selected op_compMenuReference2;
 	menuItem -e -en $selected op_compMenuEdit2;
 	button -e -en $selected op_componentRemoveButton;
-	
+	button -e -en $selected op_componentArchiveButton;
 	
 	if ($selected)
 	{
@@ -1341,7 +1274,6 @@ global proc openPipelineComponentSelected()
 	openPipelineAssetInformation();
 	openPipelineLoadAssetNote;
 }
-
 
 global proc openPipelineAboutDialog()
 {
@@ -1411,8 +1343,6 @@ global proc openPipelineNewAssetTypeUI()
 	
 }
 
-
-
 global proc openPipelineNewAssetUI()
 {
 	string $error="";
@@ -1442,17 +1372,6 @@ global proc openPipelineNewAssetUI()
 			openPipelineAssetTypeSelected(1);			
 		}
 	}
-}
-
-
-global proc string openPipelineGetFolderFromPath(string $path, int $offsetFromLast)
-{
-	string $tokenizedPath[];
-	int $depth = tokenize($path,"/",$tokenizedPath);
-	if (($depth-1-$offsetFromLast)>=0)
-	    return ($tokenizedPath[$depth-1-$offsetFromLast]);
-	else
-	    return "";
 }
 
 global proc openPipelineNewAssetComponentUI()
@@ -1605,9 +1524,10 @@ global proc openPipelineReviveGUI()
 		text -l "Select Version to Revive: " -w 130 -h 30 -al "left";
 		optionMenu -w 50 -h 30 -cc openPipelineReviveWorkshopNotesCallback op_reviveVersionMenu;
 			int $i;
-			for ($i=1;$i<=$numVersions;$i++)
+			for ($i=0;$i<$numVersions;$i++)
 			{
-				menuItem -l $i;
+				int $version = openPipelineGetVersionFromFile($workshopFiles[$i]);
+				menuItem -l $version;
 			}
 	setParent..;
 	
@@ -1625,15 +1545,14 @@ global proc openPipelineReviveGUI()
 	
 global proc openPipelineReviveWorkshopCallback()
 {
-	string $wName = `optionVar -q "op_workshopName"`;
-	string $wExt = `optionVar -q "op_workshopFormat"`;
 	string $currPath = `optionVar -q "op_currOpenPath"`;
 	string $currCat = `optionVar -q "op_currOpenCategory"`;
-	string $workshop = ($currPath + $wName + "/");
-	string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_" + $wName + "_*."+$wExt)`;
+	string $workshopFiles[] = openPipelineGetWorkshops($currPath);
 	int $numVersions = `size($workshopFiles)`;
 	int $reviveVersion = `optionMenu -q -v op_reviveVersionMenu`;
-	int $versionOffset = $numVersions-$reviveVersion;
+	string $latestFile = $workshopFiles[$numVersions-1];
+	int $latestVersion = openPipelineGetVersionFromFile($latestFile);
+	int $versionOffset = $latestVersion-$reviveVersion;
 	if ($currCat=="asset")
 		openPipelineAssetAction workshop $versionOffset open 1;
 	else if ($currCat=="component")
@@ -1655,9 +1574,6 @@ global proc	openPipelineAssetInformation()
 	int $workshopNum;	
 	int $versionNum;
 	int $masterExists;
-	string $expectedMasterFile;
-	string $mExt = `optionVar -q "op_masterFormat"`;
-	string $wExt = `optionVar -q "op_workshopFormat"`;
 	string $outputText;
 	if ($asset =="")
 	{
@@ -1667,42 +1583,26 @@ global proc	openPipelineAssetInformation()
 	{
     	if($component == "")
     	{
-    		$workshop = ($asset + "/"+$wName+"/");
-    		$workshopFiles = `getFileList -folder $workshop -filespec ($openPipeline_menuCurrentAsset + "_"+$wName+"_*." + $wExt)`;
-    		$workshopNum = `size($workshopFiles)`; 
-    		$version = ($asset + "/version/");
-    		$versionFiles = `getFileList -folder $version -filespec ($openPipeline_menuCurrentAsset + "_version_*." + $mExt)`;
-    		$versionNum = `size($versionFiles)`;
-    		$expectedMasterFile = ($asset + "/" + $openPipeline_menuCurrentAsset + "_asset." + $mExt);
-    		$masterExists = `filetest -f $expectedMasterFile`;
+    		$workshopNum = openPipelineNumWorkshops($asset);
+    		$versionNum = openPipelineNumVersions($asset);
+    		$masterExists = openPipelineAssetHasMaster($asset);
     
     	} 
     	else 
     	{	
-    		$workshop = ($component + "/"+$wName+"/");
-    		$workshopFiles = `getFileList -folder $workshop -filespec ($openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentComponent + "_" + $wName + "_*." + $wExt)`;
-    		$workshopNum = `size($workshopFiles)`;
-    		$version = ($component + "/version/");
-    		$versionFiles = `getFileList -folder $version -filespec ($openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentComponent + "_version_*." + $mExt)`;
-    		$versionNum = `size($versionFiles)`;		
-    		$expectedMasterFile = ($component + "/"+ $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentComponent + "." + $mExt);
-    		$masterExists = `filetest -f $expectedMasterFile`;
+    		$workshopNum = openPipelineNumWorkshops($component);
+    		$versionNum = openPipelineNumVersions($component);	
+    		$masterExists = openPipelineComponentHasMaster($component);
     	}
     
     	// mastered?
     	string $fileMastered;
     	string $masterDate;
-    	if($masterExists == 1)
-    	{
-    		// windows solution
-    		$expectedMasterFile = `toNativePath($expectedMasterFile)`;
-    		string $str = `system ("dir " + $expectedMasterFile)`;
-    		string $masterDate = `match "[0-9]+/[0-9]+/[0-9]+" $str`;
-    		
-    		$fileMastered = ($mName+"?: Yes\nDate: " + $masterDate + "\n");
-    	} else {
+    	if($masterExists)
+    		$fileMastered = ($mName+"?: Yes\n");	
+    	else 
     		$fileMastered = ($mName+"?: No \n");
-    	}
+    	
     
     	// format information
     	string $assetInfoHeader = ($openPipeline_menuCurrentAsset + " : " + 
@@ -1710,7 +1610,6 @@ global proc	openPipelineAssetInformation()
     
     	string $workshopTotal = ($wName+": " + $workshopNum + "\n");		
     	string $versionTotal = ("Versions: " + $versionNum + "\n");	
-    
     	$outputText = ($assetInfoHeader + $workshopTotal + $versionTotal + $fileMastered);
 	}
 	
@@ -1728,20 +1627,13 @@ global proc	openPipelineSceneInformation()
 	string $mName = `optionVar -q "op_masterName"`;
 	string $scene = `openPipelineGetSelectedScene`;
 	string $openPipeline_menuCurrentScene = openPipelineGetFolderFromPath($scene, 0);	
-    string $mExt = `optionVar -q "op_masterFormat"`;
-	string $wExt = `optionVar -q "op_workshopFormat"`;
 	int $workshopNum;	
 	int $versionNum;
 	int $masterExists;
 	string $expectedMasterFile;
-	$workshop = ($scene + "/" + $wName + "/");
-	$workshopFiles = `getFileList -folder $workshop -filespec ($openPipeline_menuCurrentScene + "_" + $wName + "_*."+$wExt)`;
-	$workshopNum = `size($workshopFiles)`; 
-	$version = ($scene + "/version/");
-	$versionFiles = `getFileList -folder $version -filespec ($openPipeline_menuCurrentScene + "_version_*."+$mExt)`;
-	$versionNum = `size($versionFiles)`;
-	$expectedMasterFile = ($scene + $openPipeline_menuCurrentScene + "_scene."+$mExt);
-	$masterExists = `filetest -f $expectedMasterFile`;
+	$workshopNum = openPipelineNumWorkshops($scene);
+	$versionNum = openPipelineNumVersions($scene);
+	$masterExists = openPipelineSceneHasMaster($scene);
 	
 	string $outputText;
 	if ($scene == "")
@@ -1750,24 +1642,13 @@ global proc	openPipelineSceneInformation()
 	}
 	else
 	{
-
-    
     	// mastered?
     	string $fileMastered;
     	string $masterDate;
     	if($masterExists == 1)
-    	{
-    		// windows solution
-    		$expectedMasterFile = `toNativePath($expectedMasterFile)`;
-    		string $str = `system ("dir " + $expectedMasterFile)`;
-    		string $masterDate = `match "[0-9]+/[0-9]+/[0-9]+" $str`;
-    		
-    		$fileMastered = ($mName+"?: Yes\nDate: " + $masterDate + "\n");
-    	} 
+    		$fileMastered = ($mName+"?: Yes\n");
     	else 
-    	{
     		$fileMastered = ($mName+"?: No \n");
-    	}
     
     	// format information
     	string $assetInfoHeader = ($openPipeline_menuCurrentScene + "\n");
@@ -1831,4 +1712,72 @@ global proc openPipelineUpdateComponentMenus(string $componentPath)
 	menuItem -e -en $hasMaster op_compMenuReferenceMaster2;
 	menuItem -e -en $hasWorkshop op_compMenuImportWorkshop2;
 	menuItem -e -en $hasWorkshop op_compMenuReferenceWorkshop2;
+}
+
+global proc openPipelineArchiveDialog(string $type)
+{
+	string $path;
+	if ($type=="scene")
+		$path = openPipelineGetSelectedScene();
+	else if ($type=="asset")
+		$path = openPipelineGetSelectedAsset();
+	else if ($type=="component")
+		$path = openPipelineGetSelectedComponent();
+	string $name = openPipelineGetFolderFromPath($path,0);
+	int $maxWorkshops = openPipelineNumWorkshops($path);
+	int $maxVersions = openPipelineNumVersions($path);
+	string $wName = capitalizeString(`optionVar -q "op_workshopName"`);
+	string $mName = capitalizeString(`optionVar -q "op_masterName"`);
+	string $windowExists = `window -exists op_secondaryUI`;
+	if($windowExists == 1)
+	{
+		deleteUI op_secondaryUI;
+	}
+	window -t ("Archive: "+$name) -w 400 -h 300 op_secondaryUI;
+	columnLayout -rs 5 -co "both" 10;
+		text -align "left" -font "smallPlainLabelFont" -l ("Archiving the selected "+$type+" will clean up its working directory by \nmoving old "+$wName+" files and old "+$mName+" versions to the Archive \nfolder. The most recent " + $mName + " and "+$wName +" files won't be affected \nand version numbers will remain the same.");
+		separator -h 10 -w 370 -style "out";
+	rowLayout -numberOfColumns 2 -cw2 190 190 -cl2 "center" "center";
+		checkBox -label ("Archive "+$wName+" Files") -v 1 -onc "intField -e -en 1 op_archiveField1" -ofc "intField -e -en 0 op_archiveField1" op_archiveWorkshopsCheckBox;
+		checkBox -label ("Archive "+$mName+" Versions") -v 1 -onc "intField -e -en 1 op_archiveField2" -ofc "intField -e -en 0 op_archiveField2" op_archiveVersionsCheckBox;
+	setParent..;
+	rowLayout -numberOfColumns 4 -cw4 110 80 110 80 -cl4 "left" "left" "left" "left";
+	text -l "keep most recent";
+	intField  -v 1 -min 1 -max 3 -step 1 -w 40 op_archiveField1;
+	text -l "keep most recent";
+	intField -v 1 -min 1 -max 3 -step 1 -w 40 op_archiveField2;
+	setParent..;
+	separator -h 10 -w 370 -style "out";
+		button -w 370 -l "Archive"-c ("openPipelineArchiveFolder \""+$type+"\" \""+$path+"\"") -bgc .6 .7 .9;
+	setParent..;
+	separator -h 10 -w 370 -style "out";
+		text -align "left" -font "smallPlainLabelFont" -l ("Retrieving archived files for the current "+$type+" will return them \nto their original working directories.");
+		separator -h 10 -w 370 -style "out";
+	rowLayout -numberOfColumns 2 -cw2 190 190 -cl2 "center" "center";
+		checkBox -label ("Retrieve "+$wName+" Files") -v 0 op_retrieveWorkshopsCheckBox;
+		checkBox -label ("Retrieve "+$mName+" Versions") -v 0 op_retrieveVersionsCheckBox;
+	setParent..;
+	setParent ..;
+	separator -h 10 -w 370 -style "out";
+		button -w 370 -l "Retrieve"-c ("openPipelineRetrieveFolder \""+$type+"\" \""+$path+"\"") -bgc 1 1 1;
+	setParent..;
+	separator -h 10 -w 370 -style "out";
+	button -w 370 -l "Close" -c "deleteUI op_secondaryUI;";
+	window -e -w 400 -h 420 op_secondaryUI;
+	showWindow op_secondaryUI;
+	if ($maxWorkshops<2)
+	{
+		checkBox -e -en 0 -v 0 op_archiveWorkshopsCheckBox;
+		intField -e -en 0 op_archiveField1;
+	}
+	else 
+		intField -e -max $maxWorkshops op_archiveField1;
+	
+	if ($maxVersions<2)
+	{
+		checkBox -e -en 0 -v 0 op_archiveVersionsCheckBox;
+		intField -e -en 0 op_archiveField2;
+	}
+	else 
+		intField -e -max $maxVersions op_archiveField2;
 }

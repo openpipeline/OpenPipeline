@@ -557,7 +557,6 @@ global proc int openPipelineSceneNoteWriter(string $inputMode)
 //
 global proc openPipelineFilePermisson(string $inputMode, string $input_Path)
 {
-	print("attrib!\n");
 	string $exeCommand = "ATTRIB " + $inputMode + " " + $input_Path;
 	system($exeCommand);
 }

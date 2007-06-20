@@ -17,7 +17,7 @@ global proc string openPipelineNewAssetTypeProcess(string $name)
  				-button "OK" -defaultButton "OK";
 		return $assetTypePath;
 	}
-	else{}
+
 	
 	return $assetTypePath;
 }
@@ -129,25 +129,28 @@ global proc int openPipelineAssetAction(string $type, int $versionOffset, string
 		$selectedAssetPath = openPipelineGetSelectedAsset();
 	string $assetName = openPipelineGetFolderFromPath($selectedAssetPath,0);
 	int $version = 0;
-	string $file;
+	string $file = "";
 	string $currOpen = `optionVar -q op_currOpenPath`;
 	if (($action=="open")&&(`file -q -mf`)&&(size($currOpen)))
 	{
 		string $confirm;
-		$confirm = `confirmDialog -t "openPipeline" -m "Would you like to Save Workshop before editing Asset?" -b "Save Workshop" -b "Don't Save" -b "Cancel" -db "Save Workshop"`;
-		if ($confirm=="Save Workshop")
+		$confirm = `confirmDialog -t "openPipeline" -m ("Would you like to Save "+$wName+" before editing Asset?") -b "Save" -b "Don't Save" -b "Cancel" -db "Save"`;
+		if ($confirm==("Save"))
 			openPipelineSaveWorkshop;
 		else if ($confirm=="Cancel")
 			return 1;
 	}
 	if ($type=="workshop")
 	{
-		string $ext = `optionVar -q "op_workshopFormat"`;
-		string $workshopPath = ($selectedAssetPath + $wName +"/");
-		string $workshopFiles[] = `getFileList -folder $workshopPath -filespec ($assetName + "_" + $wName + "_*." + $ext)`;
-		int $workshopNum = `size($workshopFiles)`; 
-		$version = $workshopNum-$versionOffset;
-		$file = ($workshopPath + $assetName + "_" + $wName + "_" + $version + "." + $ext);
+		
+		string $workshopFiles[] = openPipelineGetWorkshops($selectedAssetPath);
+		int $workshopNum = `size($workshopFiles)`;
+		print $versionOffset;
+		if ($workshopNum)
+			{
+			$file = $workshopFiles[$workshopNum-1-$versionOffset];
+			$version = openPipelineGetVersionFromFile($file);
+			}
 	}
 	else if ($type=="master")
 	{
@@ -165,7 +168,7 @@ global proc int openPipelineAssetAction(string $type, int $versionOffset, string
 		}
 		else if ($type=="workshop")
 		{
-			string $choice = `confirmDialog -t "Edit Asset" -m ("You are about to edit an asset with no existing " + $wName + "s.\nWould you like to start with an empty scene, or the currently open scene?") -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
+			string $choice = `confirmDialog -t "Edit Asset" -m "You are about to edit an asset for the first time. Would you like to start with an empty scene, or the currently open scene?" -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
 			if ($choice=="New Scene")
 				file -f -new;
 			else if ($choice=="Cancel")
@@ -197,7 +200,7 @@ global proc int openPipelineAssetAction(string $type, int $versionOffset, string
 	}
 		
 }
-//*** performs an action on an Component (open, import, or reference)
+//*** performs an action on a Component (open, import, or reference)
 //      $type - 'master' or 'workshop'
 //      $versionOffset - for opening previous workshop versions. 0 means latest version
 //      $action - action to perform  ('open', 'import', or 'reference')
@@ -218,20 +221,21 @@ global proc int openPipelineComponentAction(string $type, int $versionOffset, st
 	if (($action=="open")&&(`file -q -mf`)&&(size($currOpen)))
 	{
 		string $confirm;
-		$confirm = `confirmDialog -t "openPipeline" -m "Would you like to Save Workshop before editing Component?" -b "Save Workshop" -b "Don't Save" -b "Cancel" -db "Save Workshop"`;
-		if ($confirm=="Save Workshop")
+		$confirm = `confirmDialog -t "openPipeline" -m ("Would you like to Save "+$wName+" before editing Component?") -b "Save" -b "Don't Save" -b "Cancel" -db "Save"`;
+		if ($confirm=="Save")
 			openPipelineSaveWorkshop;
 		else if ($confirm=="Cancel")
 			return 1;
 	}
 	if ($type=="workshop")
 	{
-		string $ext = `optionVar -q "op_workshopFormat"`;
-		string $workshopPath = ($selectedComponentPath + $wName +"/");
-		string $workshopFiles[] = `getFileList -folder $workshopPath -filespec ($assetName + "_" + $componentName  + "_" + $wName + "_*." + $ext)`;
-		int $workshopNum = `size($workshopFiles)`; 
-		$version = $workshopNum-$versionOffset;
-		$file = ($workshopPath + $assetName + "_" + $componentName + "_" + $wName+ "_" + $version + "." + $ext);
+		string $workshopFiles[] = openPipelineGetWorkshops($selectedComponentPath);
+		int $workshopNum = `size($workshopFiles)`;
+		if ($workshopNum)
+		{
+			$file = $workshopFiles[$workshopNum-1-$versionOffset];
+			$version = openPipelineGetVersionFromFile($file);
+		}
 	}
 	else if ($type=="master")
 	{
@@ -316,8 +320,11 @@ global proc int openPipelineSceneAction(string $type, int $versionOffset, string
 		string $workshopPath = ($selectedScenePath + $wName +"/");
 		string $workshopFiles[] = `getFileList -folder $workshopPath -filespec ($sceneName + "_" + $wName + "_*." + $ext)`;
 		int $workshopNum = `size($workshopFiles)`; 
-		$version = $workshopNum-$versionOffset;
-		$file = ($workshopPath + $sceneName + "_" + $wName + "_" + $version + "." + $ext);
+		if ($workshopNum)
+		{
+			$file = ($workshopPath + $workshopFiles[$workshopNum-1-$versionOffset]);
+			$version = openPipelineGetVersionFromFile($file);
+		}
 	}else if ($type=="master")
 	{
 		string $ext = `optionVar -q "op_masterFormat"`;
@@ -459,16 +466,19 @@ global proc openPipelineSaveWorkshop()
 
 	string $workshop;
 	string $workshopFiles[];
-	int $workshopNum;
+	int $numWorkshops;
 	string $destinationFile;
-
+	int $latestWorkshop = 0;
 	if (($currCat == "asset")||($currCat == "scene"))
 		{
 		string $assetName = openPipelineGetFolderFromPath($currPath,0);
 		$workshop = ($currPath + $wName + "/");
 		$workshopFiles = `getFileList -folder $workshop -filespec ($assetName + "_" + $wName + "_*."+$ext)`;
-		$workshopNum = `size($workshopFiles)` + 1; 
-		$destinationFile = ($workshop + $assetName + "_" + $wName + "_" + $workshopNum + "."+$ext);
+		$numWorkshops = `size($workshopFiles)`;
+		if ($numWorkshops)
+			$latestWorkshop = openPipelineGetVersionFromFile($workshopFiles[$numWorkshops-1]);
+		string $suffix = openPipelinePad(($latestWorkshop+1),4);
+		$destinationFile = ($workshop + $assetName + "_" + $wName + "_" + $suffix + "."+$ext);
 	} 
 	else if ($currCat == "component")
 	{	
@@ -476,8 +486,11 @@ global proc openPipelineSaveWorkshop()
 		string $assetName = openPipelineGetFolderFromPath($currPath,2);
 		$workshop = ($currPath + $wName + "/");
 		$workshopFiles = `getFileList -folder $workshop -filespec ($assetName + "_" + $componentName + "_" + $wName + "_*."+$ext)`;
-		$workshopNum = `size($workshopFiles)` + 1; 
-		$destinationFile = ($workshop + $assetName + "_" + $componentName + "_" + $wName +"_" + $workshopNum + "."+$ext);
+		$numWorkshops = `size($workshopFiles)`;
+		if ($numWorkshops)
+			$latestWorkshop = openPipelineGetVersionFromFile($workshopFiles[$numWorkshops-1]);
+		string $suffix = openPipelinePad(($latestWorkshop+1),4);
+		$destinationFile = ($workshop + $assetName + "_" + $componentName + "_" + $wName +"_" + $suffix + "."+$ext);
 	}
 
 	// save the current file to the master location
@@ -508,17 +521,19 @@ global proc openPipelineSaveMaster()
 	string $masterFile;
 	string $versions;
 	string $versionFiles[];
-	int $versionNum;
 	string $destinationFile;
-
+	int $latestVersion = 0;
 	if($currCat == "asset")
 	{
 		string $assetName = openPipelineGetFolderFromPath($currPath,0);
 		$masterFile = ($currPath + $assetName + "_asset." + $ext);
 		$versions = ($currPath + "version/");
 		$versionFiles = `getFileList -folder $versions`;
-		$versionNum = (`size($versionFiles)` + 1); 
-		$destinationFile = ($versions + $assetName + "_version_" + $versionNum + "." + $ext);	
+		int $numVersions = `size($versionFiles)`;
+		if ($numVersions)
+			$latestVersion = (openPipelineGetVersionFromFile($versionFiles[$numVersions-1]));
+		string $suffix = openPipelinePad(($latestVersion+1),4);
+		$destinationFile = ($versions + $assetName + "_version_" + $suffix + "." + $ext);	
 	} 
 	else if($currCat == "component")
 	{	
@@ -527,8 +542,11 @@ global proc openPipelineSaveMaster()
 		$masterFile = ($currPath + $assetName + "_" + $componentName + "." + $ext);
 		$versions = ($currPath + "version/");
 		$versionFiles = `getFileList -folder $versions`;
-		$versionNum = (`size($versionFiles)` + 1); 
-		$destinationFile = ($versions + $assetName + "_" + $componentName + "_version_" + $versionNum + "." + $ext);		
+		int $numVersions = `size($versionFiles)`;
+		if ($numVersions)
+			$latestVersion = (openPipelineGetVersionFromFile($versionFiles[$numVersions-1]));
+		string $suffix = openPipelinePad(($latestVersion+1),4);
+		$destinationFile = ($versions + $assetName + "_" + $componentName + "_version_" + $suffix + "." + $ext);		
 	}
 	else if($currCat == "scene")
 	{
@@ -536,8 +554,11 @@ global proc openPipelineSaveMaster()
 		$masterFile = ($currPath + $sceneName + "_scene." + $ext);
 		$versions = ($currPath + "version/");
 		$versionFiles = `getFileList -folder $versions`;
-		$versionNum = (`size($versionFiles)` + 1); 
-		$destinationFile = ($versions + $sceneName + "_version_" + $versionNum + "." + $ext);	
+		int $numVersions = `size($versionFiles)`;
+		if ($numVersions)
+			$latestVersion = (openPipelineGetVersionFromFile($versionFiles[$numVersions-1]));
+		string $suffix = openPipelinePad(($latestVersion+1),4);
+		$destinationFile = ($versions + $sceneName + "_version_" + $suffix + "." + $ext);	
 	} 
 	sysFile -rename $destinationFile $masterFile;
 
@@ -612,8 +633,8 @@ global proc openPipelineRemoveFolder(string $category)
 	
 	int $currCheckOffset=-1;
 	int $checkExtent=1;
-	
-	string $archivePath = `optionVar -q "op_archivePath"`;
+
+	string $deletePath = (`optionVar -q "op_currProjectPath"`+"deleted/");
 	string $paths[];
 	string $destinationPrefix;
 	string $destinationFolderName;
@@ -622,7 +643,7 @@ global proc openPipelineRemoveFolder(string $category)
 	
 	if ($category == "type")
 	{
-		$confirmText = "Are you sure you want to remove the selected Asset Type(s)?\n(files and folders will be moved to the archive folder)";
+		$confirmText = "Are you sure you want to remove the selected Asset Type(s)?\n(all files and folders will be moved to the 'deleted' folder)";
 		$paths = openPipelineGetSelectedAssetTypes();
 		$refreshCmd = "openPipelineUpdateAssetTypeList";
 		if ($currCat=="asset")
@@ -633,7 +654,7 @@ global proc openPipelineRemoveFolder(string $category)
 	else if ($category == "asset")
 	{
 		$checkExtent=2;
-		$confirmText = "Are you sure you want to remove the selected Asset?\n(files and folders will be moved to the 'archives' folder)";
+		$confirmText = "Are you sure you want to remove the selected Asset?\n(all corresponding files, folders and archives will be moved to the 'deleted' folder)";
 		$paths[0] = openPipelineGetSelectedAsset();
 		$refreshCmd = "openPipelineAssetTypeSelected 1";
 		if ($currCat=="asset")
@@ -644,7 +665,7 @@ global proc openPipelineRemoveFolder(string $category)
 	else if ($category == "component")
 	{
 		$checkExtent=4;
-		$confirmText = "Are you sure you want to remove the selected Component?\n(files and folders will be moved to the 'archives' folder)";
+		$confirmText = "Are you sure you want to remove the selected Component?\n(all corresponding files, folders and archives will be moved to the 'deleted' folder)";
 		$paths[0] = openPipelineGetSelectedComponent();
 		$refreshCmd = "openPipelineAssetSelected 1";
 		if ($currCat=="component")
@@ -652,7 +673,7 @@ global proc openPipelineRemoveFolder(string $category)
 	}
 	else if ($category == "scene")
 	{
-		$confirmText = "Are you sure you want to remove the selected Scene?\n(files and folders will be moved to the 'archives' folder)";
+		$confirmText = "Are you sure you want to remove the selected Scene?\n(all corresponding files, folders and archives will be moved to the 'deleted' folder)";
 		$paths[0] = openPipelineGetSelectedScene();
 		$refreshCmd = "openPipelineUpdateSceneList";
 		if ($currCat=="scene")
@@ -661,8 +682,8 @@ global proc openPipelineRemoveFolder(string $category)
 		
 	if (`confirmDialog -t "Remove Files" -m $confirmText -ma "center" -b "Yes" -b "No" -db "Yes" -cb "No"`=="Yes")
 	{
-		if (!`filetest -d $archivePath`)
-			sysFile -makeDir $archivePath;
+		if (!`filetest -d $deletePath`)
+			sysFile -makeDir $deletePath;
 		
 		int $i;
 		string $destinationPath;
@@ -685,7 +706,7 @@ global proc openPipelineRemoveFolder(string $category)
 				}
 				if ($isCurrent)
 				{
-					if (`confirmDialog -t "Remove Files" -m "You are removing an asset, component or scene which is currently open. Continue?" -ma "center" -b "Yes" -b "No" -db "Yes" -cb "No"`=="Yes")
+					if (`confirmDialog -t "Remove Files" -m "You are removing an asset, component or scene that is currently open. Continue?" -ma "center" -b "Yes" -b "No" -db "Yes" -cb "No"`=="Yes")
 					{
 						optionVar -sv "op_currOpenPath" "";
 						optionVar -sv "op_currOpenType" "";
@@ -716,23 +737,161 @@ global proc openPipelineRemoveFolder(string $category)
 			}
 			
 			int $j = 0;
-			while (`filetest -d ($archivePath+$destinationFolderName+"_archive_"+$j)`)
+			while (`filetest -d ($deletePath+$destinationFolderName+"_deleted_"+$j)`)
 			{
 				$j++;
 			}
-			int $nameSize = size(openPipelineGetFolderFromPath($paths[$i],0));
-			int $pathSize = size($paths[$i]);
-
-			string $originalPath = substring($paths[$i], 1, size($paths[$i])-1);
-			string $renamedPath = ($archivePath + $destinationFolderName + "_archive_" + $j);
+			string $projectPath = `optionVar -q "op_currProjectPath"`;
+			string $archivePath = `optionVar -q "op_archivePath"`;
+			int $result1;
+			int $result2=1;
 			
+			string $originalPath = $paths[$i];
 			
-			//move folder(s) to archive
-			if (!`sysFile -rename $renamedPath $originalPath`)
+			string $renamedPath = ($deletePath + $destinationFolderName + "_deleted_" + $j);
+			
+			//move folders to 'deleted' folder
+			$result1 = `sysFile -rename $renamedPath $originalPath`;
+			if (!$result1)
 				{
-					confirmDialog -t "openPipeline: Remove Error" -m ("Remove failed. Folder "+$originalPath+" could not be moved to the archive. Please check your file permissions.") -b "Ok";
+					confirmDialog -t "openPipeline: Remove Error" -m ("Remove failed. Folder "+$originalPath+" could not be moved to the 'deleted' folder. \nA folder or file may be in use outside of Maya.") -b "Ok";
 				}
+			else
+				{
+					string $originalArchivedPath = substituteAllString($paths[$i], $projectPath, $archivePath);
+					if (`filetest -d $originalArchivedPath`)
+					{
+						string $renamedPath2 = ($deletePath + $destinationFolderName + "_archive_deleted_" + $j);
+						$result2 = `sysFile -rename $renamedPath2 $originalArchivedPath`;
+						if (!$result2)
+						{
+							confirmDialog -t "openPipeline: Remove Error" -m ("Remove failed. Folder "+$originalArchivedPath+" could not be moved to the 'deleted' folder. \nA folder or file may be in use outside of Maya.") -b "Ok";
+						}
+					}
+				}
+			
 		}
 		eval($refreshCmd);
 	}
+}
+
+//*** move files and folders to the archive
+//          $category - 'asset', 'component' or 'scene'
+//					$path - path of asset/component/scene
+global proc openPipelineArchiveFolder(string $type, string $path)
+{
+	string $wName = `optionVar -q "op_workshopName"`;
+	int $wAttempts = 0;
+	int $wSuccesses = 0;
+	int $vAttempts = 0;
+	int $vSuccesses = 0;
+	int $doWorkshops = `checkBox -q -v op_archiveWorkshopsCheckBox`;
+	int $doVersions = `checkBox -q -v op_archiveVersionsCheckBox`;
+	
+	string $projectPath = `optionVar -q "op_currProjectPath"`;
+	string $archivePath = `optionVar -q "op_archivePath"`;
+	
+	if ($doWorkshops)
+	{
+			int $keepWorkshops = `intField -q -v op_archiveField1`;
+			string $workshopFiles[];
+			$workshopFiles = openPipelineGetWorkshops($path);
+			int $numWorkshops = size($workshopFiles);
+			
+			for ($i=0; $i<$numWorkshops-$keepWorkshops; $i++)
+				{
+					$wAttempts++;
+					string $file = $workshopFiles[$i];
+					string $newName = substituteAllString($file, $projectPath, $archivePath);
+					if (!$i)
+						{
+							string $dirName = dirname($newName);
+							if (!`filetest -d $dirName`)
+								sysFile -md $dirName;
+						}
+					
+					int $result = `sysFile -ren $newName $file`;
+					if ($result)
+						$wSuccesses++;
+				}
+	}
+	
+	if ($doVersions)
+	{
+		int $keepVersions = `intField -q -v op_archiveField2`;
+		string $versionFiles[];
+		$versionFiles = openPipelineGetVersions($path);
+		int $numVersions = size($versionFiles);
+			
+			for ($i=0; $i<$numVersions-$keepVersions; $i++)
+				{
+					$vAttempts++;
+					string $file = $versionFiles[$i];
+					string $newName = substituteAllString($file, $projectPath, $archivePath);
+					if (!$i)
+						{
+							string $dirName = dirname($newName);
+							if (!`filetest -d $dirName`)
+								sysFile -md $dirName;
+						}
+					int $result = `sysFile -ren $newName $file`;
+					if ($result)
+						$vSuccesses++;
+				}
+	}
+	string $message = $wSuccesses+" / "+ $wAttempts +" "+ $wName+" files successfully moved to the archive.\n";
+	$message = $message + " " + $vSuccesses+" / "+ $vAttempts + " version files successfully moved to the archive.\n";
+	openPipelineRemoveSecondaryWindows();
+	openPipelineUpdateCurrentlyOpen();
+	confirmDialog -t "Archive Results" -m $message -button "OK" ;
+	
+}
+
+//*** move files and folders back from the archive
+//          $category - 'asset', 'component' or 'scene'
+//					$path - path of asset/component/scene
+global proc openPipelineRetrieveFolder(string $type, string $path)
+{
+	int $wAttempts = 0;
+	int $wSuccesses = 0;
+	int $vAttempts = 0;
+	int $vSuccesses = 0;
+	int $doWorkshops = `checkBox -q -v op_retrieveWorkshopsCheckBox`;
+	int $doVersions = `checkBox -q -v op_retrieveVersionsCheckBox`;
+	string $wName = `optionVar -q "op_workshopName"`;
+	string $projectPath = `optionVar -q "op_currProjectPath"`;
+	string $archivePath = `optionVar -q "op_archivePath"`;
+	string $currPath = substituteAllString($path, $projectPath, $archivePath);
+	if ($doWorkshops)
+	{
+			string $archivedWorkshopFiles[];
+			$archivedWorkshopFiles = openPipelineGetWorkshops($currPath);
+			for ($file in $archivedWorkshopFiles)
+				{
+					$wAttempts++;
+					string $newName = substituteAllString($file, $archivePath, $projectPath);
+					int $result = `sysFile -ren $newName $file`;
+					if ($result)
+						$wSuccesses++;
+				}
+	}
+	if ($doVersions)
+	{
+			string $archivedVersionFiles[];
+			$archivedVersionFiles = openPipelineGetVersions($currPath);
+			for ($file in $archivedVersionFiles)
+				{
+					$vAttempts++;
+					string $newName = substituteAllString($file, $archivePath, $projectPath);
+					int $result = `sysFile -ren $newName $file`;
+					if ($result)
+						$vSuccesses++;
+				}
+	}
+	string $message = $wSuccesses+" / "+ $wAttempts +" "+ $wName+" files successfully retrieved from the archive.\n";
+	$message = $message + " " + $vSuccesses+" / "+ $vAttempts +" "+ " version files successfully retrieved from the archive.\n";
+	openPipelineRemoveSecondaryWindows();
+	openPipelineUpdateCurrentlyOpen();
+	confirmDialog -t "Retrieve Results" -m $message -button "OK" ;
+	
 }
