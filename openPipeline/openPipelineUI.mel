@@ -270,7 +270,7 @@ global proc openPipelineUI()
 								menuItem -label "Master" -command "openPipelineAssetAction master 0 reference 0" -ann $anno_referenceAssetMaster op_assetMenuReferenceMaster;
 									setParent -menu ..;
 								columnLayout;
-									textScrollList -w 125 -h 131 -sc "openPipelineAssetSelected 0" -fn "smallPlainLabelFont" -ann $anno_assetList op_assetScrollList;
+									textScrollList -w 125 -h 131 -dcc "openPipelineAssetAction workshop 0 open 0" -sc "openPipelineAssetSelected 0" -fn "smallPlainLabelFont" -ann $anno_assetList op_assetScrollList;
 									popupMenu -p op_assetScrollList -b $mbInt -mm 1 -pmc "openPipelineAssetSelected 1";
 										
 											menuItem -label "Edit Asset" -command "openPipelineAssetAction workshop 0 open 0" -ann $anno_editAsset op_assetMenuEdit2;
@@ -308,7 +308,7 @@ global proc openPipelineUI()
 							setParent -menu ..;
 							
 						columnLayout;
-							textScrollList -w 125 -h 131 -en 0 -sc "openPipelineComponentSelected" -fn "smallPlainLabelFont" -ann $anno_componentList op_componentScrollList;
+							textScrollList -w 125 -h 131 -en 0 -dcc "openPipelineComponentAction workshop 0 open 0" -sc "openPipelineComponentSelected" -fn "smallPlainLabelFont" -ann $anno_componentList op_componentScrollList;
 							popupMenu -p op_componentScrollList -b $mbInt -mm 1 -pmc "openPipelineComponentSelected";
 										menuItem -label "Edit Component" -subMenu 0 -command "openPipelineComponentAction workshop 0 open 0" -ann $anno_editComponent op_compMenuEdit2;
 											menuItem -label "View Master" -command "openPipelineComponentAction master 0 open 0" -ann $anno_viewComponent op_compMenuView2;
@@ -412,7 +412,7 @@ global proc openPipelineUI()
 									menuItem -label "Master" -command "openPipelineSceneAction master 0 reference 0" -ann $anno_referenceSceneMaster op_sceneMenuReferenceMaster;
 										setParent -menu ..;
 									columnLayout;
-										textScrollList -w 164 -h 130 -sc "openPipelineSceneSelected" -fn "smallPlainLabelFont" -ann $anno_sceneList op_sceneScrollList;
+										textScrollList -w 164 -h 130 -dcc "openPipelineSceneAction workshop 0 open 0" -sc "openPipelineSceneSelected" -fn "smallPlainLabelFont" -ann $anno_sceneList op_sceneScrollList;
 										popupMenu -p op_sceneScrollList -b $mbInt -mm 1 -pmc "openPipelineSceneSelected";
 												menuItem -label "Edit Scene" -command "openPipelineSceneAction workshop 0 open 0" -ann $anno_editScene op_sceneMenuEdit2;
 												menuItem -label "View Master" -command "openPipelineSceneAction master 0 open 0" -ann $anno_viewScene op_sceneMenuView2;
@@ -600,7 +600,7 @@ global proc openPipelineUpdateCurrentlyOpen()
 		if ($currCat=="scene") //if the currently open file is a SCENE...
 		{
 			//build string to display
-			string $sceneName = openPipelineGetFolderFromPath($currPath,0);
+			string $sceneName = basename($currPath,"");
 			$displayString+=($sceneName+"  ("+$displayType+")");
 			// update scene comment field and clear the asset comment field
 			openPipelineLoadCurrentSceneNote;
@@ -831,37 +831,40 @@ global proc openPipelineUpdateSceneList()
 	string $lastSelectedScene = openPipelineGetSelectedScene();
 	textScrollList -e -ra "op_sceneScrollList";
 	optionVar -ca "op_scenes";
-	int $active = 0;
 	string $scenePath = `optionVar -q "op_scenePath"`; 
 	string $sceneFolders[] = `getFileList -folder $scenePath`;
-	
-	int $numScenes = `size($sceneFolders)`;
+	int $numFolders = `size($sceneFolders)`;
+	int $numScenes = 0;
+	for($i = 0; $i < $numFolders; $i++)
+	{
+		string $currScenePath = $scenePath+$sceneFolders[$i]+"/";
+		if (openPipelineIsValidFolder($currScenePath))
+		{
+			string $pre="";
+			string $post="";
+			$numScenes++;
+			if (openPipelineSceneHasMaster($currScenePath))
+				$post+=" +";
+			else if (openPipelineAssetHasWorkshop($currScenePath))
+				$post+="-";
+			if ($currScenePath == `optionVar -q "op_currOpenPath"`)
+			{
+				$pre += "*";
+				$post += " *";
+			}
+			optionVar -sva "op_scenes" $currScenePath;
+			
+			textScrollList -e -a ($pre+$sceneFolders[$i]+$post) op_sceneScrollList;
+			if ($lastSelectedScene==$currScenePath)
+			{
+				textScrollList -e -si ($pre+$sceneFolders[$i]+$post) op_sceneScrollList;
+			}
+		}
+	}
 	if (!$numScenes)
 		textScrollList -e -en 0 op_sceneScrollList;
 	else
 		textScrollList -e -en 1 op_sceneScrollList;
-	for($i = 0; $i < $numScenes; $i++)
-	{
-		string $pre="";
-		string $post="";
-		string $currScenePath = $scenePath+$sceneFolders[$i]+"/";
-		if (openPipelineSceneHasMaster($currScenePath))
-			$post+=" +";
-		else if (openPipelineAssetHasWorkshop($currScenePath))
-			$post+="-";
-		if ($currScenePath == `optionVar -q "op_currOpenPath"`)
-		{
-			$pre += "*";
-			$post += " *";
-		}
-		optionVar -sva "op_scenes" $currScenePath;
-		
-		textScrollList -e -a ($pre+$sceneFolders[$i]+$post) op_sceneScrollList;
-		if ($lastSelectedScene==$currScenePath)
-		{
-			textScrollList -e -si ($pre+$sceneFolders[$i]+$post) op_sceneScrollList;
-		}
-	}
 	openPipelineSceneSelected();
 	openPipelineUpdateSceneAssetTypeList();
 }
@@ -876,11 +879,15 @@ global proc openPipelineUpdateSceneAssetTypeList()
 	int $numLibType = `size($libTypeFiles)`;
 	for($i = 0; $i < $numLibType; $i++)
 	{
-		textScrollList -e -a $libTypeFiles[$i] op_sceneAssetTypeList;
-		for ($j=0; $j< (size($lastSelectedPaths)); $j++)
+		string $path = $libPath+$libTypeFiles[$i]+"/";
+		if (openPipelineIsValidFolder($path))
 		{
-		if ($libTypeFiles[$i]==$lastSelectedPaths[$j])
-			textScrollList -e -si $libTypeFiles[$i] op_sceneAssetTypeList;
+			textScrollList -e -a $libTypeFiles[$i] op_sceneAssetTypeList;
+			for ($j=0; $j< (size($lastSelectedPaths)); $j++)
+			{
+			if ($libTypeFiles[$i]==$lastSelectedPaths[$j])
+				textScrollList -e -si $libTypeFiles[$i] op_sceneAssetTypeList;
+			}
 		}
 	}
 	openPipelineSceneAssetTypeSelected();
@@ -942,28 +949,31 @@ global proc openPipelineSceneAssetTypeSelected()
 			for ($j = 0; $j < $numAssets; $j++)
 			{
 				string $assetPath = $currType + $assetFiles[$j] + "/";
-				optionVar -sva "op_sceneAssets" ($assetPath);
-				string $post="";
-				string $pre="";
-				
-				int $masterExists = openPipelineAssetHasMaster($assetPath);
-				int $workshopExists = openPipelineAssetHasWorkshop($assetPath);
-				
-				if($masterExists)
+				if (openPipelineIsValidFolder($assetPath))
 				{
-					$post+=" +";
+					optionVar -sva "op_sceneAssets" ($assetPath);
+					string $post="";
+					string $pre="";
+					
+					int $masterExists = openPipelineAssetHasMaster($assetPath);
+					int $workshopExists = openPipelineAssetHasWorkshop($assetPath);
+					
+					if($masterExists)
+					{
+						$post+=" +";
+					}
+					else if ($workshopExists)
+					{
+						$post+=" -";
+					}
+								
+					if ($assetPath == `optionVar -q "op_currOpenPath"`)
+					{
+						$pre = "*";
+						$post+=" *";
+					}
+					textScrollList -e -a ($pre+$assetFiles[$j]+$post) "op_sceneAssetList";
 				}
-				else if ($workshopExists)
-				{
-					$post+=" -";
-				}
-							
-				if ($assetPath == `optionVar -q "op_currOpenPath"`)
-				{
-					$pre = "*";
-					$post+=" *";
-				}
-				textScrollList -e -a ($pre+$assetFiles[$j]+$post) "op_sceneAssetList";
 			}
 		}
 	}
@@ -999,19 +1009,22 @@ global proc openPipelineUpdateAssetTypeList()
 	string $lastSelectedPaths[] = openPipelineGetSelectedAssetTypes();
 	textScrollList -e -ra "op_assetTypeScrollList";
 	optionVar -ca "op_assetTypes"; 
-	
-	string $libPath = `optionVar -q "op_libPath"`; 
-	
+	string $libPath = `optionVar -q "op_libPath"`;
 	string $libTypeFiles[] = `getFileList -folder $libPath`;
 	int $numLibType = `size($libTypeFiles)`;
 	for($i = 0; $i < $numLibType; $i++)
 	{
-		optionVar -sva "op_assetTypes" ($libPath+$libTypeFiles[$i]+"/");
-		textScrollList -e -a $libTypeFiles[$i] op_assetTypeScrollList;
-		for ($j=0; $j< (size($lastSelectedPaths)); $j++)
+		string $path = $libPath+$libTypeFiles[$i]+"/";
+		
+		if (openPipelineIsValidFolder($path))
 		{
-			if ($libTypeFiles[$i]==openPipelineGetFolderFromPath($lastSelectedPaths[$j],0))
-				textScrollList -e -si $libTypeFiles[$i] op_assetTypeScrollList;
+			optionVar -sva "op_assetTypes" ($path);
+			textScrollList -e -a $libTypeFiles[$i] op_assetTypeScrollList;
+			for ($j=0; $j< (size($lastSelectedPaths)); $j++)
+			{
+				if ($libTypeFiles[$i]==basename($lastSelectedPaths[$j],""))
+					textScrollList -e -si $libTypeFiles[$i] op_assetTypeScrollList;
+			}
 		}
 	}	
 	openPipelineAssetTypeSelected(1);
@@ -1137,35 +1150,36 @@ global proc openPipelineAssetTypeSelected(int $preserveSelection)
 			string $currType = $selectedTypes[$i];
 			string $assetFiles[] = `getFileList -folder $currType`;
 			int $numAssets = `size($assetFiles)`;
-			if ($numAssets)
-				$active = 1;
-		
 			for ($j = 0; $j < $numAssets; $j++)
 			{
 				string $assetPath = $currType + $assetFiles[$j] + "/";
-				optionVar -sva "op_assets" ($assetPath);
-				string $post="";
-				string $pre="";
-				
-				int $masterExists = openPipelineAssetHasMaster($assetPath);
-				int $workshopExists = openPipelineAssetHasWorkshop($assetPath);
-				if($masterExists)
+				if (openPipelineIsValidFolder($assetPath))
 				{
-					$post+=" +";
+					$active = 1;
+					optionVar -sva "op_assets" ($assetPath);
+					string $post="";
+					string $pre="";
+					
+					int $masterExists = openPipelineAssetHasMaster($assetPath);
+					int $workshopExists = openPipelineAssetHasWorkshop($assetPath);
+					if($masterExists)
+					{
+						$post+=" +";
+					}
+					else if ($workshopExists)
+					{
+						$post+=" -";
+					}
+								
+					if ($assetPath == `optionVar -q "op_currOpenPath"`)
+					{
+						$pre = "*";
+						$post+=" *";
+					}
+					textScrollList -e -a ($pre+$assetFiles[$j]+$post) "op_assetScrollList";
+					if (($lastSelectedPath==$assetPath)&&($preserveSelection))
+						textScrollList -e -si ($pre+$assetFiles[$j]+$post) "op_assetScrollList";
 				}
-				else if ($workshopExists)
-				{
-					$post+=" -";
-				}
-							
-				if ($assetPath == `optionVar -q "op_currOpenPath"`)
-				{
-					$pre = "*";
-					$post+=" *";
-				}
-				textScrollList -e -a ($pre+$assetFiles[$j]+$post) "op_assetScrollList";
-				if (($lastSelectedPath==$assetPath)&&($preserveSelection))
-					textScrollList -e -si ($pre+$assetFiles[$j]+$post) "op_assetScrollList";
 			}
 		}	
 	}
@@ -1212,39 +1226,35 @@ global proc openPipelineAssetSelected(int $preserveSelection)
 		int $numComps = `size($compFiles)`;
 			
 		openPipelineUpdateAssetMenus($currAsset);
-		
-		if ($numComps)
-		{
-			$active = 1;
-		}
-			
+
 		for($j = 0; $j < $numComps; $j++)
 		{
-			string $post="";
-			string $pre="";
 			string $componentPath = ($compPath + $compFiles[$j] + "/");
-			optionVar -sva "op_components" $componentPath;
-			int $masterExists = openPipelineComponentHasMaster($componentPath);
-			int $workshopExists = openPipelineComponentHasWorkshop($componentPath);
-				
-	
-			if($masterExists)
+			if (openPipelineIsValidFolder($componentPath))
 			{
-				$post+=" +";
+				$active = 1;
+				string $post="";
+				string $pre="";
+				optionVar -sva "op_components" $componentPath;
+				int $masterExists = openPipelineComponentHasMaster($componentPath);
+				int $workshopExists = openPipelineComponentHasWorkshop($componentPath);
+				if($masterExists)
+				{
+					$post+=" +";
+				}
+				else if ($workshopExists)
+				{
+					$post+=" -";
+				}			
+				if($componentPath == `optionVar -q "op_currOpenPath"`)
+				{
+					$pre = "* ";
+					$post+=" *";
+				}
+				textScrollList -e -a ($pre+$compFiles[$j]+$post) "op_componentScrollList";
+				if (($lastSelectedPath==$componentPath)&&($preserveSelection))
+					textScrollList -e -si ($pre+$compFiles[$j]+$post) "op_componentScrollList";
 			}
-			else if ($workshopExists)
-			{
-				$post+=" -";
-			}
-							
-			if($componentPath == `optionVar -q "op_currOpenPath"`)
-			{
-				$pre = "* ";
-				$post+=" *";
-			}
-			textScrollList -e -a ($pre+$compFiles[$j]+$post) "op_componentScrollList";
-			if (($lastSelectedPath==$componentPath)&&($preserveSelection))
-				textScrollList -e -si ($pre+$compFiles[$j]+$post) "op_componentScrollList";
 		}
 	}
 	textScrollList -e -en $active "op_componentScrollList";
@@ -1571,9 +1581,9 @@ global proc	openPipelineAssetInformation()
 	string $wName = `optionVar -q "op_workshopName"`;
 	string $mName = `optionVar -q "op_masterName"`;
 	string $asset = `openPipelineGetSelectedAsset`;
-	$openPipeline_menuCurrentAsset = openPipelineGetFolderFromPath($asset, 0);
+	$openPipeline_menuCurrentAsset = basename($asset,"");
 	string $component = `openPipelineGetSelectedComponent`;
-	string $openPipeline_menuCurrentComponent = openPipelineGetFolderFromPath($component, 0);	
+	string $openPipeline_menuCurrentComponent = basename($component,"");	
 	int $workshopNum;	
 	int $versionNum;
 	int $masterExists;
@@ -1629,7 +1639,7 @@ global proc	openPipelineSceneInformation()
 	string $wName = `optionVar -q "op_workshopName"`;
 	string $mName = `optionVar -q "op_masterName"`;
 	string $scene = `openPipelineGetSelectedScene`;
-	string $openPipeline_menuCurrentScene = openPipelineGetFolderFromPath($scene, 0);	
+	string $openPipeline_menuCurrentScene = basename($scene,"");	
 	int $workshopNum;	
 	int $versionNum;
 	int $masterExists;
@@ -1726,7 +1736,7 @@ global proc openPipelineArchiveDialog(string $type)
 		$path = openPipelineGetSelectedAsset();
 	else if ($type=="component")
 		$path = openPipelineGetSelectedComponent();
-	string $name = openPipelineGetFolderFromPath($path,0);
+	string $name = basename($path,"");
 	int $maxWorkshops = openPipelineNumWorkshops($path);
 	int $maxVersions = openPipelineNumVersions($path);
 	string $wName = capitalizeString(`optionVar -q "op_workshopName"`);

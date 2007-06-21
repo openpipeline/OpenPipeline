@@ -127,7 +127,7 @@ global proc int openPipelineAssetAction(string $type, int $versionOffset, string
 		$selectedAssetPath = `optionVar -q "op_currOpenPath"`;
 	else
 		$selectedAssetPath = openPipelineGetSelectedAsset();
-	string $assetName = openPipelineGetFolderFromPath($selectedAssetPath,0);
+	string $assetName = basename($selectedAssetPath,"");
 	int $version = 0;
 	string $file = "";
 	string $currOpen = `optionVar -q op_currOpenPath`;
@@ -300,7 +300,7 @@ global proc int openPipelineSceneAction(string $type, int $versionOffset, string
 		$selectedScenePath = openPipelineGetSelectedScene();
 	}
 	
-	string $sceneName = openPipelineGetFolderFromPath($selectedScenePath,0);
+	string $sceneName = basename($selectedScenePath,"");
 	int $version = 0;
 	string $file;
 	string $currOpen = `optionVar -q op_currOpenPath`;
@@ -376,7 +376,7 @@ global proc int openPipelineSceneAction(string $type, int $versionOffset, string
 global proc int openPipelineSceneAssetAction(string $action)
 {
 	string $assetPath = openPipelineGetSelectedSceneAsset();
-	string $assetName = openPipelineGetFolderFromPath($assetPath,0);
+	string $assetName = basename($assetPath,"");
 	if (openPipelineAssetHasMaster($assetPath))
 	{
 		string $ext = `optionVar -q "op_masterFormat"`;
@@ -471,7 +471,7 @@ global proc openPipelineSaveWorkshop()
 	int $latestWorkshop = 0;
 	if (($currCat == "asset")||($currCat == "scene"))
 		{
-		string $assetName = openPipelineGetFolderFromPath($currPath,0);
+		string $assetName = basename($currPath,"");
 		$workshop = ($currPath + $wName + "/");
 		$workshopFiles = `getFileList -folder $workshop -filespec ($assetName + "_" + $wName + "_*."+$ext)`;
 		$numWorkshops = `size($workshopFiles)`;
@@ -482,7 +482,7 @@ global proc openPipelineSaveWorkshop()
 	} 
 	else if ($currCat == "component")
 	{	
-		string $componentName = openPipelineGetFolderFromPath($currPath,0);
+		string $componentName = basename($currPath,"");
 		string $assetName = openPipelineGetFolderFromPath($currPath,2);
 		$workshop = ($currPath + $wName + "/");
 		$workshopFiles = `getFileList -folder $workshop -filespec ($assetName + "_" + $componentName + "_" + $wName + "_*."+$ext)`;
@@ -525,7 +525,7 @@ global proc openPipelineSaveMaster()
 	int $latestVersion = 0;
 	if($currCat == "asset")
 	{
-		string $assetName = openPipelineGetFolderFromPath($currPath,0);
+		string $assetName = basename($currPath,"");
 		$masterFile = ($currPath + $assetName + "_asset." + $ext);
 		$versions = ($currPath + "version/");
 		$versionFiles = `getFileList -folder $versions`;
@@ -550,7 +550,7 @@ global proc openPipelineSaveMaster()
 	}
 	else if($currCat == "scene")
 	{
-		string $sceneName = openPipelineGetFolderFromPath($currPath,0);
+		string $sceneName = basename($currPath,"");
 		$masterFile = ($currPath + $sceneName + "_scene." + $ext);
 		$versions = ($currPath + "version/");
 		$versionFiles = `getFileList -folder $versions`;

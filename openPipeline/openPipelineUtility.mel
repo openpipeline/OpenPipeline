@@ -36,16 +36,16 @@
 global proc string openPipelineGetPath(string $inputMode)
 {
 	string $currPath = `optionVar -q "op_currOpenPath"`;
-	string $name = openPipelineGetFolderFromPath($currPath,0);
+	string $name = basename($currPath,"");
   string $currCategory = `optionVar -q "op_currOpenCategory"`;
   string $creationPath = `optionVar -q "op_creationPath"`;
   string $creationType = `optionVar -q "op_creationType"`;
 	string $asset = `openPipelineGetSelectedAsset`;
-	string $openPipeline_menuCurrentAsset = openPipelineGetFolderFromPath($asset, 0);	
+	string $openPipeline_menuCurrentAsset = basename($asset,"");	
 	string $component = `openPipelineGetSelectedComponent`;
-	string $openPipeline_menuCurrentAssetComponent = openPipelineGetFolderFromPath($component, 0);	
+	string $openPipeline_menuCurrentAssetComponent = basename($component, "");	
 	string $scene = `openPipelineGetSelectedScene`;
-	string $selectedScene = openPipelineGetFolderFromPath($scene, 0);
+	string $selectedScene = basename($scene, "");
 	string $outputString;
 	switch($inputMode)
 	{
@@ -108,18 +108,18 @@ global proc string openPipelineGetPath(string $inputMode)
 
 			if ($creationType == "asset")
 			{
-				string $assetName = openPipelineGetFolderFromPath($creationPath,0);
+				string $assetName = basename($creationPath,"");
 				$outputString = $notesPath + $assetName + "_AssetNote.xml";
 			}
 			else if ($creationType == "component")
 			{
 				string $assetName = openPipelineGetFolderFromPath($creationPath,2);
-				string $componentName = openPipelineGetFolderFromPath($creationPath,0);
+				string $componentName = basename($creationPath,"");
 				$outputString = $notesPath + $assetName + "_" + $componentName + "_ComponentNote.xml";
 			}
 			else if ($creationType == "scene")
 			{
-			    string $sceneName = openPipelineGetFolderFromPath($creationPath,0);
+			    string $sceneName = basename($creationPath,"");
 			    $outputString = $notesPath + $sceneName + "_SceneNote.xml"; 
 			}
 			break;
@@ -181,7 +181,7 @@ global proc int openPipelineAssetHasWorkshop(string $path)
 {
 	string $wExt = `optionVar -q "op_workshopFormat"`;
 	string $wName = `optionVar -q "op_workshopName"`;
-	string $name = openPipelineGetFolderFromPath($path,0);
+	string $name = basename($path,"");
 	string $workshopFiles[] = `getFileList -folder ($path+$wName+"/") -filespec ($name + "_" + $wName + "_*." + $wExt)`;
 	return size($workshopFiles);
 }
@@ -191,7 +191,7 @@ global proc int openPipelineComponentHasWorkshop(string $path)
 {	
 	string $wExt = `optionVar -q "op_workshopFormat"`;
 	string $wName = `optionVar -q "op_workshopName"`;
-	string $name = openPipelineGetFolderFromPath($path,0);
+	string $name = basename($path,"");
 	string $asset =openPipelineGetFolderFromPath($path,2);
 	string $workshopFiles[] = `getFileList -folder ($path+$wName+"/") -filespec ($asset + "_" + $name + "_" + $wName + "_*." + $wExt)`;
 	return size($workshopFiles);
@@ -202,7 +202,7 @@ global proc int openPipelineNumWorkshops(string $path)
 {
 	string $wExt = `optionVar -q "op_workshopFormat"`;
 	string $wName = `optionVar -q "op_workshopName"`;
-	string $name = openPipelineGetFolderFromPath($path,0);
+	string $name = basename($path,"");
 	string $workshopFiles[] = `getFileList -folder ($path+$wName+"/") -filespec ("*" + $name + "_" + $wName + "_*." + $wExt)`;
 	return size($workshopFiles);
 }
@@ -211,7 +211,7 @@ global proc int openPipelineNumWorkshops(string $path)
 global proc int openPipelineNumVersions(string $path)
 {
 	string $mExt = `optionVar -q "op_masterFormat"`;
-	string $name = openPipelineGetFolderFromPath($path,0);
+	string $name = basename($path,"");
 	string $versionFiles[] = `getFileList -folder ($path+"version/") -filespec ("*" + $name + "_version_*." + $mExt)`;
 	return size($versionFiles);
 }
@@ -221,7 +221,7 @@ global proc int openPipelineNumVersions(string $path)
 global proc int openPipelineAssetHasMaster(string $path)
 {
 	string $mExt = `optionVar -q "op_masterFormat"`;
-	string $name = openPipelineGetFolderFromPath($path,0);
+	string $name = basename($path,"");
 	string $expectedMasterFile = ($path + $name + "_asset."+$mExt);
 	int $exists = `filetest -f $expectedMasterFile`;
 	return $exists;
@@ -231,7 +231,7 @@ global proc int openPipelineAssetHasMaster(string $path)
 global proc int openPipelineSceneHasMaster(string $path)
 {
 	string $mExt = `optionVar -q "op_masterFormat"`;
-	string $name = openPipelineGetFolderFromPath($path,0);
+	string $name = basename($path,"");
 	string $expectedMasterFile = ($path + $name + "_scene."+$mExt);
 	int $exists = `filetest -f $expectedMasterFile`;
 	return $exists;
@@ -241,19 +241,19 @@ global proc int openPipelineSceneHasMaster(string $path)
 global proc int openPipelineComponentHasMaster(string $path)
 {	
 	string $mExt = `optionVar -q "op_masterFormat"`;
-	string $name = openPipelineGetFolderFromPath($path,0);
+	string $name = basename($path,"");
 	string $asset = openPipelineGetFolderFromPath($path,2);
 	string $expectedMasterFile = ($path + $asset + "_" + $name + "." + $mExt);
 	int $masterExists = `filetest -f $expectedMasterFile`;
 	return $masterExists;
 }
 
-//*** returns the workshop files for a given asset or scene
+//*** returns the workshop files for a given asset, component or scene
 global proc string[] openPipelineGetWorkshops(string $path)
 {
 	string $wExt = `optionVar -q "op_workshopFormat"`;
 	string $wName = `optionVar -q "op_workshopName"`;
-	string $name = openPipelineGetFolderFromPath($path,0);
+	string $name = basename($path,"");
 	string $workshopFiles[] = `getFileList -folder ($path+$wName+"/") -filespec ("*"+$name + "_" + $wName + "_*." + $wExt)`;
 	string $workshopFullPaths[];
 	for ($i=0; $i<size($workshopFiles); $i++)
@@ -261,11 +261,11 @@ global proc string[] openPipelineGetWorkshops(string $path)
 	return $workshopFullPaths;
 }
 
-//*** returns the version files for a given asset or scene
+//*** returns the version files for a given asset, component or scene
 global proc string[] openPipelineGetVersions(string $path)
 {
 	string $mExt = `optionVar -q "op_masterFormat"`;
-	string $name = openPipelineGetFolderFromPath($path,0);
+	string $name = basename($path,"");
 	string $versionFiles[] = `getFileList -folder ($path+"version/") -filespec ("*"+$name + "_version_*." + $mExt)`;
 	string $versionFullPaths[];
 	for ($i=0; $i<size($versionFiles); $i++)
@@ -274,7 +274,8 @@ global proc string[] openPipelineGetVersions(string $path)
 	return $versionFullPaths;
 }
 
-
+//*** returns the folder name at a given depth of a path
+//*** passing in 0 as the second parameter has the same function as the "basename" mel command
 global proc string openPipelineGetFolderFromPath(string $path, int $offsetFromLast)
 {
 	string $tokenizedPath[];
@@ -369,4 +370,19 @@ global proc string[] openPipelineGetSceneFiles()
 		$fileList = stringArrayCatenate($fileList, `openPipelineGetVersions($scenePath)`);
 	}
 	return $fileList;
+}
+
+global proc int openPipelineIsValidFolder(string $path)
+{
+	if (!`filetest -d $path`)
+		return 0;
+	else
+	{
+	string $base = basename($path,"");
+	string $firstChar = startString($base,1);
+	if ($firstChar==".")
+		return 0;
+	else
+		return 1;
+	}
 }
