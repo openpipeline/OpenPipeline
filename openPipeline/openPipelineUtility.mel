@@ -284,3 +284,89 @@ global proc string openPipelineGetFolderFromPath(string $path, int $offsetFromLa
 	else
 	    return "";
 }
+
+global proc openPipelineUtilityUpdatePadding()
+{
+	// get paths for all types and all assets and all components
+	string $currentProject = `optionVar -q "op_currProjectPath"`;
+	string $wName = `optionVar -q "op_workshopName"`;
+	string $allLibFiles[] = `openPipelineGetLibFiles`;
+	string $allSceneFiles[] = `openPipelineGetSceneFiles`;
+	
+	string $allFiles[] = stringArrayCatenate($allLibFiles, $allSceneFiles);
+	
+	string $newFileName;
+	
+	// warning
+	string $confirm = `confirmDialog -title "Update Project" -message 
+		("This function will rename " + $wName + " and versions created\n" +
+			"in openPipeline 0.3 or earlier for use in version 0.4 and beyond." +
+			"\n\nDemo will print to the script editor but not rename files. \n\nContinue?")
+    	-button "Yes" -button "No" -button "Demo" -defaultButton "No"
+    	-cancelButton "No" -dismissString "No"`;
+
+	// change padding on all found files
+	if(($confirm == "Yes")||($confirm == "Demo"))
+	{
+		for($oldFileName in $allFiles)
+		{
+			string $lost = `match "([0-9]+)\.m.$" $oldFileName`;
+			string $found = `match "[0-9]+" $lost`;
+			string $newNumber = openPipelinePad($found, 4);
+			string $newTail = `substitute $found $lost $newNumber`;
+			
+			$newFileName = `substitute $lost $oldFileName $newTail`;
+			string $command = "Preview";
+			if($confirm == "Yes")
+			{
+				$command = "Renaming";
+				sysFile -rename $newFileName $oldFileName;
+			}
+			print ("openPipeline " + $command + ": " + $oldFileName + " -> " + $newFileName + "\n");
+		}
+	}
+}
+
+
+global proc string[] openPipelineGetLibFiles()
+{
+	string $assetTypes[] = `optionVar -q "op_assetTypes"`;
+
+	string $assets[];
+	string $components[];
+	string $fileList[];
+
+	for($assetType in $assetTypes)
+	{
+		$assets = `getFileList -folder $assetType`;
+		for($asset in $assets)
+		{
+			string $assetPath = ($assetType + $asset + "/");
+			$fileList = stringArrayCatenate($fileList, `openPipelineGetWorkshops($assetPath)`);
+			$fileList = stringArrayCatenate($fileList, `openPipelineGetVersions($assetPath)`);
+			$components = `getFileList -folder ($assetPath + "/components/")`;
+			for($component in $components)
+			{
+				string $componentPath = ($assetPath + "components/" + $component + "/");
+				$fileList = stringArrayCatenate($fileList, `openPipelineGetWorkshops($componentPath)`);
+				$fileList = stringArrayCatenate($fileList, `openPipelineGetVersions($componentPath)`);
+			}
+		}
+	}
+	return $fileList;
+}
+
+
+global proc string[] openPipelineGetSceneFiles()
+{
+	string $allScenes[] = `optionVar -q "op_scenes"`;
+	string $fileList[];
+
+	for($eachScene in $allScenes)
+	{
+		string $scenePath = $eachScene;
+		$fileList = stringArrayCatenate($fileList, `openPipelineGetWorkshops($scenePath)`);
+		$fileList = stringArrayCatenate($fileList, `openPipelineGetVersions($scenePath)`);
+	}
+	return $fileList;
+}

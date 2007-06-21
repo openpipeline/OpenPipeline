@@ -128,6 +128,9 @@ global proc openPipelineUI()
  		menuItem -label "Maya Reference Editor" -command "ReferenceEditor";
  		menuItem -label "Maya Project Manager" -command "projectSetup 2";
 
+ 	menu -label "Utilities" -parent $window;
+ 		menuItem -label "Update Tree Padding" -command openPipelineUtilityUpdatePadding;
+
  	menu -label "Help" -helpMenu true -parent $window;
  		menuItem -label "About openPipeline..." -command openPipelineAboutDialog;
  		menuItem -label "Help..." -command openPipelineHelpLaunch;
