@@ -33,15 +33,15 @@ global proc openPipelineUI()
 		$infoHeight = 122;
 	}
 	//set annotation strings
-	string $anno_assetList="Choose from the available Assets. Hold down " +$mbString+" mouse button for options.";
-	string $anno_componentList="Choose from the available Components. Hold down " +$mbString+" mouse button for options.";
-	string $anno_sceneList="Choose from the available Scenes. Hold down " +$mbString+" mouse button for options.";	
+	string $anno_assetList="Double-click to edit Asset. Hold " +$mbString+" mouse button for more options.";
+	string $anno_componentList="Double-click to edit Component. Hold down " +$mbString+" mouse button for more options.";
+	string $anno_sceneList="Double-click to Edit Scene. Hold down " +$mbString+" mouse button for more options.";	
 	string $anno_projectList="Select from the available Projects.";
 	string $anno_projectManager="Open the Project Manager, where you can add or remove Projects.";
 	string $anno_saveWorkshop="Save a workshop file for the current Asset/Component/Scene.";
 	string $anno_master="Save a master file for the current Asset/Component/Scene.";
 	string $anno_revive="Revive an old version of the current Asset/Component/Scene.";
-	string $anno_assetTypeList="Choose from the available Asset Types. You can select more than one.";
+	string $anno_assetTypeList="Choose Asset Type(s). Hold Shift of Ctrl for multiple selection.";
 	string $anno_newAssetType="Create a new Asset Type";
 	string $anno_removeAssetType="Remove the selected Asset Type(s) from the inventory.";
 	string $anno_archive="Archive old workshops and versions.";
