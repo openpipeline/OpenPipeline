@@ -249,6 +249,7 @@ global proc int openPipelineComponentHasMaster(string $path)
 }
 
 //*** returns the workshop files for a given asset, component or scene
+//*** note: filenames are returned as full paths
 global proc string[] openPipelineGetWorkshops(string $path)
 {
 	string $wExt = `optionVar -q "op_workshopFormat"`;
@@ -262,6 +263,7 @@ global proc string[] openPipelineGetWorkshops(string $path)
 }
 
 //*** returns the version files for a given asset, component or scene
+//*** note: filenames are returned as full paths
 global proc string[] openPipelineGetVersions(string $path)
 {
 	string $mExt = `optionVar -q "op_masterFormat"`;
@@ -272,6 +274,24 @@ global proc string[] openPipelineGetVersions(string $path)
 		$versionFullPaths[$i] = $path+"version/"+$versionFiles[$i];
 	
 	return $versionFullPaths;
+}
+
+global proc int openPipelineGetLatestWorkshopVersion(string $path)
+{
+	string $workshopFiles[] = openPipelineGetWorkshops($path);
+	int $numWorkshops = size($workshopFiles);
+	string $latestFile = $workshopFiles[$numWorkshops-1];
+	int $version = openPipelineGetVersionFromFile($latestFile);
+	return $version;
+}
+
+global proc int openPipelineGetLatestMasterVersion(string $path)
+{
+	string $versionFiles[] = openPipelineGetVersions($path);
+	int $numVersions = size($versionFiles);
+	string $latestFile = $versionFiles[$numVersions-1];
+	int $version = openPipelineGetVersionFromFile($latestFile);
+	return $version;
 }
 
 //*** returns the folder name at a given depth of a path
