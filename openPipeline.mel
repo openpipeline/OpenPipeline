@@ -89,8 +89,8 @@ global proc openPipelineSetupExec()
         //read code and replace global variable assignments to new values
         while ( size( $nextLine ) > 0 ) 
         { 
-	        string $test1 = match("^[ 	]*global[ ]+string[ 	]+$openPipeline_projectFilePath[ 	]*[=]{1}*",$nextLine);
-	        string $test2 = match("^[ 	]*global[ ]+string[ 	]+$openPipeline_scriptPath[ 	]*[=]{1}*",$nextLine);
+	        string $test1 = match("^[ 	]*global[ 	]+string[ 	]+$openPipeline_projectFilePath[ 	]*[=]{1}*",$nextLine);
+	        string $test2 = match("^[ 	]*global[ 	]+string[ 	]+$openPipeline_scriptPath[ 	]*[=]{1}*",$nextLine);
 	        if (size($test1))
 				$newCode[$i] = "	global string $openPipeline_projectFilePath = \""+$newProjFilePath+"\";\n";
 	        else if (size($test2))
@@ -106,10 +106,39 @@ global proc openPipelineSetupExec()
         fprint $fileId $line;
         fclose $fileId;
         deleteUI openPipelineInitSetupWindow;
-        //source openPipeline.mel and run openPipeline
-        string $cmd = ("source \"" + $mainFile + "\";openPipeline;");
-        eval $cmd;
-     }
+      
+			//restart openPipeline with new values
+			global string $openPipeline_scriptPath;
+			$openPipeline_scriptPath = $newScriptPath;
+			global string $openPipeline_projectFilePath;
+			$openPipeline_projectFilePath = $newProjFilePath;
+			string $scriptsFolderName = "openPipeline";
+			//Check if the paths are valid
+			if ((!endsWith($openPipeline_scriptPath,"/"))&&(size($openPipeline_scriptPath)))
+				$openPipeline_scriptPath += "/";
+			if ((!endsWith($openPipeline_projectFilePath,"/"))&&(size($openPipeline_projectFilePath)))
+				$openPipeline_projectFilePath += "/";
+			string $error = "";
+			if (!openPipelineIsValidScriptPath($openPipeline_scriptPath))
+			{   
+				$error+="Script path has not yet been set or is not valid.\n";
+			}
+			if (!openPipelineIsValidProjFilePath($openPipeline_projectFilePath))
+			{
+				$error+="Project File path has not yet been set or could not be found.\n";
+			}
+			//If paths are valid, run the openPipeline UI
+			if (!size($error))
+			{
+				sourceModule($openPipeline_scriptPath+$scriptsFolderName+"/"); 
+				catch(`eval "openPipelineUI"`);
+			}
+			//If paths are not valid, run openPipeline setup.
+			else
+			{
+				openPipelineSetup();
+			}
+	  }
      else
      {
         confirmDialog -title "openPipeline - Project Setup Error" -bgc .9 .9 .9 
@@ -242,4 +271,3 @@ global proc openPipeline()
 		openPipelineSetup();
     }
 } 
-
