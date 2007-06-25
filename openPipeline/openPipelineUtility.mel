@@ -331,7 +331,9 @@ global proc openPipelineUtilityUpdatePadding()
 
 global proc string[] openPipelineGetLibFiles()
 {
-	string $assetTypes[] = `optionVar -q "op_assetTypes"`;
+	string $assetTypes[];
+  if (`optionVar -as "op_assetTypes"`)
+  	$assetTypes = `optionVar -q "op_assetTypes"`;
 
 	string $assets[];
 	string $components[];
@@ -360,7 +362,9 @@ global proc string[] openPipelineGetLibFiles()
 
 global proc string[] openPipelineGetSceneFiles()
 {
-	string $allScenes[] = `optionVar -q "op_scenes"`;
+	string $allScenes[];
+	if (`optionVar -as "op_scenes"`)
+		$allScenes = `optionVar -q "op_scenes"`; 
 	string $fileList[];
 
 	for($eachScene in $allScenes)
