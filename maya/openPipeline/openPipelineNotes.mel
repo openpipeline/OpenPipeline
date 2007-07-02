@@ -385,21 +385,17 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 	else
 	{
 		string $currPath = `optionVar -q "op_currOpenPath"`;
-        string $mExt = `optionVar -q "op_masterFormat"`;
-	    string $wExt = `optionVar -q "op_workshopFormat"`;
-	    string $wName = `optionVar -q "op_workshopName"`;
+    string $mExt = `optionVar -q "op_masterFormat"`;
+	  string $wExt = `optionVar -q "op_workshopFormat"`;
+	  string $wName = `optionVar -q "op_workshopName"`;
 		// get workshop version
-		string $workshop = ($currPath + $wName + "/");
-		string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_" + $wName + "_*." + $wExt)`;
-		int $version = size($workshopFiles);
+		int $version = openPipelineGetLatestWorkshopVersion($currPath);
 
 		switch($inputMode)
 		{
 			case "master":
 				// get master version
-				string $versions = ($currPath + "version/");
-				string $versionFiles[] = `getFileList -folder $versions -filespec ("*_version_*." + $mExt)`;
-				int $masterVersion = (size($versionFiles) + 1);
+				int $masterVersion = openPipelineGetLatestMasterVersion($currPath) + 1;
 
 				// get comment
 				string $masterPrepend = (" (Mastered as Version " + $masterVersion + ")");
@@ -489,22 +485,16 @@ global proc int openPipelineSceneNoteWriter(string $inputMode)
 	else
 	{
 		string $currPath = `optionVar -q "op_currOpenPath"`;
-        string $mExt = `optionVar -q "op_masterFormat"`;
-	    string $wExt = `optionVar -q "op_workshopFormat"`;
-	    string $wName = `optionVar -q "op_workshopName"`;
+    string $mExt = `optionVar -q "op_masterFormat"`;
+	  string $wExt = `optionVar -q "op_workshopFormat"`;
+	  string $wName = `optionVar -q "op_workshopName"`;
 		// get workshop version
-		string $workshop = ($currPath + $wName + "/");
-		string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_" + $wName + "_*." + $wExt)`;
-		int $version = size($workshopFiles);
-
+		int $version = openPipelineGetLatestWorkshopVersion($currPath) + 1;
 		switch($inputMode)
 		{
 			case "master":
 				// get master version
-				string $versions = ($currPath + "version/");
-				string $versionFiles[] = `getFileList -folder $versions -filespec ("*_version_*." + $mExt)`;
-				int $masterVersion = (size($versionFiles) + 1);
-
+				int $masterVersion = openPipelineGetLatestMasterVersion($currPath) + 1;
 				// get comment
 				string $masterPrepend = (" (Mastered as Version " + $masterVersion + ")");
 				string $commentAdded = `textField -q -text op_masterCommentField`;
