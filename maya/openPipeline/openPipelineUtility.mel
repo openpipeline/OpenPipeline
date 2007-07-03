@@ -280,8 +280,12 @@ global proc int openPipelineGetLatestWorkshopVersion(string $path)
 {
 	string $workshopFiles[] = openPipelineGetWorkshops($path);
 	int $numWorkshops = size($workshopFiles);
-	string $latestFile = $workshopFiles[$numWorkshops-1];
-	int $version = openPipelineGetVersionFromFile($latestFile);
+	int $version = 0;
+	if ($numWorkshops)
+	{
+		string $latestFile = $workshopFiles[$numWorkshops-1];
+		$version = openPipelineGetVersionFromFile($latestFile);
+	}
 	return $version;
 }
 
@@ -289,8 +293,12 @@ global proc int openPipelineGetLatestMasterVersion(string $path)
 {
 	string $versionFiles[] = openPipelineGetVersions($path);
 	int $numVersions = size($versionFiles);
-	string $latestFile = $versionFiles[$numVersions-1];
-	int $version = openPipelineGetVersionFromFile($latestFile);
+	int $version = 0;
+	if ($numVersions)
+	{
+		string $latestFile = $versionFiles[$numVersions-1];
+		$version = openPipelineGetVersionFromFile($latestFile);
+	}	
 	return $version;
 }
 
