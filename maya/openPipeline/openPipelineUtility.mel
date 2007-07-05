@@ -256,6 +256,7 @@ global proc string[] openPipelineGetWorkshops(string $path)
 	string $wName = `optionVar -q "op_workshopName"`;
 	string $name = basename($path,"");
 	string $workshopFiles[] = `getFileList -folder ($path+$wName+"/") -filespec ("*"+$name + "_" + $wName + "_*." + $wExt)`;
+	$workshopFiles = sort($workshopFiles);
 	string $workshopFullPaths[];
 	for ($i=0; $i<size($workshopFiles); $i++)
 		$workshopFullPaths[$i] = $path+$wName+"/"+$workshopFiles[$i];
@@ -269,6 +270,7 @@ global proc string[] openPipelineGetVersions(string $path)
 	string $mExt = `optionVar -q "op_masterFormat"`;
 	string $name = basename($path,"");
 	string $versionFiles[] = `getFileList -folder ($path+"version/") -filespec ("*"+$name + "_version_*." + $mExt)`;
+	$versionFiles = sort($versionFiles);
 	string $versionFullPaths[];
 	for ($i=0; $i<size($versionFiles); $i++)
 		$versionFullPaths[$i] = $path+"version/"+$versionFiles[$i];

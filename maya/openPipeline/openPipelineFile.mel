@@ -319,6 +319,7 @@ global proc int openPipelineSceneAction(string $type, int $versionOffset, string
 		string $ext = `optionVar -q "op_workshopFormat"`;
 		string $workshopPath = ($selectedScenePath + $wName +"/");
 		string $workshopFiles[] = `getFileList -folder $workshopPath -filespec ($sceneName + "_" + $wName + "_*." + $ext)`;
+		$workshopFiles = sort($workshopFiles);
 		int $workshopNum = `size($workshopFiles)`; 
 		if ($workshopNum)
 		{
@@ -474,6 +475,7 @@ global proc openPipelineSaveWorkshop()
 		string $assetName = basename($currPath,"");
 		$workshop = ($currPath + $wName + "/");
 		$workshopFiles = `getFileList -folder $workshop -filespec ($assetName + "_" + $wName + "_*."+$ext)`;
+		$workshopFiles = sort($workshopFiles);
 		$numWorkshops = `size($workshopFiles)`;
 		if ($numWorkshops)
 			$latestWorkshop = openPipelineGetVersionFromFile($workshopFiles[$numWorkshops-1]);
@@ -486,6 +488,7 @@ global proc openPipelineSaveWorkshop()
 		string $assetName = openPipelineGetFolderFromPath($currPath,2);
 		$workshop = ($currPath + $wName + "/");
 		$workshopFiles = `getFileList -folder $workshop -filespec ($assetName + "_" + $componentName + "_" + $wName + "_*."+$ext)`;
+		$workshopFiles = sort($workshopFiles);
 		$numWorkshops = `size($workshopFiles)`;
 		if ($numWorkshops)
 			$latestWorkshop = openPipelineGetVersionFromFile($workshopFiles[$numWorkshops-1]);
@@ -529,6 +532,7 @@ global proc openPipelineSaveMaster()
 		$masterFile = ($currPath + $assetName + "_asset." + $ext);
 		$versions = ($currPath + "version/");
 		$versionFiles = `getFileList -folder $versions`;
+		$versionFiles = sort($versionFiles);
 		int $numVersions = `size($versionFiles)`;
 		if ($numVersions)
 			$latestVersion = (openPipelineGetVersionFromFile($versionFiles[$numVersions-1]));
@@ -542,6 +546,7 @@ global proc openPipelineSaveMaster()
 		$masterFile = ($currPath + $assetName + "_" + $componentName + "." + $ext);
 		$versions = ($currPath + "version/");
 		$versionFiles = `getFileList -folder $versions`;
+		$versionFiles = sort($versionFiles);
 		int $numVersions = `size($versionFiles)`;
 		if ($numVersions)
 			$latestVersion = (openPipelineGetVersionFromFile($versionFiles[$numVersions-1]));
@@ -554,6 +559,7 @@ global proc openPipelineSaveMaster()
 		$masterFile = ($currPath + $sceneName + "_scene." + $ext);
 		$versions = ($currPath + "version/");
 		$versionFiles = `getFileList -folder $versions`;
+		$versionFiles = sort($versionFiles);
 		int $numVersions = `size($versionFiles)`;
 		if ($numVersions)
 			$latestVersion = (openPipelineGetVersionFromFile($versionFiles[$numVersions-1]));

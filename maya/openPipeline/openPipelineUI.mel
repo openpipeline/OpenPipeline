@@ -568,6 +568,7 @@ global proc openPipelineUpdateCurrentlyOpen()
 		string $wName = `optionVar -q "op_workshopName"`;
 		string $workshop = ($currPath + $wName +"/");
 		string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_"+ $wName +"_*."+$wExt)`;
+		$workshopFiles = sort($workshopFiles);
 		int $numVersions = `size($workshopFiles)`;
 		int $latestVersion = 0;
 		if ($numVersions)
@@ -1521,9 +1522,10 @@ global proc openPipelineReviveGUI()
 {
 	string $wName = `optionVar -q "op_workshopName"`;
 	string $currPath = `optionVar -q "op_currOpenPath"`;
-    string $wExt = `optionVar -q "op_workshopFormat"`;
+  string $wExt = `optionVar -q "op_workshopFormat"`;
 	string $workshop = ($currPath + $wName + "/");
 	string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_" + $wName + "_*."+$wExt)`;
+	$workshopFiles = sort($workshopFiles);
 	int $numVersions = `size($workshopFiles)`;
 	
 	if(`window -exists op_secondaryUI`)
