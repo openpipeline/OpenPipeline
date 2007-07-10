@@ -611,23 +611,27 @@ global proc openPipelineCleanMaster()
 	}
 }
 
-global proc openPipelineImportRefs()
+
+global proc int openPipelineImportRefs()
 {
 	// list all references in scene
 	string $referencedFiles[] = `file -q -reference`;
 	string $eachReference;
 	
-	if (`size($referencedFiles)` >= 0)
+	if (`size($referencedFiles)` <= 0)
 	{
-		warning ("openPipeline: no references to import\n");
+		warning ("openPipeline: no references to import.");
+		return 0;
+	}else{
+		for ($eachReference in $referencedFiles)
+		{
+			file -importReference $eachReference;
+			print ("openPipeline: " + $eachReference + " imported into current scene file.\n");
+		}
 	}
-	
-	for ($eachReference in $referencedFiles)
-	{
-		file -importReference $eachReference;
-		print ("openPipeline: " + $eachReference + " imported into current scene file\n");
-	}
+	return 1;
 }
+
 
 //*** move files and folders to the archive
 //          $category - 'type', 'asset', 'workshop' or 'scene'
