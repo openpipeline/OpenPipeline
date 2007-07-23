@@ -23,64 +23,82 @@
 //op_workshopName (string) - display name for workshop files
 //op_masterName (string) - display name for master files
 //
-//LISTS (all string arrays. each string within an array is a full path)
-//op_scenes - list of scenes within the current project
+//LISTS (all string arrays. each string within an array is a full, absolute path)
+//op_scenes - list of shots within the current project
 //op_sceneAssets - list of assets listed under the selected asset type (scene management tab)
 //op_assetTypes - list of asset types within the current project
 //op_assets - list of assets under the selected asset type (asset management tab)
 //op_components - list of components under the selected asset
+//op_sequences - list of sequences within the current project
+//op_shotcomponents - list of shot components under the selected shot
+//
+//UI STATES
+//op_currTab - the current tab the user is working in (1=asset management, 2=shot management)
 
-//*** returns the path and filename for the appropriate note file
-//      $inputMode - 'note', 'scenenote', 'openednote' or 'newnote'. 
+
+//*** returns the full path and filename for the appropriate note file
+//      $inputMode - 'note', 'openednote' or 'newnote'. 
 //          See below for specific explanations of the different modes.
-global proc string openPipelineGetPath(string $inputMode)
+global proc string openPipelineGetNotePath(string $inputMode)
 {
 	string $currPath = `optionVar -q "op_currOpenPath"`;
 	string $name = basename($currPath,"");
   string $currCategory = `optionVar -q "op_currOpenCategory"`;
   string $creationPath = `optionVar -q "op_creationPath"`;
   string $creationType = `optionVar -q "op_creationType"`;
+  int $currTab = `optionVar -q "op_currTab"`;
 	string $asset = `openPipelineGetSelectedAsset`;
 	string $openPipeline_menuCurrentAsset = basename($asset,"");	
 	string $component = `openPipelineGetSelectedComponent`;
 	string $openPipeline_menuCurrentAssetComponent = basename($component, "");	
 	string $scene = `openPipelineGetSelectedScene`;
 	string $selectedScene = basename($scene, "");
+	string $shotComponent = `openPipelineGetSelectedShotcomponent`;
+	string $selectedShotcomponent = basename($shotComponent,"");
 	string $outputString;
 	switch($inputMode)
 	{
-		//returns the note file for the currently selected asset / component
+		//"note:" returns the note file for the currently selected asset / component / shot
 		case "note":
 			string $notesPath;
-			if (size($component))
+			//if user in Asset Management Tab
+			if ($currTab ==1)
 			{
-				$notesPath = $component + "notes/";
-				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_ComponentNote.xml";
+				if (size($component))
+				{
+					$notesPath = $component + "notes/";
+					$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_ComponentNote.xml";
+				}
+				else if (size($asset))
+				{
+					$notesPath = $asset + "notes/";
+					$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_AssetNote.xml";
+				}
+				
+				else
+				    $outputString = "";
 			}
-			else if (size($asset))
-			{
-				$notesPath = $asset + "notes/";
-				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_AssetNote.xml";
-			}
-			
+			//if user in AShot Management Tab
 			else
-			    $outputString = "";
-			break;
-        
-        //returns the note file for the currently selected scene
-        case "scenenote":
-			if (size($scene))
 			{
+				if (size($shotComponent))
+				{
+					$notesPath = $shotComponent + "notes/";
+					$outputString = $notesPath + $selectedScene + "_" + $selectedShotcomponent + "_ComponentNote.xml";
+				}
+				else if (size($scene))
+				{
     			string $notesPath = ($scene + "notes/");
-    			$outputString = $notesPath + $selectedScene + "_SceneNote.xml";
-    	    }
-    	    else
-    	    {
-    	        $outputString = "";
-    	    }
+    			$outputString = $notesPath + $selectedScene + "_ShotNote.xml";
+    	  }
+    	  else
+    	  {
+    	  	$outputString = "";
+    	  }
+			}
 			break;
-			
-		//returns the note file for the asset / component / scene which is currently open for editing
+
+		//"openednote": returns the note file for the asset / component / shot which is currently open for editing
 		case "openednote":
 			
 			if ($currCategory == "asset")
@@ -89,20 +107,25 @@ global proc string openPipelineGetPath(string $inputMode)
 			}
 			else if ($currCategory == "scene")
 			{
-			    $outputString = ($currPath + "notes/" + $name + "_SceneNote.xml");
+			    $outputString = ($currPath + "notes/" + $name + "_ShotNote.xml");
 			}
 			else if ($currCategory == "component")
 			{
 				string $aName = openPipelineGetFolderFromPath($currPath,2);
 				$outputString = ($currPath + "notes/" + $aName + "_" + $name + "_ComponentNote.xml");
-			}		
-            else
-            {
-                $outputString = "";
-            }
+			}
+			else if ($currCategory == "shotcomponent")
+			{
+				string $aName = openPipelineGetFolderFromPath($currPath,2);
+				$outputString = ($currPath + "notes/" + $aName + "_" + $name + "_ComponentNote.xml");
+			}				
+      else
+      {
+      	$outputString = "";
+      }
 			break;
 		
-		//returns the note file for the most recently created asset / component / scene
+		//"newnote" returns the note file for the asset / component / shot / shot component that was just created
 		case "newnote":
 			string $notesPath = $creationPath + "notes/";
 
@@ -111,7 +134,7 @@ global proc string openPipelineGetPath(string $inputMode)
 				string $assetName = basename($creationPath,"");
 				$outputString = $notesPath + $assetName + "_AssetNote.xml";
 			}
-			else if ($creationType == "component")
+			else if (($creationType == "component")||($creationType == "shotcomponent"))
 			{
 				string $assetName = openPipelineGetFolderFromPath($creationPath,2);
 				string $componentName = basename($creationPath,"");
@@ -120,7 +143,7 @@ global proc string openPipelineGetPath(string $inputMode)
 			else if ($creationType == "scene")
 			{
 			    string $sceneName = basename($creationPath,"");
-			    $outputString = $notesPath + $sceneName + "_SceneNote.xml"; 
+			    $outputString = $notesPath + $sceneName + "_ShotNote.xml"; 
 			}
 			break;
 	}
@@ -197,26 +220,6 @@ global proc int openPipelineComponentHasWorkshop(string $path)
 	return size($workshopFiles);
 }
 
-//*** returns the number of workshops that exist for a scene, asset or component
-global proc int openPipelineNumWorkshops(string $path)
-{
-	string $wExt = `optionVar -q "op_workshopFormat"`;
-	string $wName = `optionVar -q "op_workshopName"`;
-	string $name = basename($path,"");
-	string $workshopFiles[] = `getFileList -folder ($path+$wName+"/") -filespec ("*" + $name + "_" + $wName + "_*." + $wExt)`;
-	return size($workshopFiles);
-}
-
-//*** returns the number of old versions that exist for a scene, asset or component
-global proc int openPipelineNumVersions(string $path)
-{
-	string $mExt = `optionVar -q "op_masterFormat"`;
-	string $name = basename($path,"");
-	string $versionFiles[] = `getFileList -folder ($path+"version/") -filespec ("*" + $name + "_version_*." + $mExt)`;
-	return size($versionFiles);
-}
-
-
 //*** checks if a given asset has been mastered at least once
 global proc int openPipelineAssetHasMaster(string $path)
 {
@@ -232,7 +235,7 @@ global proc int openPipelineSceneHasMaster(string $path)
 {
 	string $mExt = `optionVar -q "op_masterFormat"`;
 	string $name = basename($path,"");
-	string $expectedMasterFile = ($path + $name + "_scene."+$mExt);
+	string $expectedMasterFile = ($path + $name + "_shot."+$mExt);
 	int $exists = `filetest -f $expectedMasterFile`;
 	return $exists;
 }
@@ -246,6 +249,25 @@ global proc int openPipelineComponentHasMaster(string $path)
 	string $expectedMasterFile = ($path + $asset + "_" + $name + "." + $mExt);
 	int $masterExists = `filetest -f $expectedMasterFile`;
 	return $masterExists;
+}
+
+//*** returns the number of workshops that exist for a shot, asset or component
+global proc int openPipelineNumWorkshops(string $path)
+{
+	string $wExt = `optionVar -q "op_workshopFormat"`;
+	string $wName = `optionVar -q "op_workshopName"`;
+	string $name = basename($path,"");
+	string $workshopFiles[] = `getFileList -folder ($path+$wName+"/") -filespec ("*" + $name + "_" + $wName + "_*." + $wExt)`;
+	return size($workshopFiles);
+}
+
+//*** returns the number of old mastered versions that exist for a shot, asset or component
+global proc int openPipelineNumVersions(string $path)
+{
+	string $mExt = `optionVar -q "op_masterFormat"`;
+	string $name = basename($path,"");
+	string $versionFiles[] = `getFileList -folder ($path+"version/") -filespec ("*" + $name + "_version_*." + $mExt)`;
+	return size($versionFiles);
 }
 
 //*** returns the workshop files for a given asset, component or scene

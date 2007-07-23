@@ -35,12 +35,12 @@ global proc openPipelineUI()
 	//set annotation strings
 	string $anno_assetList="Double-click to edit Asset. Hold " +$mbString+" mouse button for more options.";
 	string $anno_componentList="Double-click to edit Component. Hold down " +$mbString+" mouse button for more options.";
-	string $anno_sceneList="Double-click to Edit Scene. Hold down " +$mbString+" mouse button for more options.";	
+	string $anno_sceneList="Double-click to Edit Shot. Hold down " +$mbString+" mouse button for more options.";	
 	string $anno_projectList="Select from the available Projects.";
 	string $anno_projectManager="Open the Project Manager, where you can add or remove Projects.";
-	string $anno_saveWorkshop="Save a workshop file for the current Asset/Component/Scene.";
-	string $anno_master="Save a master file for the current Asset/Component/Scene.";
-	string $anno_revive="Revive an old version of the current Asset/Component/Scene.";
+	string $anno_saveWorkshop="Save a workshop file for the current Asset/Shot/Component.";
+	string $anno_master="Save a master file for the current Asset/Shot/Component.";
+	string $anno_revive="Revive an old version of the current Asset/Shot/Component.";
 	string $anno_assetTypeList="Choose Asset Type(s). Hold Shift of Ctrl for multiple selection.";
 	string $anno_newAssetType="Create a new Asset Type";
 	string $anno_removeAssetType="Remove the selected Asset Type(s) from the inventory.";
@@ -49,9 +49,9 @@ global proc openPipelineUI()
 	string $anno_removeAsset="Remove the selected Asset from the inventory.";
 	string $anno_newComponent="Create a new Component for the selected Asset.";
 	string $anno_removeComponent="Remove the selected Component from the inventory.";
-	string $anno_newScene="Create a new Scene.";
-	string $anno_removeScene="Remove the selected Scene from the inventory.";
-	string $anno_sceneAssetList="Choose a mastered Asset to import or reference into the scene.";
+	string $anno_newScene="Create a new Shot.";
+	string $anno_removeScene="Remove the selected Shot.";
+	string $anno_sceneAssetList="Choose a mastered Asset to import or reference into the current scene.";
 	string $anno_close="Close openPipeline.";
 	string $anno_editAsset="Open the Asset for editing.";
 	string $anno_viewAsset="Open the master file for the Asset.";
@@ -65,14 +65,24 @@ global proc openPipelineUI()
 	string $anno_importComponentMaster="Import the Component's master file into the current scene.";
 	string $anno_referenceComponentWorkshop="Reference the Component's latest workshop file into the current scene.";
 	string $anno_referenceComponentMaster="Reference the Component's master file into the current scene.";
-	string $anno_editScene="Open the Scene for editing.";
-	string $anno_viewScene="Open the master file for the Scene.";
-	string $anno_importSceneWorkshop="Import the Scene's latest workshop file into the current scene.";
-	string $anno_importSceneMaster="Import the Scene's master file into the current scene.";
-	string $anno_referenceSceneWorkshop="Reference the Scene's latest workshop file into the current scene.";
-	string $anno_referenceSceneMaster="Reference the Scene's master file into the current scene.";
-
-
+	string $anno_editScene="Open the Shot for editing.";
+	string $anno_viewScene="Open the master file for the Shot.";
+	string $anno_importSceneWorkshop="Import the Shot's latest workshop file into the current scene.";
+	string $anno_importSceneMaster="Import the Shot's master file into the current scene.";
+	string $anno_referenceSceneWorkshop="Reference the Shot's latest workshop file into the current scene.";
+	string $anno_referenceSceneMaster="Reference the Shot's master file into the current scene.";
+	string $anno_sequenceList="Choose a Sequence.";
+	string $anno_newSequence="Create a new Sequence";
+	string $anno_removeSequence="Remove the selected Sequence from the inventory.";
+	string $anno_editShotcomponent="Open the Component for editing.";
+	string $anno_viewShotcomponent="Open the master file for the Component.";
+	string $anno_importShotcomponentWorkshop="Import the Component's latest workshop file into the current scene.";
+	string $anno_importShotcomponentMaster="Import the Component's master file into the current scene.";
+	string $anno_referenceShotcomponentWorkshop="Reference the Component's latest workshop file into the current scene.";
+	string $anno_referenceShotcomponentMaster="Reference the Component's master file into the current scene.";
+	string $anno_shotcomponentList="Double-click to edit Component. Hold down " +$mbString+" mouse button for more options.";
+	string $anno_newShotcomponent="Create a new Component for the selected Asset.";
+	string $anno_removeShotcomponent="Remove the selected Component from the inventory.";
 	//if optionVars for currently open file don't exist, create them
 	if (!`optionVar -ex "op_currOpenPath"`)
 		optionVar -sv "op_currOpenPath" "";
@@ -82,7 +92,7 @@ global proc openPipelineUI()
 		optionVar -sv "op_currOpenCategory" "";
 	if (!`optionVar -ex "op_currOpenVersion"`)
 		optionVar -iv "op_currOpenVersion" 0;
-		
+	optionVar -iv "op_currTab" 1;		
 	//get list of existing projects
 	string $projList[] = openPipelineGetProjectsData();
 	string $validProjList[];
@@ -197,7 +207,7 @@ global proc openPipelineUI()
 	//--------------------------
 				 		
 	//tab layout for switching btw project and Scenes Inventory
-	string $tabs = `tabLayout -scr 0 -innerMarginWidth 0 -innerMarginHeight 0 -sc "openPipelineUpdateSceneList;openPipelineUpdateAssetTypeList;"`;
+	tabLayout -scr 0 -innerMarginWidth 0 -innerMarginHeight 0 -sc "openPipelineUpdateWorkingTab;openPipelineUpdateSequenceList;openPipelineUpdateAssetTypeList;" op_mainTabLayout;
 
 	//-------------------------
 	//main column : Project Tab
@@ -366,7 +376,7 @@ global proc openPipelineUI()
 				separator -style "double" -w 410;
 				columnLayout;
 					rowLayout -numberOfColumns 2 -cw2 325 75 -cal 1 "left" -cal 2 "right";
-						text -fn "boldLabelFont" -w 300 -label "CURRENTLY OPEN SCENE:"  -al "left" op_currOpenSceneTitle;
+						text -fn "boldLabelFont" -w 300 -label "CURRENTLY OPEN SHOT / COMPONENT:"  -al "left" op_currOpenSceneTitle;
 						text -fn "smallBoldLabelFont" -w 75 -label ""  -al "right" op_currOpenSceneHeadingVersion;
 						setParent..;
 					text -fn "smallBoldLabelFont" -w 345 -h 30 -label ""  -al "left" op_currOpenSceneHeading;
@@ -395,12 +405,21 @@ global proc openPipelineUI()
 				text -fn "boldLabelFont" -label "SCENE BROWSER" -w 410 -al "left";
 				separator -style "double" -w 410;
 				separator -style "none" -w 10 -h 5;
-				rowLayout -numberOfColumns 2 -w 410 -cw2 180 230 -cl2 "left" "left";
-					columnLayout -w 180 -rs 0 -cal "center";	
-						text -fn "smallBoldLabelFont" -l "Scenes" -w 125 -al "left";
-						menuBarLayout -bgc .9 .3 .3 -w 164 -h 180 ;
+				rowLayout -numberOfColumns 3 -w 410 -cw3 135 135 135 -cl3 "right" "right" "right";
+					columnLayout -w 120 -rs 0 -cal "center";
+						text -l "Sequence" -w 125 -fn "smallBoldLabelFont" -al "left";
+						textScrollList -w 125 -h 150 -ams 1 -sc "openPipelineUpdateSceneList 0" -fn "smallPlainLabelFont" -ann $anno_sequenceList op_sequenceScrollList;
+						separator -style "none" -w 125 -h 5;
+						rowLayout -numberOfColumns 2 -cw2 65 60;			
+    						button -l "New..." -bgc .6 .8 .5 -w 65 -c "openPipelineNewSequenceUI" -ann $anno_newSequence op_assetTypeNewButton; 
+    						button -l "Delete" -bgc .8 .3 .3 -w 60 -c "openPipelineRemoveFolder sequence" -ann $anno_removeSequence op_sequenceRemoveButton;
+							setParent..;	
+						setParent ..;	
+					columnLayout -w 129 -rs 0 -cal "center";	
+						text -fn "smallBoldLabelFont" -l "Shot" -w 125 -al "left";
+						menuBarLayout -bgc .9 .3 .3 -w 125 -h 180 ;
 								menu -label "OPTIONS..." op_sceneMenu;
-									menuItem -label "Edit Scene" -subMenu 0 -command "openPipelineSceneAction workshop 0 open 0" -ann $anno_editScene op_sceneMenuEdit;
+									menuItem -label "Edit Shot" -subMenu 0 -command "openPipelineSceneAction workshop 0 open 0" -ann $anno_editScene op_sceneMenuEdit;
 									menuItem -label "View Master" -subMenu 0 -command "openPipelineSceneAction master 0 open 0" -ann $anno_viewScene op_sceneMenuView;
 									
 									menuItem -label "Import" -subMenu 1 -ann " " op_sceneMenuImport;
@@ -412,9 +431,9 @@ global proc openPipelineUI()
 									menuItem -label "Master" -command "openPipelineSceneAction master 0 reference 0" -ann $anno_referenceSceneMaster op_sceneMenuReferenceMaster;
 										setParent -menu ..;
 									columnLayout;
-										textScrollList -w 164 -h 130 -dcc "openPipelineSceneAction workshop 0 open 0" -sc "openPipelineSceneSelected" -fn "smallPlainLabelFont" -ann $anno_sceneList op_sceneScrollList;
-										popupMenu -p op_sceneScrollList -b $mbInt -mm 1 -pmc "openPipelineSceneSelected";
-												menuItem -label "Edit Scene" -command "openPipelineSceneAction workshop 0 open 0" -ann $anno_editScene op_sceneMenuEdit2;
+										textScrollList -w 125 -h 130 -dcc "openPipelineSceneAction workshop 0 open 0" -sc "openPipelineSceneSelected 0" -fn "smallPlainLabelFont" -ann $anno_sceneList op_sceneScrollList;
+										popupMenu -p op_sceneScrollList -b $mbInt -mm 1 -pmc "openPipelineSceneSelected 0";
+												menuItem -label "Edit Shot" -command "openPipelineSceneAction workshop 0 open 0" -ann $anno_editScene op_sceneMenuEdit2;
 												menuItem -label "View Master" -command "openPipelineSceneAction master 0 open 0" -ann $anno_viewScene op_sceneMenuView2;
 											menuItem -label "Import" -subMenu 1 -ann " " op_sceneMenuImport2;
 												menuItem -label "Workshop" -command "openPipelineSceneAction workshop 0 import 0" -ann $anno_importSceneWorkshop op_sceneMenuImportWorkshop2;
@@ -425,21 +444,53 @@ global proc openPipelineUI()
 											menuItem -label "Master" -command "openPipelineSceneAction master 0 reference 0" -ann $anno_referenceSceneMaster op_sceneMenuReferenceMaster2;	
 											setParent -menu ..;
 										separator -style "none" -w 125 -h 5;
-									rowLayout -numberOfColumns 3 -cw3 64 50 50;
-										button -l "New..." -bgc .6 .8 .5 -w 64 -c "openPipelineNewSceneUI" -ann $anno_newScene op_sceneNewButton; 
-										button -l "Archive" -bgc .6 .7 .9 -w 50 -c "openPipelineArchiveDialog scene" -ann $anno_archive op_sceneArchiveButton;
-										button -l "Delete" -bgc .8 .3 .3 -w 50 -c "openPipelineRemoveFolder scene" -ann $anno_removeScene op_sceneRemoveButton;
+									rowLayout -numberOfColumns 3 -cw3 45 40 40;
+										button -l "New..." -bgc .6 .8 .5 -w 45 -c "openPipelineNewSceneUI" -ann $anno_newScene op_sceneNewButton; 
+										button -l "Arch." -bgc .6 .7 .9 -w 40 -c "openPipelineArchiveDialog shot" -ann $anno_archive op_sceneArchiveButton;
+										button -l "Delete" -bgc .8 .3 .3 -w 40 -c "openPipelineRemoveFolder scene" -ann $anno_removeScene op_sceneRemoveButton;
 									setParent..;	
 								setParent..;
 							setParent..;
 						setParent..;
-								columnLayout -rs 0;
-								text -fn "tinyBoldLabelFont" -label "Info" -w 180 -al "left";
-								scrollField -w 220 -h 80 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_sceneInfoField;
-								text -fn "tinyBoldLabelFont" -label "Comments" -w 180 -al "left";
-								scrollField -w 220 -h 80 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_sceneCommentField;
-								setParent..;
+					columnLayout;
+						text -fn "smallBoldLabelFont" -l "Components" -w 125 -al "left";
+						menuBarLayout -bgc .9 .3 .3 -w 125;
+							menu -label "OPTIONS..." op_shotcomponentMenu;
+								menuItem -label "Edit Shot Component" -subMenu 0 -command "openPipelineShotcomponentAction workshop 0 open 0" -ann $anno_editShotcomponent op_shotcompMenuEdit;
+								menuItem -label "View Master" -command "openPipelineShotcomponentAction master 0 open 0" -ann $anno_viewShotcomponent op_shotcompMenuView;
+							menuItem -label "Import" -subMenu 1 -ann " " op_shotcompMenuImport;
+								menuItem -label "Workshop" -command "openPipelineShotcomponentAction workshop 0 import 0" -ann $anno_importShotcomponentWorkshop op_shotcompMenuImportWorkshop;
+								menuItem -label "Master" -command "openPipelineShotcomponentAction master 0 import 0" -ann $anno_importShotcomponentMaster op_shotcompMenuImportMaster;
+								setParent -menu ..;
+							menuItem -label "Reference" -subMenu 1 -ann " " op_shotcompMenuReference;
+							menuItem -label "Workshop" -command "openPipelineShotcomponentAction workshop 0 reference 0" -ann $anno_referenceShotcomponentWorkshop op_shotcompMenuReferenceWorkshop;
+							menuItem -label "Master" -command "openPipelineShotcomponentAction master 0 reference 0" -ann $anno_referenceShotcomponentMaster op_shotcompMenuReferenceMaster;
+							setParent -menu ..;
+							
+						columnLayout;
+							textScrollList -w 125 -h 131 -en 0 -dcc "openPipelineShotcomponentAction workshop 0 open 0" -sc "openPipelineShotcomponentSelected" -fn "smallPlainLabelFont" -ann $anno_shotcomponentList op_shotcomponentScrollList;
+							popupMenu -p op_shotcomponentScrollList -b $mbInt -mm 1 -pmc "openPipelineShotcomponentSelected";
+										menuItem -label "Edit Shot Component" -subMenu 0 -command "openPipelineShotcomponentAction workshop 0 open 0" -ann $anno_editShotcomponent op_shotcompMenuEdit2;
+											menuItem -label "View Master" -command "openPipelineShotcomponentAction master 0 open 0" -ann $anno_viewShotcomponent op_shotcompMenuView2;
+
+										menuItem -label "Import" -subMenu 1 -ann " " op_shotcompMenuImport2;
+											menuItem -label "Workshop" -command "openPipelineShotcomponentAction workshop 0 import 0" -ann $anno_importShotcomponentWorkshop op_shotcompMenuImportWorkshop2;
+											menuItem -label "Master" -command "openPipelineShotcomponentAction master 0 import 0" -ann $anno_importShotcomponentMaster op_shotcompMenuImportMaster2;
+											setParent -menu ..;
+										menuItem -label "Reference" -subMenu 1 -ann " " op_shotcompMenuReference2;
+										menuItem -label "Workshop" -command "openPipelineShotcomponentAction workshop 0 reference 0" -ann $anno_referenceShotcomponentWorkshop op_shotcompMenuReferenceWorkshop2; 
+										menuItem -label "Master" -command "openPipelineShotcomponentAction master 0 reference 0" -ann $anno_referenceShotcomponentMaster op_shotcompMenuReferenceMaster2;	
+										setParent -menu ..;
+							separator -style "none" -w 125 -h 5;
+							rowLayout -numberOfColumns 3 -cw3 45 40 40;			
+							button -l "New..." -bgc .6 .8 .5 -w 45 -c "openPipelineNewShotcomponentUI" -ann $anno_newShotcomponent op_shotcomponentNewButton; 
+							button -l "Arch." -bgc .6 .7 .9 -w 40 -c "openPipelineArchiveDialog shotcomponent" -ann $anno_archive op_shotcomponentArchiveButton;
+							button -l "Delete" -bgc .8 .3 .3 -w 40 -c "openPipelineRemoveFolder shotcomponent" -ann $anno_removeShotcomponent op_shotcomponentRemoveButton;	
+							setParent..;	
 						setParent ..;
+					setParent..;
+					setParent..;
+						setParent..;
 						separator -style "none" -w 10 -h 10;
 				separator -style "double" -w 410;
 				text -fn "boldLabelFont" -label "AVAILABLE ASSETS" -w 410 -al "left";
@@ -491,7 +542,7 @@ global proc openPipelineUI()
 		//tabLayout editing, giving tabs diff names
 		//
 		tabLayout -edit 
-		  			-tabLabel mainColumnLayout "Asset Management" -tabLabel secColumnLayout "Scene Management" $tabs;
+		  			-tabLabel mainColumnLayout "Asset Management" -tabLabel secColumnLayout "Shot Management" op_mainTabLayout;
 		
 		//
 		//end of tabLayou editing
@@ -535,7 +586,7 @@ global proc openPipelineCloseUI()
 	openPipelineCloseProjUI();
 }
 
-//updates the "Currently Open" displays on both "Asset Management" and "Scene Management" tabs
+//updates the "Currently Open" displays on both "Asset Management" and "Shot Management" tabs
 global proc openPipelineUpdateCurrentlyOpen()
 {
 	//get information about the currently open file
@@ -598,12 +649,23 @@ global proc openPipelineUpdateCurrentlyOpen()
 			else
 				$versionString+="  ";
 		}
-		if ($currCat=="scene") //if the currently open file is a SCENE...
+		if (($currCat=="asset")||($currCat=="scene")) //if the currently open file is an ASSET...
 		{
 			//build string to display
-			string $sceneName = basename($currPath,"");
-			$displayString+=($sceneName+"  ("+$displayType+")");
-			// update scene comment field and clear the asset comment field
+			string $assetName = openPipelineGetFolderFromPath($currPath,0);
+			string $assetType = openPipelineGetFolderFromPath($currPath,1);
+			$displayString+=($assetType+": "+$assetName+"  ("+$displayType+")");
+		}
+		else if (($currCat=="component")||($currCat=="shotcomponent")) //if the currently open file is a COMPONENT...
+		{
+			//build string to display
+			string $assetName = openPipelineGetFolderFromPath($currPath,2);
+			string $assetType = openPipelineGetFolderFromPath($currPath,3);
+			string $compName = openPipelineGetFolderFromPath($currPath,0);
+			$displayString+=($assetType+": "+ $assetName+": "+$compName+"  ("+$displayType+")");
+		}
+		if (($currCat=="scene")||($currCat=="shotcomponent"))
+		{
 			openPipelineLoadCurrentSceneNote;
 			openPipelineClearCurrentAssetNote;//other side
 			//update Buttons
@@ -624,40 +686,22 @@ global proc openPipelineUpdateCurrentlyOpen()
 			}
 			else
 				text -e -vis 0 op_currOpenSceneHeadingVersion;
-			text -e -vis 0 op_currOpenHeadingVersion;//other side
 			//update Main Heading
+	
+			text -e -vis 0 op_currOpenHeadingVersion;//other side
 			text -e -label $displayString op_currOpenSceneHeading;
 			text -e -label "none open" op_currOpenHeading;//other side
-			
-		}else{ //if the currently open file is a COMPONENT or ASSET...
-			
-			if ($currCat=="asset") //if the currently open file is an ASSET...
-			{
-				//build string to display
-				string $assetName = openPipelineGetFolderFromPath($currPath,0);
-				string $assetType = openPipelineGetFolderFromPath($currPath,1);
-				$displayString+=($assetType+": "+$assetName+"  ("+$displayType+")");
-			}
-			else if ($currCat=="component") //if the currently open file is a COMPONENT...
-			{
-				//build string to display
-				string $assetName = openPipelineGetFolderFromPath($currPath,2);
-				string $assetType = openPipelineGetFolderFromPath($currPath,3);
-				string $compName = openPipelineGetFolderFromPath($currPath,0);
-				$displayString+=($assetType+": "+ $assetName+": "+$compName+"  ("+$displayType+")");
-			}
-			
-			// update current comment field and clear scene comments
-			openPipelineLoadCurrentAssetNote();	
-			openPipelineClearCurrentSceneNote();	
-			//update Buttons
+		}
+		else
+		{
+			openPipelineClearCurrentSceneNote();
+			openPipelineLoadCurrentAssetNote();
 			button -e -en $reviveEnabled  op_reviveButton;
 			button -e -en 0 op_reviveSceneButton;//other side
 			button -e -en 1 op_saveWorkshopButton;	
 			button -e -en 0 op_saveSceneWorkshopButton;//other side
 			button -e -en 1 op_masterButton;
 			button -e -en 0 op_masterSceneButton;//other side
-			//update Version Info
 			if ($versionString!="")
 			{
 				if ($latestVersion==$currVersion)
@@ -672,10 +716,13 @@ global proc openPipelineUpdateCurrentlyOpen()
 			//update Main Heading
 			text -e -label $displayString op_currOpenHeading;
 			text -e -label "none open" op_currOpenSceneHeading;//other side
-	
 		}
+
+
+	
+
 	}
-	//remove any secondary windows ("save workshop" "revive workshop" "master")
+	//remove any secondary windows ("save workshop" "revive workshop" "master" "archive")
 	openPipelineRemoveSecondaryWindows();
 }
 
@@ -768,7 +815,7 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 	//update asset type list and scene list
 	openPipelineUpdateAssetTypeList();
 	progressWindow -e -s 1;
-	openPipelineUpdateSceneList();
+	openPipelineUpdateSequenceList();
 	progressWindow -e -s 1;
 	progressWindow -ep;
 }
@@ -827,46 +874,59 @@ global proc openPipelineUpdateCustomUI()
 }
 
 
-global proc openPipelineUpdateSceneList()
+global proc openPipelineUpdateSceneList(string $preserveSelection)
 {
 	string $lastSelectedScene = openPipelineGetSelectedScene();
 	textScrollList -e -ra "op_sceneScrollList";
 	optionVar -ca "op_scenes";
-	string $scenePath = `optionVar -q "op_scenePath"`; 
-	string $sceneFolders[] = `getFileList -folder $scenePath`;
-	int $numFolders = `size($sceneFolders)`;
-	int $numScenes = 0;
-	for($i = 0; $i < $numFolders; $i++)
+	int $active = 0;
+
+	string $selectedSequence = openPipelineGetSelectedSequence();
+
+	if (size($selectedSequence))
 	{
-		string $currScenePath = $scenePath+$sceneFolders[$i]+"/";
-		if (openPipelineIsValidFolder($currScenePath))
-		{
-			string $pre="";
-			string $post="";
-			$numScenes++;
-			if (openPipelineSceneHasMaster($currScenePath))
-				$post+=" +";
-			else if (openPipelineAssetHasWorkshop($currScenePath))
-				$post+="-";
-			if ($currScenePath == `optionVar -q "op_currOpenPath"`)
+		string $shotFiles[] = `getFileList -folder $selectedSequence`;
+		int $numShots = `size($shotFiles)`;
+		for ($j = 0; $j < $numShots; $j++)
 			{
-				$pre += "*";
-				$post += " *";
-			}
-			optionVar -sva "op_scenes" $currScenePath;
-			
-			textScrollList -e -a ($pre+$sceneFolders[$i]+$post) op_sceneScrollList;
-			if ($lastSelectedScene==$currScenePath)
-			{
-				textScrollList -e -si ($pre+$sceneFolders[$i]+$post) op_sceneScrollList;
+				string $shotPath = $selectedSequence + $shotFiles[$j] + "/";
+				if (openPipelineIsValidFolder($shotPath))
+				{
+					$active = 1;
+					optionVar -sva "op_scenes" ($shotPath);
+					string $post="";
+					string $pre="";
+					
+					int $masterExists = openPipelineSceneHasMaster($shotPath);
+					int $workshopExists = openPipelineAssetHasWorkshop($shotPath);
+					if($masterExists)
+					{
+						$post+=" +";
+					}
+					else if ($workshopExists)
+					{
+						$post+=" -";
+					}
+								
+					if ($shotPath == `optionVar -q "op_currOpenPath"`)
+					{
+						$pre = "*";
+						$post+=" *";
+					}
+					textScrollList -e -a ($pre+$shotFiles[$j]+$post) "op_sceneScrollList";
+					if (($lastSelectedScene==$shotPath)&&($preserveSelection))
+						textScrollList -e -si ($pre+$shotFiles[$j]+$post) "op_sceneScrollList";
+				}
 			}
 		}
-	}
-	if (!$numScenes)
-		textScrollList -e -en 0 op_sceneScrollList;
+	
+	button -e -en (size($selectedSequence)) op_sequenceRemoveButton;
+	if (size($selectedSequence))
+			button -e -en 1 op_sceneNewButton;
 	else
-		textScrollList -e -en 1 op_sceneScrollList;
-	openPipelineSceneSelected();
+			button -e -en 0 op_sceneNewButton;
+	textScrollList -e -en $active op_sceneScrollList;
+	openPipelineSceneSelected(1);
 	openPipelineUpdateSceneAssetTypeList();
 }
 
@@ -895,37 +955,68 @@ global proc openPipelineUpdateSceneAssetTypeList()
 }
 
 
-global proc openPipelineSceneSelected()
+global proc openPipelineSceneSelected(int $preserveSelection)
 {
-	string $selScenePath = openPipelineGetSelectedScene();
+	string $selCompPath = openPipelineGetSelectedShotcomponent();
+	textScrollList -e -ra "op_shotcomponentScrollList";
+	optionVar -ca "op_shotcomponents";
+	int $active = 0;
 	
-	if ($selScenePath!="")
+	string $currScene = openPipelineGetSelectedScene();
+	int $selected = 1;
+	if ($currScene=="")
+		$selected = 0;
+	
+			button -e -en $selected op_sceneRemoveButton;
+			button -e -en $selected op_sceneArchiveButton;
+			button -e -en $selected op_shotcomponentNewButton;
+			menuItem -e -en $selected op_sceneMenuEdit;
+			menuItem -e -en $selected op_sceneMenuEdit2;
+			menuItem -e -en $selected op_sceneMenuImport;
+			menuItem -e -en $selected op_sceneMenuImport2;
+			menuItem -e -en $selected op_sceneMenuReference;
+			menuItem -e -en $selected op_sceneMenuReference2;
+	
+	if ($selected)
 	{
-			button -e -en 1 op_sceneRemoveButton;
-			button -e -en 1 op_sceneArchiveButton;
-			menuItem -e -en 1 op_sceneMenuEdit;
-			menuItem -e -en 1 op_sceneMenuEdit2;
-			menuItem -e -en 1 op_sceneMenuImport;
-			menuItem -e -en 1 op_sceneMenuImport2;
-			menuItem -e -en 1 op_sceneMenuReference;
-			menuItem -e -en 1 op_sceneMenuReference2;
-			openPipelineUpdateSceneMenus($selScenePath);
-	}else{
-		button -e -en 0 op_sceneRemoveButton;
-		button -e -en 0 op_sceneArchiveButton;
-		menuItem -e -en 0 op_sceneMenuEdit;
-		menuItem -e -en 0 op_sceneMenuView;
-		menuItem -e -en 0 op_sceneMenuImport;
-		menuItem -e -en 0 op_sceneMenuReference;
-		menuItem -e -en 0 op_sceneMenuEdit2;
-		menuItem -e -en 0 op_sceneMenuView2;
-		menuItem -e -en 0 op_sceneMenuImport2;
-		menuItem -e -en 0 op_sceneMenuReference2;
-	}
+		string $compPath = ($currScene + "components/");
+		string $compFiles[] = `getFileList -folder $compPath`;
+		int $numComps = `size($compFiles)`;
+		openPipelineUpdateSceneMenus($currScene);
+		for($j = 0; $j < $numComps; $j++)
+		{
+			string $componentPath = ($compPath + $compFiles[$j] + "/");
+			if (openPipelineIsValidFolder($componentPath))
+			{
+				$active = 1;
+				string $post="";
+				string $pre="";
+				optionVar -sva "op_shotcomponents" $componentPath;
+				int $masterExists = openPipelineComponentHasMaster($componentPath);
+				int $workshopExists = openPipelineComponentHasWorkshop($componentPath);
+				if($masterExists)
+				{
+					$post+=" +";
+				}
+				else if ($workshopExists)
+				{
+					$post+=" -";
+				}			
+				if($componentPath == `optionVar -q "op_currOpenPath"`)
+				{
+					$pre = "* ";
+					$post+=" *";
+				}
+				textScrollList -e -a ($pre+$compFiles[$j]+$post) "op_shotcomponentScrollList";
+				if (($selCompPath==$componentPath)&&($preserveSelection))
+					textScrollList -e -si ($pre+$compFiles[$j]+$post) "op_shotcomponentScrollList";
+			}
+		}
 	
-	openPipelineSceneInformation;
-	openPipelineLoadSceneNote;	
-	openPipelineUpdateCurrentlyOpen();
+	}
+	textScrollList -e -en $active "op_shotcomponentScrollList";
+	openPipelineShotcomponentSelected();
+	
 }
 
 
@@ -1031,6 +1122,30 @@ global proc openPipelineUpdateAssetTypeList()
 	openPipelineAssetTypeSelected(1);
 }
 
+global proc openPipelineUpdateSequenceList()
+{
+	string $lastSelectedPath = openPipelineGetSelectedSequence();
+	textScrollList -e -ra "op_sequenceScrollList";
+	optionVar -ca "op_sequences"; 
+	string $scenePath = `optionVar -q "op_scenePath"`;
+	string $sequenceFiles[] = `getFileList -folder $scenePath`;
+	int $numSequences = `size($sequenceFiles)`;
+	for($i = 0; $i < $numSequences; $i++)
+	{
+		string $path = $scenePath+$sequenceFiles[$i]+"/";
+		
+		if (openPipelineIsValidFolder($path))
+		{
+			optionVar -sva "op_sequences" ($path);
+			textScrollList -e -a $sequenceFiles[$i] op_sequenceScrollList;
+			
+			if ($sequenceFiles[$i]==basename($lastSelectedPath,""))
+					textScrollList -e -si $sequenceFiles[$i] op_sequenceScrollList;
+		
+		}
+	}	
+	openPipelineUpdateSceneList(1);
+}
 
 global proc string[] openPipelineGetSelectedSceneAssetTypes()
 {
@@ -1087,6 +1202,21 @@ global proc string[] openPipelineGetSelectedAssetTypes()
 		return $selectedTypePaths;
 }
 
+global proc string openPipelineGetSelectedSequence()
+{
+	string $selectedSequencePath="";
+	string $sequences[];
+	if (`optionVar -as "op_sequences"`)
+	{
+		$sequences = `optionVar -q "op_sequences"`;
+		int $selectedSequence[] = `textScrollList -q -sii op_sequenceScrollList`;
+		if ($selectedSequence[0])
+		
+			$selectedSequencePath = $sequences[($selectedSequence[0])-1];
+	}	
+	return $selectedSequencePath;
+}
+
 global proc string openPipelineGetSelectedAsset()
 {
 	string $selectedAssetPath="";
@@ -1111,6 +1241,22 @@ global proc string openPipelineGetSelectedComponent()
 	{
 		$components = `optionVar -q "op_components"`;
 		int $selected[] = `textScrollList -q -sii "op_componentScrollList"`;
+		if (size($selected))
+		{
+			$selectedCompPath = $components[($selected[0])-1];
+		}
+	}
+	return $selectedCompPath;
+}
+
+global proc string openPipelineGetSelectedShotcomponent()
+{
+	string $selectedCompPath="";
+	string $components[];
+	if (`optionVar -as "op_shotcomponents"`)
+	{
+		$components = `optionVar -q "op_shotcomponents"`;
+		int $selected[] = `textScrollList -q -sii "op_shotcomponentScrollList"`;
 		if (size($selected))
 		{
 			$selectedCompPath = $components[($selected[0])-1];
@@ -1288,7 +1434,30 @@ global proc openPipelineComponentSelected()
 	openPipelineAssetInformation();
 	openPipelineLoadAssetNote;
 }
-
+global proc openPipelineShotcomponentSelected()
+{
+	string $currComponent = openPipelineGetSelectedShotcomponent();
+	int $selected = 1;
+	if ($currComponent=="")
+		$selected = 0;
+	
+	menuItem -e -en $selected op_shotcompMenuEdit;
+	menuItem -e -en $selected op_shotcompMenuView;
+	menuItem -e -en $selected op_shotcompMenuImport;
+	menuItem -e -en $selected op_shotcompMenuReference;
+	menuItem -e -en $selected op_shotcompMenuView2;
+	menuItem -e -en $selected op_shotcompMenuImport2;
+	menuItem -e -en $selected op_shotcompMenuReference2;
+	menuItem -e -en $selected op_shotcompMenuEdit2;
+	button -e -en $selected op_shotcomponentRemoveButton;
+	button -e -en $selected op_shotcomponentArchiveButton;
+	
+	if ($selected)
+	{
+		openPipelineUpdateShotcomponentMenus($currComponent);
+	   
+	}
+}
 global proc openPipelineAboutDialog()
 {
 	if (`window -q -exists infoWindow`)
@@ -1357,6 +1526,40 @@ global proc openPipelineNewAssetTypeUI()
 	
 }
 
+global proc openPipelineNewSequenceUI()
+{
+	string $sequence;
+	string $error="";
+	string $result = `promptDialog 
+		-title "new sequence"
+		-message "sequence name: \n(no spaces or special characters\nmax length: 16 characters)\n "
+		-button "create" -button "cancel"
+		-defaultButton "create" -cancelButton "cancel"
+		-dismissString "cancel"`;
+	
+	if ($result == "create")
+	{
+		$sequence = strip(`promptDialog -query -text`);
+		
+ 			if (size($sequence)>16)
+				$error+="Asset Type Name too long (max 16 chars.).\n";
+			if (!isValidString($sequence, "([a-zA-Z0-9_])*"))
+				$error+="Invalid Asset Type Name (no special characters or spaces allowed).\n";
+				
+		if($error != "")
+		{
+			confirmDialog -title "openPipeline Error" -message $error
+ 				-button "OK" -defaultButton "OK";
+		}
+		else
+		{
+			openPipelineNewSequenceProcess($sequence);
+			openPipelineUpdateSequenceList();					
+		}
+	}
+	
+}
+
 global proc openPipelineNewAssetUI()
 {
 	string $error="";
@@ -1418,14 +1621,44 @@ global proc openPipelineNewAssetComponentUI()
 	}
 }
 
+global proc openPipelineNewShotcomponentUI()
+{
+	string $error;
+	string $result = `promptDialog 
+		-title "new shot component" 
+		-message "component name:\n(no spaces or special characters\nmax length: 12 characters)\n "
+		-button "create" -button "cancel"
+		-defaultButton "create" -cancelButton "cancel"
+		-dismissString "cancel"`;
+	
+	if($result == "create")
+	{
+		$componentName = strip(`promptDialog -query -text`);
+		if (size($componentName)>12)
+			$error+="Component Name too long (max 12 chars.).\n";
+		if (!isValidString($componentName, "([a-zA-Z]+)([a-zA-Z0-9_])*"))
+			$error+="Invalid Component Name (no special characters or spaces allowed).\n  ";
+		if($error != "")
+		{
+			confirmDialog -title "openPipeline Error" -message $error
+ 				-button "OK" -defaultButton "OK";
+		}
+		else
+		{
+			openPipelineNewShotcomponentProcess($componentName);
+			openPipelineSceneSelected(1);
+		}
+	}
+}
+
 global proc openPipelineNewSceneUI()
 {
 	global string $openPipelineNewSceneName = "";
 	
 	string $error;
 	string $result = `promptDialog 
-		-title "new scene"
-		-message "scene name:\n(no spaces or special characters\nmax length: 18 characters)\n  "
+		-title "new shot"
+		-message "shot name:\n(no spaces or special characters\nmax length: 18 characters)\n  "
 		-button "create" -button "cancel"
 		-defaultButton "create" -cancelButton "cancel"
 		-dismissString "cancel"`;
@@ -1435,8 +1668,9 @@ global proc openPipelineNewSceneUI()
 		string $sceneName = strip(`promptDialog -query -text`);
 		if (size($sceneName)>18)
 			$error+="Scene Name too long (max 18 chars.).\n";
-		if (!isValidString($sceneName, "([a-zA-Z]+)([a-zA-Z0-9_])*"))
-			$error+="Invalid Scene Name (no special characters or spaces allowed).\n";
+		//if (!isValidString($sceneName, "([a-zA-Z]+)([a-zA-Z0-9_])*"))
+		if (!isValidString($sceneName, "([a-zA-Z0-9_])*"))
+			$error+="Invalid Shot Name (no special characters or spaces allowed).\n";
 		if($error != "")
 		{
 			confirmDialog -title "openPipeline Error" -message $error
@@ -1444,7 +1678,7 @@ global proc openPipelineNewSceneUI()
 		}else{
 			$openPipelineNewSceneName = $sceneName;
 			openPipelineNewSceneProcess($sceneName);
-			openPipelineUpdateSceneList();
+			openPipelineUpdateSceneList(1);
 		}
 	}
 }
@@ -1571,6 +1805,8 @@ global proc openPipelineReviveWorkshopCallback()
 		openPipelineComponentAction workshop $versionOffset open 1;
 	else if ($currCat=="scene")
 		openPipelineSceneAction workshop $versionOffset open 1;
+	else if ($currCat=="shotcomponent")
+		openPipelineShotcomponentAction workshop $versionOffset open 1;
 }
 
 // fill the asset information box with the collected info
@@ -1631,49 +1867,6 @@ global proc	openPipelineAssetInformation()
 	
 }
 
-// fill the scene information box with the collected info
-//
-global proc	openPipelineSceneInformation()
-{
-	string $wName = `optionVar -q "op_workshopName"`;
-	string $mName = `optionVar -q "op_masterName"`;
-	string $scene = `openPipelineGetSelectedScene`;
-	string $openPipeline_menuCurrentScene = basename($scene,"");	
-	int $workshopNum;	
-	int $versionNum;
-	int $masterExists;
-	string $expectedMasterFile;
-	$workshopNum = openPipelineNumWorkshops($scene);
-	$versionNum = openPipelineNumVersions($scene);
-	$masterExists = openPipelineSceneHasMaster($scene);
-	
-	string $outputText;
-	if ($scene == "")
-	{
-	    $outputText = "";
-	}
-	else
-	{
-    	// mastered?
-    	string $fileMastered;
-    	string $masterDate;
-    	if($masterExists == 1)
-    		$fileMastered = ($mName+"?: Yes\n");
-    	else 
-    		$fileMastered = ($mName+"?: No \n");
-    
-    	// format information
-    	string $assetInfoHeader = ($openPipeline_menuCurrentScene + "\n");
-    
-    	string $workshopTotal = ($wName+": " + $workshopNum + "\n");		
-    	string $versionTotal = ("Versions: " + $versionNum + "\n");	
-    
-    	$outputText = ($assetInfoHeader + $workshopTotal + $versionTotal + $fileMastered);
-    }
-	// fill box
-	scrollField -e -text $outputText op_sceneInfoField;
-}
-
 global proc openPipelineUpdateSceneMenus(string $scenePath)
 {
 	int $hasMaster = openPipelineSceneHasMaster($scenePath);
@@ -1726,15 +1919,34 @@ global proc openPipelineUpdateComponentMenus(string $componentPath)
 	menuItem -e -en $hasWorkshop op_compMenuReferenceWorkshop2;
 }
 
+global proc openPipelineUpdateShotcomponentMenus(string $componentPath)
+{
+	int $hasMaster = openPipelineComponentHasMaster($componentPath);
+	int $hasWorkshop = openPipelineComponentHasWorkshop($componentPath);
+	menuItem -e -en $hasMaster op_shotcompMenuView;
+	menuItem -e -en $hasMaster op_shotcompMenuImportMaster;
+	menuItem -e -en $hasMaster op_shotcompMenuReferenceMaster;
+	menuItem -e -en $hasWorkshop op_shotcompMenuImportWorkshop;
+	menuItem -e -en $hasWorkshop op_shotcompMenuReferenceWorkshop;
+	
+	menuItem -e -en $hasMaster op_shotcompMenuView2;
+	menuItem -e -en $hasMaster op_shotcompMenuImportMaster2;
+	menuItem -e -en $hasMaster op_shotcompMenuReferenceMaster2;
+	menuItem -e -en $hasWorkshop op_shotcompMenuImportWorkshop2;
+	menuItem -e -en $hasWorkshop op_shotcompMenuReferenceWorkshop2;
+}
+
 global proc openPipelineArchiveDialog(string $type)
 {
 	string $path;
-	if ($type=="scene")
+	if ($type=="shot")
 		$path = openPipelineGetSelectedScene();
 	else if ($type=="asset")
 		$path = openPipelineGetSelectedAsset();
 	else if ($type=="component")
 		$path = openPipelineGetSelectedComponent();
+	else if ($type=="shotcomponent")
+		$path = openPipelineGetSelectedShotcomponent();
 	string $name = basename($path,"");
 	int $maxWorkshops = openPipelineNumWorkshops($path);
 	int $maxVersions = openPipelineNumVersions($path);
@@ -1792,4 +2004,10 @@ global proc openPipelineArchiveDialog(string $type)
 	}
 	else 
 		intField -e -max $maxVersions op_archiveField2;
+}
+
+global proc openPipelineUpdateWorkingTab()
+{
+	int $tab = `tabLayout -q -selectTabIndex op_mainTabLayout`;
+	optionVar -iv "op_currTab" $tab;
 }

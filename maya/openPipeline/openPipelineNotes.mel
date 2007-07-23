@@ -4,7 +4,7 @@
 
 global proc openPipelineLoadAssetNote()
 {
-	string $notePath = `openPipelineGetPath "note"`;
+	string $notePath = `openPipelineGetNotePath "note"`;
     string $assetNoteText = "";
     if (size($notePath))
     {
@@ -19,30 +19,11 @@ global proc openPipelineLoadAssetNote()
 	scrollField -edit -text $assetNoteText op_commentField;
 }
 
-global proc openPipelineLoadSceneNote()
-{
-	string $notePath = `openPipelineGetPath "scenenote"`;
-    string $sceneNoteText = "";
-	if (size($notePath))
-	{
-    	if(`filetest -f $notePath` == 0)
-    	{
-            openPipelineSceneNoteWriter "creation";
-    	}
-    
-    	string $sceneNoteTextArray[] = `openPipelineReadXML $notePath`;
-    	$sceneNoteText = stringArrayToString($sceneNoteTextArray, "");
-    }
-	scrollField -edit -text $sceneNoteText op_sceneCommentField;
-}
-
-
 global proc openPipelineLoadCurrentAssetNote()
 {
-	string $notePath = `openPipelineGetPath "openednote"`;
+	string $notePath = `openPipelineGetNotePath "openednote"`;
 	string $assetNoteTextArray[] = `openPipelineReadLatestNote $notePath`;
 	string $assetNoteText = stringArrayToString($assetNoteTextArray, "");
-		
 	scrollField -edit -text $assetNoteText op_currentAssetNoteField;
 }
 
@@ -55,7 +36,7 @@ global proc openPipelineClearCurrentAssetNote()
 
 global proc openPipelineLoadCurrentSceneNote()
 {
-	string $notePath = `openPipelineGetPath "openednote"`;
+	string $notePath = `openPipelineGetNotePath "openednote"`;
 	string $sceneNoteTextArray[] = `openPipelineReadLatestNote $notePath`;
 	string $sceneNoteText = stringArrayToString($sceneNoteTextArray, "");
 	scrollField -edit -text $sceneNoteText op_currentSceneNoteField;
@@ -89,7 +70,7 @@ global proc string[] openPipelineReadLatestNote(string $inputPath)
 
 global proc openPipelineReviveWorkshopNotesCallback()
 {
-	string $notePath = `openPipelineGetPath "openednote"`;
+	string $notePath = `openPipelineGetNotePath "openednote"`;
 	string $outputString[];
 	string $selectedVersionNumber = `optionMenu -q -v op_reviveVersionMenu`;
 	int $version = $selectedVersionNumber;
@@ -330,7 +311,6 @@ global proc string[] openPipelineCullNotesByVersion(string $allTheNotes[], int $
 	return $noteContents;
 }
 
-
 global proc string openPipelineGetCleanLineXML(string $nextLine)
 {
 	$nextLine = `strip($nextLine)`;
@@ -338,7 +318,7 @@ global proc string openPipelineGetCleanLineXML(string $nextLine)
 	return $nextLine;
 }
 
-global proc int openPipelineAssetNoteWriter(string $inputMode)
+global proc int openPipelineNoteWriter(string $inputMode)
 {
 	global string $openPipeline_userName;	
 	
@@ -349,7 +329,7 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 	string $timeStrip = openPipelineGetTime();
 	if($inputMode=="creation")
 	{	
-		string $creationPath = `openPipelineGetPath "newnote"`;
+		string $creationPath = `openPipelineGetNotePath "newnote"`;
 		$fileId=`fopen $creationPath "w"`;
 		fprint $fileId "<?xml version=\"1.0\"?>\n";
 		fprint $fileId "	<note>\n";
@@ -360,14 +340,13 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 		fprint $fileId ("		<event>created</event>\n");
 		fprint $fileId "	</note>\n";
  		fclose $fileId;
-
  		return 1;
 
 	}
 	
 	else if ($inputMode == "missing")
 	{
-		string $creationPath = `openPipelineGetPath "note"`;			
+		string $creationPath = `openPipelineGetNotePath "note"`;			
 		$fileId=`fopen $creationPath "w"`;
 		fprint $fileId "<?xml version=\"1.0\"?>\n";
 		fprint $fileId "	<note>\n";
@@ -390,13 +369,11 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 	  string $wName = `optionVar -q "op_workshopName"`;
 		// get workshop version
 		int $version = openPipelineGetLatestWorkshopVersion($currPath);
-
 		switch($inputMode)
 		{
 			case "master":
 				// get master version
 				int $masterVersion = openPipelineGetLatestMasterVersion($currPath) + 1;
-
 				// get comment
 				string $masterPrepend = (" (Mastered as Version " + $masterVersion + ")");
 				string $commentAdded = `textField -q -text op_masterCommentField`;
@@ -405,12 +382,12 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 		
 			case "workshop":
 				// get comment
-				string $commentAdded = `textField -q -text op_saveWorkshopCommentField`;	
+				string $commentAdded = `textField -q -text op_saveWorkshopCommentField`;
 				$commentAdded = `strip $commentAdded`;
 			break;
 		}
 		
-		string $notePath = `openPipelineGetPath "openednote"`;
+		string $notePath = `openPipelineGetNotePath "openednote"`;
 		
 		if(`filetest -f $notePath`)
 		{
@@ -425,7 +402,7 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
 		fprint $fileId ("		<date>" + $dateStrip + "</date>\n");
 		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
-		fprint $fileId ("		<event>workshop</event>\n");
+		fprint $fileId ("		<event>"+$wName+"</event>\n");
 		fprint $fileId ("		<version>" + $version + "</version>\n");
 		fprint $fileId ("		<comment>" + $commentAdded + "</comment>\n");
 		fprint $fileId  "   </note>\n";
@@ -438,105 +415,6 @@ global proc int openPipelineAssetNoteWriter(string $inputMode)
 	}
 	return 1;
 }
-
-
-global proc int openPipelineSceneNoteWriter(string $inputMode)
-{
-	global string $openPipeline_userName;	
-	
-	int $fileId;
-	
-	//get the date and time
-	string $dateStrip = openPipelineGetDate();
-	string $timeStrip = openPipelineGetTime();
-	if($inputMode=="creation")
-	{	
-		string $creationPath = `openPipelineGetPath "newnote"`;
-		
-		$fileId=`fopen $creationPath "w"`;
-		fprint $fileId "<?xml version=\"1.0\"?>\n";
-		fprint $fileId "	<note>\n";
-		fprint $fileId "		<notetype>creation</notetype>\n";
-		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
-		fprint $fileId ("		<date>" + $dateStrip + "</date>\n");
-		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
-		fprint $fileId ("		<event>created</event>\n");
-		fprint $fileId "	</note>\n";
- 		fclose $fileId;
-
- 		return 1;
-
-	}else if($inputMode == "missing"){
-		string $creationPath = `openPipelineGetPath "scenenote"`;			
-		$fileId=`fopen $creationPath "w"`;
-		fprint $fileId "<?xml version=\"1.0\"?>\n";
-		fprint $fileId "	<note>\n";
-		fprint $fileId "		<notetype>creation</notetype>\n";
-		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
-		fprint $fileId ("		<date>" + $dateStrip + "</date>\n");
-		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
-		fprint $fileId ("		<event>created - note missing</event>\n");
-		fprint $fileId "	</note>\n";
- 		fclose $fileId;
-
- 		return 1;
-
-	}
-	else
-	{
-		string $currPath = `optionVar -q "op_currOpenPath"`;
-    string $mExt = `optionVar -q "op_masterFormat"`;
-	  string $wExt = `optionVar -q "op_workshopFormat"`;
-	  string $wName = `optionVar -q "op_workshopName"`;
-		// get workshop version
-		int $version = openPipelineGetLatestWorkshopVersion($currPath) + 1;
-		switch($inputMode)
-		{
-			case "master":
-				// get master version
-				int $masterVersion = openPipelineGetLatestMasterVersion($currPath) + 1;
-				// get comment
-				string $masterPrepend = (" (Mastered as Version " + $masterVersion + ")");
-				string $commentAdded = `textField -q -text op_masterCommentField`;
-				$commentAdded = (`strip $commentAdded` + $masterPrepend);
-			break;
-		
-			case "workshop":
-				// get comment
-				string $commentAdded = `textField -q -text op_saveWorkshopCommentField`;	
-				$commentAdded = `strip $commentAdded`;
-			break;
-		}
-		
-		string $notePath = `openPipelineGetPath "openednote"`;
-		
-		if(`filetest -f $notePath`)
-		{
-			
-			openPipelineFilePermisson "-R" $notePath;
-			$fileId=`fopen $notePath "a"`;
-		}else{
-			$fileId=`fopen $notePath "w"`;
-		}
-					
-		fprint $fileId "	<note>\n";
-		fprint $fileId ("		<notetype>" + $inputMode + "</notetype>\n");
-		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
-		fprint $fileId ("		<date>" + $dateStrip + "</date>\n");
-		fprint $fileId ("		<time>" + $timeStrip + "</time>\n");			
-		fprint $fileId ("		<event>workshop</event>\n");
-		fprint $fileId ("		<version>" + $version + "</version>\n");
-		fprint $fileId ("		<comment>" + $commentAdded + "</comment>\n");
-		fprint $fileId "	</note>\n";
-	 	fclose $fileId;
-	 	
-	 	
-	 	//reload the note
-	 	openPipelineLoadSceneNote;
-	}
-	return 1;
-}
-
 
 //change the file permission in Windows
 //
