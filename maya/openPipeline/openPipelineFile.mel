@@ -191,9 +191,7 @@ global proc int openPipelineAssetAction(string $type, int $versionOffset, string
 	if (($action=="open")&&(`file -q -mf`)&&(size($currOpen)))
 	{
 		string $confirm;
-		$confirm = `confirmDialog -t "openPipeline" -m ("Would you like to Save "+$wName+" before 
-
-editing Asset?") -b "Save" -b "Don't Save" -b "Cancel" -db "Save"`;
+		$confirm = `confirmDialog -t "openPipeline" -m ("Would you like to Save "+$wName+" before editing Asset?") -b "Save" -b "Don't Save" -b "Cancel" -db "Save"`;
 		if ($confirm==("Save"))
 			openPipelineSaveWorkshop;
 		else if ($confirm=="Cancel")
@@ -226,11 +224,7 @@ editing Asset?") -b "Save" -b "Don't Save" -b "Cancel" -db "Save"`;
 		}
 		else if ($type=="workshop")
 		{
-			string $choice = `confirmDialog -t "Edit Asset" -m "You are about to edit an asset 
-
-for the first time. Would you like to start with an new scene, or the currently open scene?" -b "New Scene" 
-
--b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
+			string $choice = `confirmDialog -t "Edit Asset" -m "You are about to edit an asset for the first time. Would you like to start with an new scene, or the currently open scene?" -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
 			if ($choice=="New Scene")
 				file -f -new;
 			else if ($choice=="Cancel")
@@ -287,9 +281,7 @@ $currentlyOpen)
 	if (($action=="open")&&(`file -q -mf`)&&(size($currOpen)))
 	{
 		string $confirm;
-		$confirm = `confirmDialog -t "openPipeline" -m ("Would you like to Save "+$wName+" before 
-
-editing Component?") -b "Save" -b "Don't Save" -b "Cancel" -db "Save"`;
+		$confirm = `confirmDialog -t "openPipeline" -m ("Would you like to Save "+$wName+" before editing Component?") -b "Save" -b "Don't Save" -b "Cancel" -db "Save"`;
 		if ($confirm=="Save")
 			openPipelineSaveWorkshop;
 		else if ($confirm=="Cancel")
@@ -319,11 +311,7 @@ editing Component?") -b "Save" -b "Don't Save" -b "Cancel" -db "Save"`;
 		}
 		else if ($type=="workshop")
 		{
-			string $choice = `confirmDialog -t "Edit Component" -m ("You are about to edit a 
-
-component with no existing "+$wName+"s.\nWould you like to start with an new scene, or the currently open 
-
-scene?") -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
+			string $choice = `confirmDialog -t "Edit Component" -m ("You are about to edit a component with no existing "+$wName+"s.\nWould you like to start with an new scene, or the currently open scene?") -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
 			if ($choice=="New Scene")
 				file -f -new;
 			else if ($choice=="Cancel")
@@ -345,9 +333,7 @@ scene?") -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current
 	}
 	else if (($action=="reference")&&($fileExists))
 	{
-		file -reference -gl   -shd "renderLayersByName" -namespace $componentName -options "v=0;p=17" 
-
-$file;
+		file -reference -gl   -shd "renderLayersByName" -namespace $componentName -options "v=0;p=17" $file;
 		return 1; // success
 	}
 	else
@@ -382,9 +368,7 @@ global proc int openPipelineSceneAction(string $type, int $versionOffset, string
 	if (($action=="open")&&(`file -q -mf`)&&(size($currOpen)))
 	{
 		string $confirm;
-		$confirm = `confirmDialog -t "openPipeline" -m "Would you like to Save Workshop before 
-
-editing Shot?" -b "Save Workshop" -b "Don't Save" -b "Cancel" -db "Save Workshop"`;
+		$confirm = `confirmDialog -t "openPipeline" -m "Would you like to Save Workshop before editing Shot?" -b "Save Workshop" -b "Don't Save" -b "Cancel" -db "Save Workshop"`;
 		if ($confirm=="Save Workshop")
 			openPipelineSaveWorkshop;
 		else if ($confirm=="Cancel")
@@ -395,9 +379,7 @@ editing Shot?" -b "Save Workshop" -b "Don't Save" -b "Cancel" -db "Save Workshop
 	{
 		string $ext = `optionVar -q "op_workshopFormat"`;
 		string $workshopPath = ($selectedScenePath + $wName +"/");
-		string $workshopFiles[] = `getFileList -folder $workshopPath -filespec ($sceneName + "_" + 
-
-$wName + "_*." + $ext)`;
+		string $workshopFiles[] = `getFileList -folder $workshopPath -filespec ($sceneName + "_" + $wName + "_*." + $ext)`;
 		$workshopFiles = sort($workshopFiles);
 		int $workshopNum = `size($workshopFiles)`; 
 		if ($workshopNum)
@@ -420,11 +402,7 @@ $wName + "_*." + $ext)`;
 		}
 		else if ($type=="workshop")
 		{
-			string $choice = `confirmDialog -t "Edit Scene" -m ("You are about to edit a shot 
-
-with no existing " + $wName + ".\nWould you like to start with an new scene, or the currently open scene?") 
-
--b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
+			string $choice = `confirmDialog -t "Edit Scene" -m ("You are about to edit a shot with no existing " + $wName + ".\nWould you like to start with an new scene, or the currently open scene?") -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
 			if ($choice=="New Scene")
 			{
 				file -f -new;
@@ -456,9 +434,7 @@ with no existing " + $wName + ".\nWould you like to start with an new scene, or 
 		$namespace = $sceneName;
 		if (!isValidString($sceneName, "([a-zA-Z]+)([a-zA-Z0-9_])*"))
 			$namespace = ("shot_"+$sceneName);
-		file -reference -gl  -shd "renderLayersByName" -namespace $namespace -options "v=0;p=17" 
-
-$file;
+		file -reference -gl  -shd "renderLayersByName" -namespace $namespace -options "v=0;p=17" $file;
 		return 1; // success
 	}else{
 		warning ("openPipeline: No " + $type +" File Exists In: " + $selectedScenePath + " \n");
@@ -471,9 +447,7 @@ $file;
 //      $versionOffset - for opening previous workshop versions. 0 means latest version
 //      $action - action to perform  ('open', 'import', or 'reference')
 //      $currentlyOpen - 1 to perform action on currently open Component, 0 for currently selected Component
-global proc int openPipelineShotcomponentAction(string $type, int $versionOffset, string $action, int 
-
-$currentlyOpen)
+global proc int openPipelineShotcomponentAction(string $type, int $versionOffset, string $action, int $currentlyOpen)
 { 
 	string $wName = `optionVar -q "op_workshopName"`;
 	string $selectedComponentPath;
@@ -489,9 +463,7 @@ $currentlyOpen)
 	if (($action=="open")&&(`file -q -mf`)&&(size($currOpen)))
 	{
 		string $confirm;
-		$confirm = `confirmDialog -t "openPipeline" -m ("Would you like to Save "+$wName+" before 
-
-editing Component?") -b "Save" -b "Don't Save" -b "Cancel" -db "Save"`;
+		$confirm = `confirmDialog -t "openPipeline" -m ("Would you like to Save "+$wName+" before editing Component?") -b "Save" -b "Don't Save" -b "Cancel" -db "Save"`;
 		if ($confirm=="Save")
 			openPipelineSaveWorkshop;
 		else if ($confirm=="Cancel")
@@ -521,11 +493,7 @@ editing Component?") -b "Save" -b "Don't Save" -b "Cancel" -db "Save"`;
 		}
 		else if ($type=="workshop")
 		{
-			string $choice = `confirmDialog -t "Edit Component" -m ("You are about to edit a 
-
-component with no existing "+$wName+"s.\nWould you like to start with an new scene, or the currently open 
-
-scene?") -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
+			string $choice = `confirmDialog -t "Edit Component" -m ("You are about to edit a component with no existing "+$wName+"s.\nWould you like to start with an new scene, or the currently open scene?") -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
 			if ($choice=="New Scene")
 				file -f -new;
 			else if ($choice=="Cancel")
@@ -574,9 +542,7 @@ global proc int openPipelineSceneAssetAction(string $action)
 		{
 			file -import -ra true -rdn -namespace $assetName -pr   $file;
 		}else if ($action=="reference"){
-			file -reference -gl   -shd "renderLayersByName" -namespace $assetName -options 
-
-"v=0;p=17" $file;
+			file -reference -gl   -shd "renderLayersByName" -namespace $assetName -options "v=0;p=17" $file;
 		}else{
 			error("invalid action passed into `openPipelineSceneAssetAction` procedure");
 			return 0;
@@ -645,9 +611,7 @@ global proc openPipelineSaveWorkshop()
 		{
 		string $assetName = basename($currPath,"");
 		$workshop = ($currPath + $wName + "/");
-		$workshopFiles = `getFileList -folder $workshop -filespec ($assetName + "_" + $wName + 
-
-"_*."+$ext)`;
+		$workshopFiles = `getFileList -folder $workshop -filespec ($assetName + "_" + $wName + "_*."+$ext)`;
 		$workshopFiles = sort($workshopFiles);
 		$numWorkshops = `size($workshopFiles)`;
 		if ($numWorkshops)
@@ -660,9 +624,7 @@ global proc openPipelineSaveWorkshop()
 		string $componentName = basename($currPath,"");
 		string $assetName = openPipelineGetFolderFromPath($currPath,2);
 		$workshop = ($currPath + $wName + "/");
-		$workshopFiles = `getFileList -folder $workshop -filespec ($assetName + "_" + $componentName 
-
-+ "_" + $wName + "_*."+$ext)`;
+		$workshopFiles = `getFileList -folder $workshop -filespec ($assetName + "_" + $componentName + "_" + $wName + "_*."+$ext)`;
 		$workshopFiles = sort($workshopFiles);
 		$numWorkshops = `size($workshopFiles)`;
 		if ($numWorkshops)
@@ -728,9 +690,7 @@ global proc openPipelineSaveMaster()
 		if ($numVersions)
 			$latestVersion = (openPipelineGetVersionFromFile($versionFiles[$numVersions-1]));
 		string $suffix = openPipelinePad(($latestVersion+1),4);
-		$destinationFile = ($versions + $assetName + "_" + $componentName + "_version_" + $suffix + 
-
-"." + $ext);		
+		$destinationFile = ($versions + $assetName + "_" + $componentName + "_version_" + $suffix + "." + $ext);		
 	}
 	else if($currCat == "scene")
 	{
@@ -828,9 +788,7 @@ global proc openPipelineRemoveFolder(string $category)
 	
 	if ($category == "type")
 	{
-		$confirmText = "Are you sure you want to remove the selected Asset Type(s)?\n(all files and 
-
-folders will be moved to the 'deleted' folder)";
+		$confirmText = "Are you sure you want to remove the selected Asset Type(s)?\n(all files and folders will be moved to the 'deleted' folder)";
 		$paths = openPipelineGetSelectedAssetTypes();
 		$refreshCmd = "openPipelineUpdateAssetTypeList";
 		if ($currCat=="asset")
@@ -841,9 +799,7 @@ folders will be moved to the 'deleted' folder)";
 	else if ($category == "asset")
 	{
 		$checkExtent=2;
-		$confirmText = "Are you sure you want to remove the selected Asset?\n(all corresponding 
-
-files, folders and archives will be moved to the 'deleted' folder)";
+		$confirmText = "Are you sure you want to remove the selected Asset?\n(all corresponding files, folders and archives will be moved to the 'deleted' folder)";
 		$paths[0] = openPipelineGetSelectedAsset();
 		$refreshCmd = "openPipelineAssetTypeSelected 1";
 		if ($currCat=="asset")
@@ -854,9 +810,7 @@ files, folders and archives will be moved to the 'deleted' folder)";
 	else if ($category == "component")
 	{
 		$checkExtent=4;
-		$confirmText = "Are you sure you want to remove the selected Component?\n(all corresponding 
-
-files, folders and archives will be moved to the 'deleted' folder)";
+		$confirmText = "Are you sure you want to remove the selected Component?\n(all corresponding files, folders and archives will be moved to the 'deleted' folder)";
 		$paths[0] = openPipelineGetSelectedComponent();
 		$refreshCmd = "openPipelineAssetSelected 1";
 		if ($currCat=="component")
@@ -864,9 +818,7 @@ files, folders and archives will be moved to the 'deleted' folder)";
 	}
 	else if ($category == "scene")
 	{
-		$confirmText = "Are you sure you want to remove the selected Shot?\n(all corresponding files, 
-
-folders and archives will be moved to the 'deleted' folder)";
+		$confirmText = "Are you sure you want to remove the selected Shot?\n(all corresponding files, folders and archives will be moved to the 'deleted' folder)";
 		$paths[0] = openPipelineGetSelectedScene();
 		$refreshCmd = "openPipelineUpdateSceneList 1";
 		if ($currCat=="scene")
@@ -874,9 +826,7 @@ folders and archives will be moved to the 'deleted' folder)";
 	}
 	else if ($category == "sequence")
 	{
-		$confirmText = "Are you sure you want to remove the selected Sequence?\n(all corresponding 
-
-files, folders and archives will be moved to the 'deleted' folder)";
+		$confirmText = "Are you sure you want to remove the selected Sequence?\n(all corresponding files, folders and archives will be moved to the 'deleted' folder)";
 		$paths[0] = openPipelineGetSelectedSequence();
 		$refreshCmd = "openPipelineUpdateSequenceList";
 		if ($currCat=="sequence")
@@ -885,17 +835,13 @@ files, folders and archives will be moved to the 'deleted' folder)";
 	else if ($category == "shotcomponent")
 	{
 		$checkExtent=4;
-		$confirmText = "Are you sure you want to remove the selected Shot Component?\n(all 
-
-corresponding files, folders and archives will be moved to the 'deleted' folder)";
+		$confirmText = "Are you sure you want to remove the selected Shot Component?\n(all corresponding files, folders and archives will be moved to the 'deleted' folder)";
 		$paths[0] = openPipelineGetSelectedShotcomponent();
 		$refreshCmd = "openPipelineSceneSelected 1";
 		if ($currCat=="component")
 			$currCheckOffset=0;
 	}	
-	if (`confirmDialog -t "Remove Files" -m $confirmText -ma "center" -b "Yes" -b "No" -db "Yes" -cb 
-
-"No"`=="Yes")
+	if (`confirmDialog -t "Remove Files" -m $confirmText -ma "center" -b "Yes" -b "No" -db "Yes" -cb "No"`=="Yes")
 	{
 		if (!`filetest -d $deletePath`)
 			sysFile -makeDir $deletePath;
@@ -912,9 +858,7 @@ corresponding files, folders and archives will be moved to the 'deleted' folder)
 				for ($k=0;$k<$checkExtent;$k++)
 				{
 					string $one=openPipelineGetFolderFromPath($paths[$i],$k);
-					string 
-
-$two=openPipelineGetFolderFromPath($currPath,$k+$currCheckOffset);
+					string $two=openPipelineGetFolderFromPath($currPath,$k+$currCheckOffset);
 					if ($one!=$two)
 					{
 						$isCurrent=0;
@@ -923,11 +867,7 @@ $two=openPipelineGetFolderFromPath($currPath,$k+$currCheckOffset);
 				}
 				if ($isCurrent)
 				{
-					if (`confirmDialog -t "Remove Files" -m "You are removing an asset, 
-
-component or scene that is currently open. Continue?" -ma "center" -b "Yes" -b "No" -db "Yes" -cb 
-
-"No"`=="Yes")
+					if (`confirmDialog -t "Remove Files" -m "You are removing an asset, component or scene that is currently open. Continue?" -ma "center" -b "Yes" -b "No" -db "Yes" -cb "No"`=="Yes")
 					{
 						optionVar -sv "op_currOpenPath" "";
 						optionVar -sv "op_currOpenType" "";
@@ -946,23 +886,15 @@ component or scene that is currently open. Continue?" -ma "center" -b "Yes" -b "
 				$destinationFolderName = openPipelineGetFolderFromPath($paths[$i],0);
 			else if ($category == "asset")
 			{
-				$destinationFolderName = 
-
-openPipelineGetFolderFromPath($paths[$i],1)+"_"+openPipelineGetFolderFromPath($paths[$i],0);
+				$destinationFolderName = openPipelineGetFolderFromPath($paths[$i],1)+"_"+openPipelineGetFolderFromPath($paths[$i],0);
 			}
 			else if ($category == "component")
 			{
-				$destinationFolderName = 
-
-openPipelineGetFolderFromPath($paths[$i],3)+"_"+openPipelineGetFolderFromPath($paths[$i],2)+"_"+openPipelineG
-
-etFolderFromPath($paths[$i],0);
+				$destinationFolderName = openPipelineGetFolderFromPath($paths[$i],3)+"_"+openPipelineGetFolderFromPath($paths[$i],2)+"_"+openPipelineGetFolderFromPath($paths[$i],0);
 			}
 			else if ($category == "scene")
 			{
-				$destinationFolderName = "scene_" + 
-
-openPipelineGetFolderFromPath($paths[$i],0);
+				$destinationFolderName = "scene_" + openPipelineGetFolderFromPath($paths[$i],0);
 			}
 			
 			int $j = 0;
@@ -983,11 +915,7 @@ openPipelineGetFolderFromPath($paths[$i],0);
 			$result1 = `sysFile -rename $renamedPath $originalPath`;
 			if (!$result1)
 				{
-					confirmDialog -t "openPipeline: Remove Error" -m ("Remove failed. 
-
-Folder "+$originalPath+" could not be moved to the 'deleted' folder. \nA folder or file may be in use outside 
-
-of Maya.") -b "Ok";
+					confirmDialog -t "openPipeline: Remove Error" -m ("Remove failed. Folder "+$originalPath+" could not be moved to the 'deleted' folder. \nA folder or file may be in use outside of Maya.") -b "Ok";
 				}
 			else
 				{
@@ -1004,11 +932,7 @@ $projectPath, $archivePath);
 $originalArchivedPath`;
 						if (!$result2)
 						{
-							confirmDialog -t "openPipeline: Remove Error" -m 
-
-("Remove failed. Folder "+$originalArchivedPath+" could not be moved to the 'deleted' folder. \nA folder or 
-
-file may be in use outside of Maya.") -b "Ok";
+							confirmDialog -t "openPipeline: Remove Error" -m ("Remove failed. Folder "+$originalArchivedPath+" could not be moved to the 'deleted' folder. \nA folder or file may be in use outside of Maya.") -b "Ok";
 						}
 					}
 				}
@@ -1086,12 +1010,8 @@ $archivePath);
 						$vSuccesses++;
 				}
 	}
-	string $message = $wSuccesses+" / "+ $wAttempts +" "+ $wName+" files successfully moved to the 
-
-archive.\n";
-	$message = $message + " " + $vSuccesses+" / "+ $vAttempts + " version files successfully moved to the 
-
-archive.\n";
+	string $message = $wSuccesses+" / "+ $wAttempts +" "+ $wName+" files successfully moved to the archive.\n";
+	$message = $message + " " + $vSuccesses+" / "+ $vAttempts + " version files successfully moved to the archive.\n";
 	openPipelineRemoveSecondaryWindows();
 	openPipelineUpdateCurrentlyOpen();
 	confirmDialog -t "Archive Results" -m $message -button "OK" ;
@@ -1143,12 +1063,8 @@ $projectPath);
 						$vSuccesses++;
 				}
 	}
-	string $message = $wSuccesses+" / "+ $wAttempts +" "+ $wName+" files successfully retrieved from the 
-
-archive.\n";
-	$message = $message + " " + $vSuccesses+" / "+ $vAttempts +" "+ " version files successfully 
-
-retrieved from the archive.\n";
+	string $message = $wSuccesses+" / "+ $wAttempts +" "+ $wName+" files successfully retrieved from the archive.\n";
+	$message = $message + " " + $vSuccesses+" / "+ $vAttempts +" "+ " version files successfully retrieved from the archive.\n";
 	openPipelineRemoveSecondaryWindows();
 	openPipelineUpdateCurrentlyOpen();
 	confirmDialog -t "Retrieve Results" -m $message -button "OK" ;
