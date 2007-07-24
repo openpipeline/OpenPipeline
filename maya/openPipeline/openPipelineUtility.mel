@@ -442,3 +442,69 @@ global proc int openPipelineIsValidFolder(string $path)
 		return 1;
 	}
 }
+
+
+global proc openPipelineUtilityUpdateSceneStructure()
+{
+	// get paths for all types and all assets and all components
+	string $currentProject = `optionVar -q "op_currProjectPath"`;
+	string $currentShots[] = `optionVar -q "op_sequences"`;
+
+	string $tempSequence = "openPipelineSeq";
+	string $tempSequencePath = ($currentProject + "scenes/" + $tempSequence + "/");
+	
+	int $tempSequenceFound = stringArrayContains($tempSequencePath, $currentShots);
+	int $notesFound;
+	
+	// test for notes
+	for($currentShot in $currentShots)
+	{
+		string $currentShotFiles[] = `getFileList -fld $currentShot`;
+		$notesFound = stringArrayContains("notes", $currentShotFiles);
+		if($notesFound == 1)
+			break;
+	}	
+
+	// test for temp sequence
+	if(($tempSequenceFound == 1)||($notesFound == 0))
+	{
+		warning "openPipeline: Sequences Exist";
+		return;
+	}
+	
+	// warning
+	string $confirm = `confirmDialog -title "Update Scenes" -message 
+		("This function will move all shots (aka scenes) created\n" +
+			"in openPipeline 0.4.2 or earlier under a dummy sequence folder\n" +
+			"for use in version 0.4.3 and beyond." +
+			"\n\nDemo will print to the script editor but not move files. \n\nContinue?")
+    	-button "Yes" -button "No" -button "Demo" -defaultButton "No"
+    	-cancelButton "No" -dismissString "No"`;
+
+	// move all shots under temp sequence
+	if(($confirm == "Yes")||($confirm == "Demo"))
+	{
+		for($currentShot in $currentShots)
+		{
+
+			$shotName = `basename $currentShot ""`;
+			$currentShot = `substitute ($shotName + "/") $currentShot $shotName`;
+
+			$newShot = ($tempSequence + "/" + $shotName);
+			string $newPath = `substitute $shotName $currentShot $newShot`;
+			string $newPathBase = basename($newPath , "");
+			$newPath = `substitute ($shotName + "/") $newPath $newPathBase`;
+
+			string $command = "Preview";
+			if($confirm == "Yes")
+			{
+
+				sysFile -makeDir $tempSequencePath;
+
+				$command = "Renaming";
+				sysFile -rename $newPath $currentShot;
+			}
+			print ("openPipeline " + $command + ": " + $currentShot + " -> " + $newPath + "\n");
+		}
+	}
+}

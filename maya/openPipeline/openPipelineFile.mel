@@ -245,9 +245,7 @@ global proc int openPipelineAssetAction(string $type, int $versionOffset, string
 	}
 	else if (($action=="reference")&&($fileExists))
 	{
-		file -reference -gl   -shd "renderLayersByName" -namespace $assetName -options "v=0;p=17" 
-
-$file;
+		file -reference -gl   -shd "renderLayersByName" -namespace $assetName -options "v=0;p=17" $file;
 		return 1; // success
 	}
 		
@@ -263,9 +261,7 @@ $file;
 //      $versionOffset - for opening previous workshop versions. 0 means latest version
 //      $action - action to perform  ('open', 'import', or 'reference')
 //      $currentlyOpen - 1 to perform action on currently open Component, 0 for currently selected Component
-global proc int openPipelineComponentAction(string $type, int $versionOffset, string $action, int 
-
-$currentlyOpen)
+global proc int openPipelineComponentAction(string $type, int $versionOffset, string $action, int $currentlyOpen)
 { 
 	string $wName = `optionVar -q "op_workshopName"`;
 	string $selectedComponentPath;
@@ -578,17 +574,34 @@ global proc openPipelineProcessAssetSave(string $saveType)
 			openPipelineSaveMaster;
 			openPipelineNoteWriter master;
 			break;
-		}
-	if ($currCat=="asset")
-		openPipelineAssetAction workshop 0 open 1;	
-	else if ($currCat=="component")
-		openPipelineComponentAction workshop 0 open 1;	
-	else if ($currCat=="scene")
-		openPipelineSceneAction workshop 0 open 1;	
-	else if ($currCat=="shotcomponent")
-		openPipelineShotcomponentAction workshop 0 open 1;	
-	else
-		error("openPipelineProcessAssetSave error: invalid category:"+$currCat);
+	}
+
+	int $openMaster = `checkBox -q -v masterOpenMasterBox`;
+
+	if(($saveType == "master")&&($openMaster == 1))
+	{
+		if ($currCat=="asset")
+			openPipelineAssetAction master 0 open 1;	
+		else if ($currCat=="component")
+			openPipelineComponentAction master 0 open 1;	
+		else if ($currCat=="scene")
+			openPipelineSceneAction master 0 open 1;	
+		else if ($currCat=="shotcomponent")
+			openPipelineShotcomponentAction master 0 open 1;	
+		else
+			error("openPipelineProcessAssetSave error: invalid category:"+$currCat);		
+	}else{
+		if ($currCat=="asset")
+			openPipelineAssetAction workshop 0 open 1;	
+		else if ($currCat=="component")
+			openPipelineComponentAction workshop 0 open 1;	
+		else if ($currCat=="scene")
+			openPipelineSceneAction workshop 0 open 1;	
+		else if ($currCat=="shotcomponent")
+			openPipelineShotcomponentAction workshop 0 open 1;	
+		else
+			error("openPipelineProcessAssetSave error: invalid category:"+$currCat);
+	}
 }
 
 //*** Saves a workshop for the currently open asset / component / shot / shot component
@@ -748,6 +761,14 @@ global proc openPipelineCleanMaster()
 			}
 		}
 	}
+	
+	string $customCommand = `textField -q -text op_masterCommandField`;
+	if($customCommand != "")
+	{
+		print ("openPipeline: begin custom command " + $customCommand + "\n");
+		evalEcho $customCommand;
+		print ("openPipeline: end custom command " + $customCommand + "\n");
+	}
 }
 
 global proc openPipelineImportRefs()
@@ -756,7 +777,7 @@ global proc openPipelineImportRefs()
 	string $referencedFiles[] = `file -q -reference`;
 	string $eachReference;
 	
-	if (`size($referencedFiles)` >= 0)
+	if (`size($referencedFiles)` <= 0)
 	{
 		warning ("openPipeline: no references to import\n");
 	}
