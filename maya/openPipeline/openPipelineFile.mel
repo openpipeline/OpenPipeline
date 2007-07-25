@@ -70,6 +70,7 @@ global proc string openPipelineNewAssetProcess(string $assetName)
 		optionVar -sv "op_creationPath" ($assetPath+"/");
 		optionVar -sv "op_creationType" "asset";
 		openPipelineNoteWriter "creation";
+		openPipelineCreateDescription($assetPath);
  	}
 	return $assetPath;
 }
@@ -101,6 +102,7 @@ global proc string openPipelineNewComponentProcess(string $componentName)
 		optionVar -sv "op_creationPath" ($componentPath+"/");
 		optionVar -sv "op_creationType" "component";
 		openPipelineNoteWriter "creation";
+		openPipelineCreateDescription($componentPath);
 	}
 	return $componentPath;
 }
@@ -133,6 +135,7 @@ global proc string openPipelineNewShotcomponentProcess(string $componentName)
 		optionVar -sv "op_creationPath" ($componentPath+"/");
 		optionVar -sv "op_creationType" "component";
 		openPipelineNoteWriter "creation";
+		openPipelineCreateDescription($componentPath);
 	}
 	return $componentPath;
 }
@@ -167,6 +170,7 @@ global proc string openPipelineNewSceneProcess(string $shotName)
 		optionVar -sv "op_creationPath" ($shotPath+"/");
 		optionVar -sv "op_creationType" "scene";
 		openPipelineNoteWriter "creation";
+		openPipelineCreateDescription($shotPath);
  	}
 	return $shotPath;
 }

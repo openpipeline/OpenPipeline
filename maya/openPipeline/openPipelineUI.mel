@@ -16,13 +16,15 @@ global proc openPipelineUI()
 	int $mbInt;
 	int $windowHeight;
 	int $infoHeight;
+	int $shotInfoHeight;
 	//windows
 	if ((`about -os`=="nt")||(`about -os`=="win64"))
 	{
 		$mbString = "left";
 		$mbInt = 1;
 		$windowHeight = 850;
-		$infoHeight = 106;
+		$infoHeight = 114;
+		$shotInfoHeight = 66;
 	}
 	//mac
 	else
@@ -30,7 +32,8 @@ global proc openPipelineUI()
 		$mbString = "right";
 		$mbInt = 3;
 		$windowHeight = 900;
-		$infoHeight = 122;
+		$infoHeight = 130;
+		$shotInfoHeight = 82;
 	}
 	//set annotation strings
 	string $anno_assetList="Double-click to edit Asset. Hold " +$mbString+" mouse button for more options.";
@@ -244,7 +247,7 @@ global proc openPipelineUI()
 								button -l "MASTER..." -w 164 -bgc .9 .7 .4 -c "openPipelineSaveMasterFileGUI" -ann $anno_master op_masterButton;
 							setParent..;
 						columnLayout -rs 5;
-							text -fn "smallBoldLabelFont" -label "Latest Comment" -w 180 -al "left";
+							text -fn "smallBoldLabelFont" -label "Most Recent Action" -w 180 -al "left";
 							scrollField -w 220 -h 80 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_currentAssetNoteField;
 							setParent..;
 					setParent ..;
@@ -344,14 +347,18 @@ global proc openPipelineUI()
 			setParent ..;
 			//end of framelayout:Asset Notes
 			separator -style "none" -w 5 -h 10;
-			rowLayout -numberOfColumns 2 -w 395 -cw2 135 260 -cl2 "center" "center" ;
+			rowLayout -numberOfColumns 2 -w 395 -cw2 195 200 -cl2 "center" "center" ;
 				columnLayout;
-					text -fn "smallBoldLabelFont" -l "Info" -w 130 -al "center";
-					scrollField -w 130 -h $infoHeight -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_infoField;
+					text -fn "smallBoldLabelFont" -l "Description" -w 190 -al "center";
+					scrollField -w 190 -h ($infoHeight-22) -enable 1 -editable 1 -wordWrap 1 -font "smallPlainLabelFont" -text "" -kpc "button -e -en 1 op_saveAssetInfoButton" op_infoField;
+					rowLayout -numberOfColumns 2 -w 190 -cw2 95 95 -cl2 "center" "center" ;
+						button -w 95 -h 20 -l "Clear" -c "openPipelineClearAssetInfo" op_clearAssetInfoButton;
+						button -w 95 -h 20 -l "Save" -c "openPipelineSaveAssetDescription" -en 0 op_saveAssetInfoButton;
+					setParent..;
 					setParent ..;
 				columnLayout;
-					text -fn "smallBoldLabelFont" -l "Comments" -w 260 -al "center";
-					scrollField -w 260 -h $infoHeight -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_commentField;
+					text -fn "smallBoldLabelFont" -l "History" -w 200 -al "center";
+					scrollField -w 200 -h $infoHeight -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_commentField;
 					setParent ..;
 					
 				setParent..;
@@ -396,20 +403,20 @@ global proc openPipelineUI()
 							button -l "MASTER..." -w 164 -bgc .9 .7 .4 -c "openPipelineSaveMasterFileGUI" -ann $anno_master op_masterSceneButton;
 							setParent..;
 						columnLayout -rs 5;
-							text -fn "smallBoldLabelFont" -label "Latest Comment" -w 180 -al "left";
+							text -fn "smallBoldLabelFont" -label "Most Recent Action" -w 180 -al "left";
 							scrollField -w 220 -h 80 -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_currentSceneNoteField;
 							setParent..;
 					setParent ..;
 
 				separator -style "none" -w 10 -h 10;
 				separator -style "double" -w 410;
-				text -fn "boldLabelFont" -label "SCENE BROWSER" -w 410 -al "left";
+				text -fn "boldLabelFont" -label "SHOT BROWSER" -w 410 -al "left";
 				separator -style "double" -w 410;
 				separator -style "none" -w 10 -h 5;
 				rowLayout -numberOfColumns 3 -w 410 -cw3 135 135 135 -cl3 "right" "right" "right";
 					columnLayout -w 120 -rs 0 -cal "center";
 						text -l "Sequence" -w 125 -fn "smallBoldLabelFont" -al "left";
-						textScrollList -w 125 -h 150 -ams 1 -sc "openPipelineUpdateSceneList 0" -fn "smallPlainLabelFont" -ann $anno_sequenceList op_sequenceScrollList;
+						textScrollList -w 125 -h 90 -ams 1 -sc "openPipelineUpdateSceneList 0" -fn "smallPlainLabelFont" -ann $anno_sequenceList op_sequenceScrollList;
 						separator -style "none" -w 125 -h 5;
 						rowLayout -numberOfColumns 2 -cw2 65 60;			
     						button -l "New..." -bgc .6 .8 .5 -w 65 -c "openPipelineNewSequenceUI" -ann $anno_newSequence op_assetTypeNewButton; 
@@ -418,7 +425,7 @@ global proc openPipelineUI()
 						setParent ..;	
 					columnLayout -w 129 -rs 0 -cal "center";	
 						text -fn "smallBoldLabelFont" -l "Shot" -w 125 -al "left";
-						menuBarLayout -bgc .9 .3 .3 -w 125 -h 180 ;
+						menuBarLayout -bgc .9 .3 .3 -w 125 -h 120 ;
 								menu -label "OPTIONS..." op_sceneMenu;
 									menuItem -label "Edit Shot" -subMenu 0 -command "openPipelineSceneAction workshop 0 open 0" -ann $anno_editScene op_sceneMenuEdit;
 									menuItem -label "View Master" -subMenu 0 -command "openPipelineSceneAction master 0 open 0" -ann $anno_viewScene op_sceneMenuView;
@@ -432,7 +439,7 @@ global proc openPipelineUI()
 									menuItem -label "Master" -command "openPipelineSceneAction master 0 reference 0" -ann $anno_referenceSceneMaster op_sceneMenuReferenceMaster;
 										setParent -menu ..;
 									columnLayout;
-										textScrollList -w 125 -h 130 -dcc "openPipelineSceneAction workshop 0 open 0" -sc "openPipelineSceneSelected 0" -fn "smallPlainLabelFont" -ann $anno_sceneList op_sceneScrollList;
+										textScrollList -w 125 -h 70 -dcc "openPipelineSceneAction workshop 0 open 0" -sc "openPipelineSceneSelected 0" -fn "smallPlainLabelFont" -ann $anno_sceneList op_sceneScrollList;
 										popupMenu -p op_sceneScrollList -b $mbInt -mm 1 -pmc "openPipelineSceneSelected 0";
 												menuItem -label "Edit Shot" -command "openPipelineSceneAction workshop 0 open 0" -ann $anno_editScene op_sceneMenuEdit2;
 												menuItem -label "View Master" -command "openPipelineSceneAction master 0 open 0" -ann $anno_viewScene op_sceneMenuView2;
@@ -469,7 +476,7 @@ global proc openPipelineUI()
 							setParent -menu ..;
 							
 						columnLayout;
-							textScrollList -w 125 -h 131 -en 0 -dcc "openPipelineShotcomponentAction workshop 0 open 0" -sc "openPipelineShotcomponentSelected" -fn "smallPlainLabelFont" -ann $anno_shotcomponentList op_shotcomponentScrollList;
+							textScrollList -w 125 -h 70 -en 0 -dcc "openPipelineShotcomponentAction workshop 0 open 0" -sc "openPipelineShotcomponentSelected" -fn "smallPlainLabelFont" -ann $anno_shotcomponentList op_shotcomponentScrollList;
 							popupMenu -p op_shotcomponentScrollList -b $mbInt -mm 1 -pmc "openPipelineShotcomponentSelected";
 										menuItem -label "Edit Shot Component" -subMenu 0 -command "openPipelineShotcomponentAction workshop 0 open 0" -ann $anno_editShotcomponent op_shotcompMenuEdit2;
 											menuItem -label "View Master" -command "openPipelineShotcomponentAction master 0 open 0" -ann $anno_viewShotcomponent op_shotcompMenuView2;
@@ -493,6 +500,23 @@ global proc openPipelineUI()
 					setParent..;
 						setParent..;
 						separator -style "none" -w 10 -h 10;
+						rowLayout -numberOfColumns 2 -w 395 -cw2 195 200 -cl2 "center" "center" ;
+				columnLayout;
+					text -fn "smallBoldLabelFont" -l "Description" -w 190 -al "center";
+					scrollField -w 190 -h ($shotInfoHeight-22) -enable 1 -editable 1 -wordWrap 1 -font "smallPlainLabelFont" -text "" -kpc "button -e -en 1 op_saveShotInfoButton" op_shotInfoField;
+					rowLayout -numberOfColumns 2 -w 190 -cw2 95 95 -cl2 "center" "center" ;
+						button -w 95 -h 20 -l "Clear" -c "openPipelineClearShotInfo" op_clearShotInfoButton;
+						button -w 95 -h 20 -l "Save" -c "openPipelineSaveShotDescription" -en 0 op_saveShotInfoButton;
+					setParent ..;
+					setParent ..;
+				columnLayout;
+					text -fn "smallBoldLabelFont" -l "History" -w 200 -al "center";
+					scrollField -w 200 -h $shotInfoHeight -enable 1 -editable 0 -wordWrap 1 -font "smallPlainLabelFont" -text "" op_shotCommentField;
+					setParent ..;
+					
+				setParent..;
+
+						separator -style "none" -w 10 -h 10;
 				separator -style "double" -w 410;
 				text -fn "boldLabelFont" -label "AVAILABLE ASSETS" -w 410 -al "left";
 				separator -style "double" -w 410;
@@ -500,11 +524,11 @@ global proc openPipelineUI()
 				rowLayout -numberOfColumns 3 -w 410 -cw3 145 145 115;
 					columnLayout -w 120 -rs 0 -cal "center";
 						text -l "Asset Types" -w 135 -fn "smallBoldLabelFont" -al "left";
-						textScrollList -w 135 -h 80 -ams 1 -sc "openPipelineSceneAssetTypeSelected" -fn "smallPlainLabelFont" -ann $anno_assetTypeList op_sceneAssetTypeList;
+						textScrollList -w 135 -h 55 -ams 1 -sc "openPipelineSceneAssetTypeSelected" -fn "smallPlainLabelFont" -ann $anno_assetTypeList op_sceneAssetTypeList;
 					setParent..;
 					columnLayout -w 135 -rs 0 -cal "center";
 						text -l "Assets" -w 135 -fn "smallBoldLabelFont" -al "left";
-						textScrollList -w 135 -h 80 -sc "openPipelineSceneAssetSelected" -fn "smallPlainLabelFont" -ams 0 -ann $anno_sceneAssetList op_sceneAssetList;
+						textScrollList -w 135 -h 55 -sc "openPipelineSceneAssetSelected" -fn "smallPlainLabelFont" -ams 0 -ann $anno_sceneAssetList op_sceneAssetList;
 					setParent..;
 					columnLayout -w 115 -rs 0 -cal "left";
 							separator -style "none" -w 1 -h 15;
@@ -814,6 +838,7 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 	}
 	progressWindow -e -s 1;
 	//update asset type list and scene list
+	openPipelineUpdateCurrentlyOpen();
 	openPipelineUpdateAssetTypeList();
 	progressWindow -e -s 1;
 	openPipelineUpdateSequenceList();
@@ -977,6 +1002,10 @@ global proc openPipelineSceneSelected(int $preserveSelection)
 			menuItem -e -en $selected op_sceneMenuImport2;
 			menuItem -e -en $selected op_sceneMenuReference;
 			menuItem -e -en $selected op_sceneMenuReference2;
+			
+			scrollField -e -en $selected op_shotInfoField;
+			button -e -en $selected op_clearShotInfoButton;
+			button -e -en 0 op_saveShotInfoButton;
 	
 	if ($selected)
 	{
@@ -1366,6 +1395,10 @@ global proc openPipelineAssetSelected(int $preserveSelection)
 		button -e -en $selected op_assetRemoveButton;
 		button -e -en $selected op_assetArchiveButton;
 		button -e -en $selected op_componentNewButton;
+		
+		scrollField -e -en $selected op_infoField;
+		button -e -en $selected op_clearAssetInfoButton;
+		button -e -en 0 op_saveAssetInfoButton;
 	
 	if ($selected)
 	{
@@ -1432,7 +1465,7 @@ global proc openPipelineComponentSelected()
 		openPipelineUpdateComponentMenus($currComponent);
 	   
 	}
-	openPipelineAssetInformation();
+	openPipelineAssetInformation;
 	openPipelineLoadAssetNote;
 }
 global proc openPipelineShotcomponentSelected()
@@ -1458,6 +1491,8 @@ global proc openPipelineShotcomponentSelected()
 		openPipelineUpdateShotcomponentMenus($currComponent);
 	   
 	}
+	openPipelineShotInformation;
+	openPipelineLoadShotNote;
 }
 global proc openPipelineAboutDialog()
 {
@@ -1821,6 +1856,7 @@ global proc openPipelineReviveWorkshopCallback()
 //
 global proc	openPipelineAssetInformation()
 {
+	/*
 	string $wName = `optionVar -q "op_workshopName"`;
 	string $mName = `optionVar -q "op_masterName"`;
 	string $asset = `openPipelineGetSelectedAsset`;
@@ -1871,8 +1907,34 @@ global proc	openPipelineAssetInformation()
 	
 	
 	// fill box
+		*/
+	string $outputText;
+	string $asset = `openPipelineGetSelectedAsset`;
+	string $component = `openPipelineGetSelectedComponent`;
+	$path = $component;
+	if ($component=="")
+		$path = $asset;
+	if ($path=="")
+		$outputText = "";
+	else
+		$outputText = openPipelineGetDescription($path);
 	scrollField -e -text $outputText op_infoField;
-	
+
+}
+
+global proc openPipelineShotInformation()
+{
+	string $outputText;
+	string $shot = `openPipelineGetSelectedScene`;
+	string $component = `openPipelineGetSelectedShotcomponent`;
+	$path = $component;
+	if ($component=="")
+		$path = $shot;
+	if ($path=="")
+		$outputText = "";
+	else
+		$outputText = openPipelineGetDescription($path);
+	scrollField -e -text $outputText op_shotInfoField;
 }
 
 global proc openPipelineUpdateSceneMenus(string $scenePath)
@@ -2018,4 +2080,44 @@ global proc openPipelineUpdateWorkingTab()
 {
 	int $tab = `tabLayout -q -selectTabIndex op_mainTabLayout`;
 	optionVar -iv "op_currTab" $tab;
+}
+
+global proc openPipelineSaveAssetDescription()
+{
+	string $newText = `scrollField -q -tx op_infoField`;
+	$newText = `substituteAllString $newText "\n" "<br>"`;
+	$component = openPipelineGetSelectedComponent();
+	$asset = openPipelineGetSelectedAsset();
+	string $path = $asset;
+	if ($component!="")
+		$path = $component;
+	openPipelineSetDescription($path, $newText);
+	button -e -en 0 op_saveAssetInfoButton;
+}
+
+global proc openPipelineSaveShotDescription()
+{
+	string $newText = `scrollField -q -tx op_shotInfoField`;
+	$newText = `substituteAllString $newText "\n" "<br>"`;
+	$component = openPipelineGetSelectedShotcomponent();
+	$shot = openPipelineGetSelectedScene();
+	string $path = $shot;
+	if ($component!="")
+		$path = $component;
+	openPipelineSetDescription($path, $newText);
+	button -e -en 0 op_saveShotInfoButton;
+}
+
+global proc openPipelineClearAssetInfo()
+{
+	scrollField  -e -tx "" op_infoField;
+	openPipelineSaveAssetDescription;
+	//button -e -en 1 op_saveAssetInfoButton;
+}
+
+global proc openPipelineClearShotInfo()
+{
+	scrollField  -e -tx "" op_shotInfoField;
+	openPipelineSaveShotDescription;
+	//button -e -en 1 op_saveAssetInfoButton;
 }
