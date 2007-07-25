@@ -443,6 +443,162 @@ global proc int openPipelineIsValidFolder(string $path)
 	}
 }
 
+global proc string[] openPipelineGetXmlAll(string $xmlFile)
+{
+	string $output[];
+	int $index = 0;
+	int $lineNum = 1;
+	int $open = 1;
+	string $data = "";
+	string $char;
+	string $tag;
+	int $fileId = `fopen $xmlFile "r"`;
+	string $currLine = `fgetline $fileId`;
+	while ($currLine!="")
+	{	
+		for ($i=1;$i<size($currLine);$i++)
+		{			
+			$char = `substring $currLine $i $i`;
+			if ($char=="<")
+			{
+				$data = strip($data); 
+				if ($data!="")
+				{
+					$output[$index] = $data;
+					$data = "";
+					$index++;
+				}
+				$i++;
+				$tag = "";
+				$char = `substring $currLine $i $i`;
+				$open = 1;
+				if ($char=="/")			
+				{
+					$i++;
+					$char = `substring $currLine $i $i`;
+					$open = 0;
+				}
+				
+				while (($char!=">")&&($i<=size($currLine)))
+				{
+					$i++;
+					$tag += $char;
+					$char = `substring $currLine $i $i`;
+					if ($i>size($currLine))
+					{
+						warning("XML formatting error in file "+$xmlFile+" on line "+ $lineNum+". Check file before proceeding");
+					}
+				}
+				if ($open)
+				{
+					$output[$index] = ("<"+$tag+">");
+					$index++;
+				}
+				else 
+				{
+					$output[$index] = ("</"+$tag+">");
+					$index++;
+				}
+			}
+			else
+			{
+				$data += $char;
+				$i++;
+				$char = `substring $currLine $i $i`;
+				while (($char!="<")&&($i<size($currLine)))
+				{
+					$data += $char;
+					$i++;
+					if (size($currLine))
+						$char = `substring $currLine $i $i`;
+				}
+				$i--;
+			}	
+		}
+		$currLine = `fgetline $fileId`;
+		$lineNum++;
+	}
+	fclose $fileId;
+	return $output;
+}
+
+global proc string[] openPipelineGetXmlTop(string $xml[], string $tag)
+{
+    int $i=0;
+    int $j=0;
+    string $output[];
+    for ($i=0; $i<size($xml); $i++)
+            {
+            $line = strip($xml[$i]);
+            if (openPipelineIsXmlInTag($line,$tag))
+                {
+                $i++;
+                $line = strip($xml[$i]);
+                while (!openPipelineIsXmlOutTag($line,$tag)&&($i<size($xml)))
+                   {
+                   $output[$j] = $line;
+                   $j++;
+                   $i++;
+                   $line = strip($xml[$i]);
+                   }
+                }
+             }
+        
+    return $output;
+}
+
+global proc int openPipelineIsXmlInTag(string $xml, string $tag)
+{
+    string $matchString = "<[ ]*"+$tag+"[ ]*.*>";
+    int $match = isValidString($xml,$matchString);
+    return $match;
+}
+
+global proc int openPipelineIsXmlOutTag(string $xml, string $tag)
+{
+    string $matchString = "</[ ]*"+$tag+"[ ]*>";
+    int $match = isValidString($xml,$matchString);
+    return $match;
+}
+
+global proc string[] openPipelineGetXmlSecondary(string $xml[], string $tag)
+{
+    int $i=0;
+    int $j=0;
+    string $output[];
+    $mode = 0;
+    for ($i=0; $i<size($xml); $i++)
+    {
+            string $line = strip($xml[$i]);
+            if (openPipelineIsXmlInTag($line,$tag))
+            {
+                $i++;
+                string $line = strip($xml[$i]);
+                while ((!openPipelineIsXmlOutTag($line,$tag))&&($i<size($xml)))
+                {
+                    $line = strip($xml[$i]);
+                    $output[$j]=$output[$j]+$line;
+                    $i++;
+                    $line = strip($xml[$i]);
+                }
+                $j++;
+            }
+   }   
+   return $output;
+}
+
+global proc string openPipelineGetXmlData(string $xml, string $tag)
+{
+    $xml = strip($xml);
+    string $inTag = "<[ ]*"+$tag+"[ ]*>";
+    string $outTag = "<[ ]*/"+$tag+"[ ]*>";   
+    string $matchString = $inTag+"[ !-~]*"+$outTag;
+    string $output = `match $matchString $xml`;
+    $output = substitute($inTag, $output, "");
+    $output = substitute($outTag, $output, "");
+    $output = encodeString($output);
+    return $output;
+}
 
 global proc openPipelineUtilityUpdateSceneStructure()
 {
@@ -508,3 +664,4 @@ global proc openPipelineUtilityUpdateSceneStructure()
 		}
 	}
 }
+
