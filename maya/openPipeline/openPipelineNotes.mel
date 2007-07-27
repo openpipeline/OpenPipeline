@@ -10,7 +10,7 @@ global proc openPipelineLoadAssetNote()
     {
     	if(`filetest -f $notePath` == 0)
     	{
-            openPipelineNoteWriter "creation";
+            openPipelineNoteWriter "missing";
     	}
     
     	string $assetNoteTextArray[] = `openPipelineReadXML $notePath`;
@@ -27,7 +27,7 @@ global proc openPipelineLoadShotNote()
     {
     	if(`filetest -f $notePath` == 0)
     	{
-            openPipelineNoteWriter "creation";
+            openPipelineNoteWriter "missing";
     	}
     
     	string $shotNoteTextArray[] = `openPipelineReadXML $notePath`;
