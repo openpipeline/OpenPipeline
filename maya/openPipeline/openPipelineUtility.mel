@@ -89,7 +89,7 @@ global proc string openPipelineGetNotePath(string $inputMode)
 				else if (size($shot))
 				{
     			string $notesPath = ($shot + "notes/");
-    			$outputString = $notesPath + $selectedShot + "_ShotNote.xml";
+    			$outputString = $notesPath + $selectedShot + "_SceneNote.xml";
     	  }
     	  else
     	  {
@@ -107,7 +107,7 @@ global proc string openPipelineGetNotePath(string $inputMode)
 			}
 			else if ($currCategory == "shot")
 			{
-			    $outputString = ($currPath + "notes/" + $name + "_ShotNote.xml");
+			    $outputString = ($currPath + "notes/" + $name + "_SceneNote.xml");
 			}
 			else if ($currCategory == "component")
 			{
@@ -143,7 +143,7 @@ global proc string openPipelineGetNotePath(string $inputMode)
 			else if ($creationType == "shot")
 			{
 			    string $shotName = basename($creationPath,"");
-			    $outputString = $notesPath + $shotName + "_ShotNote.xml"; 
+			    $outputString = $notesPath + $shotName + "_SceneNote.xml"; 
 			}
 			break;
 	}
