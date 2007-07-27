@@ -43,10 +43,10 @@ global proc string openPipelineGetNotePath(string $inputMode)
 {
 	string $currPath = `optionVar -q "op_currOpenPath"`;
 	string $name = basename($currPath,"");
-  string $currCategory = `optionVar -q "op_currOpenCategory"`;
-  string $creationPath = `optionVar -q "op_creationPath"`;
-  string $creationType = `optionVar -q "op_creationType"`;
-  int $currTab = `optionVar -q "op_currTab"`;
+	string $currCategory = `optionVar -q "op_currOpenCategory"`;
+	string $creationPath = `optionVar -q "op_creationPath"`;
+	string $creationType = `optionVar -q "op_creationType"`;
+	int $currTab = `optionVar -q "op_currTab"`;
 	string $asset = `openPipelineGetSelectedAsset`;
 	string $openPipeline_menuCurrentAsset = basename($asset,"");	
 	string $component = `openPipelineGetSelectedComponent`;
@@ -605,17 +605,18 @@ global proc openPipelineUtilityUpdateSceneStructure()
 	string $currentShots[];
 	if (`optionVar -as "op_sequences"`)
 		$currentShots = `optionVar -q "op_sequences"`;
-	// get paths for all types and all assets and all components
-	string $currentProject = `optionVar -q "op_currProjectPath"`;
-	
 
+	string $currentShotDirectory;
+	if (`optionVar -as "op_shotPath"`)
+		$currentShotDirectory = `optionVar -q "op_shotPath"`;
+	
 	string $tempSequence = "openPipelineSeq";
-	string $tempSequencePath = ($currentProject + "shots/" + $tempSequence + "/");
+	string $tempSequencePath = ($currentShotDirectory + $tempSequence + "/");
 	
 	int $tempSequenceFound = stringArrayContains($tempSequencePath, $currentShots);
-	int $notesFound;
-	
+		
 	// test for notes
+	int $notesFound;
 	for($currentShot in $currentShots)
 	{
 		string $currentShotFiles[] = `getFileList -fld $currentShot`;
@@ -633,9 +634,9 @@ global proc openPipelineUtilityUpdateSceneStructure()
 	
 	// warning
 	string $confirm = `confirmDialog -title "Update Shots" -message 
-		("This function will move all shots (aka shots) created\n" +
+		("This function will move all scenes (aka shots) created\n" +
 			"in openPipeline 0.4.2 or earlier under a dummy sequence folder\n" +
-			"for use in version 0.4.3 and beyond." +
+			"for use in version 0.5 and beyond." +
 			"\n\nDemo will print to the script editor but not move files. \n\nContinue?")
     	-button "Yes" -button "No" -button "Demo" -defaultButton "No"
     	-cancelButton "No" -dismissString "No"`;
@@ -657,11 +658,13 @@ global proc openPipelineUtilityUpdateSceneStructure()
 			string $command = "Preview";
 			if($confirm == "Yes")
 			{
-
-				sysFile -makeDir $tempSequencePath;
+				sysFile -makeDir ($currentShotDirectory + $tempSequence);
 
 				$command = "Renaming";
+
 				sysFile -rename $newPath $currentShot;
+				
+				openPipelineUpdateSequenceList;
 			}
 			print ("openPipeline " + $command + ": " + $currentShot + " -> " + $newPath + "\n");
 		}

@@ -578,7 +578,10 @@ global proc openPipelineProcessAssetSave(string $saveType)
 			break;
 	}
 
-	int $openMaster = `checkBox -q -v masterOpenMasterBox`;
+	int $openMaster = 0;
+	
+	if(`checkBox -q -exists masterOpenMasterBox`)
+		$openMaster = `checkBox -q -v masterOpenMasterBox`;
 
 	if(($saveType == "master")&&($openMaster == 1))
 	{
