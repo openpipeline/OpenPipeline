@@ -509,6 +509,6 @@ global proc openPipelineSetDescription(string $path, string $newDescription)
 			$contents[$i]="";
 	}
 	for ($line in $contents)
-		fprint $fileId $line;
+		fprint $fileId ($line+"\n");
 	fclose $fileId;
 }

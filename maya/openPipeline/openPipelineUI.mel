@@ -2033,7 +2033,9 @@ global proc openPipelineUpdateWorkingTab()
 global proc openPipelineSaveAssetDescription()
 {
 	string $newText = `scrollField -q -tx op_infoField`;
-	$newText = `substituteAllString $newText "\n" "<br>"`;
+	$newText = `substituteAllString $newText "<" " "`;
+	$newText = `substituteAllString $newText ">" " "`;
+	$newText = `substituteAllString $newText "\r" "<br>"`;
 	$component = openPipelineGetSelectedComponent();
 	$asset = openPipelineGetSelectedAsset();
 	string $path = $asset;
