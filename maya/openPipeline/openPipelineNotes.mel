@@ -10,7 +10,7 @@ global proc openPipelineLoadAssetNote()
     {
     	if(`filetest -f $notePath` == 0)
     	{
-            openPipelineAssetNoteWriter "creation";
+            openPipelineNoteWriter "creation";
     	}
     
     	string $assetNoteTextArray[] = `openPipelineReadXML $notePath`;
@@ -27,7 +27,7 @@ global proc openPipelineLoadShotNote()
     {
     	if(`filetest -f $notePath` == 0)
     	{
-            openPipelineShotNoteWriter "creation";
+            openPipelineNoteWriter "creation";
     	}
     
     	string $shotNoteTextArray[] = `openPipelineReadXML $notePath`;
@@ -51,18 +51,18 @@ global proc openPipelineClearCurrentAssetNote()
 }
 
 
-global proc openPipelineLoadCurrentSceneNote()
+global proc openPipelineLoadCurrentShotNote()
 {
 	string $notePath = `openPipelineGetNotePath "openednote"`;
-	string $sceneNoteTextArray[] = `openPipelineReadLatestNote $notePath`;
-	string $sceneNoteText = stringArrayToString($sceneNoteTextArray, "");
-	scrollField -edit -text $sceneNoteText op_currentSceneNoteField;
+	string $shotNoteTextArray[] = `openPipelineReadLatestNote $notePath`;
+	string $shotNoteText = stringArrayToString($shotNoteTextArray, "");
+	scrollField -edit -text $shotNoteText op_currentShotNoteField;
 }
 
 
-global proc openPipelineClearCurrentSceneNote()
+global proc openPipelineClearCurrentShotNote()
 {
-	scrollField -edit -text "" op_currentSceneNoteField;	
+	scrollField -edit -text "" op_currentShotNoteField;	
 }
 
 

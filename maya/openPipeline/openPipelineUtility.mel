@@ -8,7 +8,7 @@
 //CURRENTLY OPEN FILE INFO
 //op_currOpenPath (string) - full path of the location of the currently open file
 //op_currOpenType (string) - whether it's a workshop or master
-//op_currOpenCategory (string) - whether it's a scene, asset type, asset or component
+//op_currOpenCategory (string) - whether it's a shot, asset type, asset or component
 //op_currOpenVersion (int) - version of currently open file.  0 means no workshops have been created yet.
 //
 //CURRENT PROJECT INFO
@@ -16,7 +16,7 @@
 //op_currProjectName (string) - project name
 //op_currProjectPath (string) - full project path
 //op_libPath (string) - full path to asset library
-//op_scenePath (string) - full path to scenes folder
+//op_shotPath (string) - full path to shots folder
 //op_archivePath (string) - full path to archive folder
 //op_workshopFormat (string) - file format for workshops (ma or mb)
 //op_masterFormat (string) - file format for master (ma or mb)
@@ -24,13 +24,13 @@
 //op_masterName (string) - display name for master files
 //
 //LISTS (all string arrays. each string within an array is a full, absolute path)
-//op_scenes - list of shots within the current project
-//op_sceneAssets - list of assets listed under the selected asset type (scene management tab)
+//op_shots - list of shots within the current project
+//op_shotAssets - list of assets listed under the selected asset type (shot management tab)
 //op_assetTypes - list of asset types within the current project
 //op_assets - list of assets under the selected asset type (asset management tab)
 //op_components - list of components under the selected asset
 //op_sequences - list of sequences within the current project
-//op_shotcomponents - list of shot components under the selected shot
+//op_shotComponents - list of shot components under the selected shot
 //
 //UI STATES
 //op_currTab - the current tab the user is working in (1=asset management, 2=shot management)
@@ -51,10 +51,10 @@ global proc string openPipelineGetNotePath(string $inputMode)
 	string $openPipeline_menuCurrentAsset = basename($asset,"");	
 	string $component = `openPipelineGetSelectedComponent`;
 	string $openPipeline_menuCurrentAssetComponent = basename($component, "");	
-	string $scene = `openPipelineGetSelectedScene`;
-	string $selectedScene = basename($scene, "");
-	string $shotComponent = `openPipelineGetSelectedShotcomponent`;
-	string $selectedShotcomponent = basename($shotComponent,"");
+	string $shot = `openPipelineGetSelectedShot`;
+	string $selectedShot = basename($shot, "");
+	string $shotComponent = `openPipelineGetSelectedShotComponent`;
+	string $selectedShotComponent = basename($shotComponent,"");
 	string $outputString;
 	switch($inputMode)
 	{
@@ -84,12 +84,12 @@ global proc string openPipelineGetNotePath(string $inputMode)
 				if (size($shotComponent))
 				{
 					$notesPath = $shotComponent + "notes/";
-					$outputString = $notesPath + $selectedScene + "_" + $selectedShotcomponent + "_ComponentNote.xml";
+					$outputString = $notesPath + $selectedShot + "_" + $selectedShotComponent + "_ComponentNote.xml";
 				}
-				else if (size($scene))
+				else if (size($shot))
 				{
-    			string $notesPath = ($scene + "notes/");
-    			$outputString = $notesPath + $selectedScene + "_ShotNote.xml";
+    			string $notesPath = ($shot + "notes/");
+    			$outputString = $notesPath + $selectedShot + "_ShotNote.xml";
     	  }
     	  else
     	  {
@@ -105,7 +105,7 @@ global proc string openPipelineGetNotePath(string $inputMode)
 			{
 				$outputString = ($currPath + "notes/" + $name + "_AssetNote.xml");
 			}
-			else if ($currCategory == "scene")
+			else if ($currCategory == "shot")
 			{
 			    $outputString = ($currPath + "notes/" + $name + "_ShotNote.xml");
 			}
@@ -114,7 +114,7 @@ global proc string openPipelineGetNotePath(string $inputMode)
 				string $aName = openPipelineGetFolderFromPath($currPath,2);
 				$outputString = ($currPath + "notes/" + $aName + "_" + $name + "_ComponentNote.xml");
 			}
-			else if ($currCategory == "shotcomponent")
+			else if ($currCategory == "shotComponent")
 			{
 				string $aName = openPipelineGetFolderFromPath($currPath,2);
 				$outputString = ($currPath + "notes/" + $aName + "_" + $name + "_ComponentNote.xml");
@@ -134,16 +134,16 @@ global proc string openPipelineGetNotePath(string $inputMode)
 				string $assetName = basename($creationPath,"");
 				$outputString = $notesPath + $assetName + "_AssetNote.xml";
 			}
-			else if (($creationType == "component")||($creationType == "shotcomponent"))
+			else if (($creationType == "component")||($creationType == "shotComponent"))
 			{
 				string $assetName = openPipelineGetFolderFromPath($creationPath,2);
 				string $componentName = basename($creationPath,"");
 				$outputString = $notesPath + $assetName + "_" + $componentName + "_ComponentNote.xml";
 			}
-			else if ($creationType == "scene")
+			else if ($creationType == "shot")
 			{
-			    string $sceneName = basename($creationPath,"");
-			    $outputString = $notesPath + $sceneName + "_ShotNote.xml"; 
+			    string $shotName = basename($creationPath,"");
+			    $outputString = $notesPath + $shotName + "_ShotNote.xml"; 
 			}
 			break;
 	}
@@ -199,7 +199,7 @@ global proc int openPipelineGetVersionFromFile(string $file)
 	return $version;
 }
 
-//*** checks if a given asset, or scene has at least one workshop
+//*** checks if a given asset, or shot has at least one workshop
 global proc int openPipelineAssetHasWorkshop(string $path)
 {
 	string $wExt = `optionVar -q "op_workshopFormat"`;
@@ -230,8 +230,8 @@ global proc int openPipelineAssetHasMaster(string $path)
 	return $exists;
 }
 
-//*** checks if a given scene has been mastered at least once
-global proc int openPipelineSceneHasMaster(string $path)
+//*** checks if a given shot has been mastered at least once
+global proc int openPipelineShotHasMaster(string $path)
 {
 	string $mExt = `optionVar -q "op_masterFormat"`;
 	string $name = basename($path,"");
@@ -270,7 +270,7 @@ global proc int openPipelineNumVersions(string $path)
 	return size($versionFiles);
 }
 
-//*** returns the workshop files for a given asset, component or scene
+//*** returns the workshop files for a given asset, component or shot
 //*** note: filenames are returned as full paths
 global proc string[] openPipelineGetWorkshops(string $path)
 {
@@ -285,7 +285,7 @@ global proc string[] openPipelineGetWorkshops(string $path)
 	return $workshopFullPaths;
 }
 
-//*** returns the version files for a given asset, component or scene
+//*** returns the version files for a given asset, component or shot
 //*** note: filenames are returned as full paths
 global proc string[] openPipelineGetVersions(string $path)
 {
@@ -344,9 +344,9 @@ global proc openPipelineUtilityUpdatePadding()
 	string $currentProject = `optionVar -q "op_currProjectPath"`;
 	string $wName = `optionVar -q "op_workshopName"`;
 	string $allLibFiles[] = `openPipelineGetLibFiles`;
-	string $allSceneFiles[] = `openPipelineGetSceneFiles`;
+	string $allShotFiles[] = `openPipelineGetShotFiles`;
 	
-	string $allFiles[] = stringArrayCatenate($allLibFiles, $allSceneFiles);
+	string $allFiles[] = stringArrayCatenate($allLibFiles, $allShotFiles);
 	
 	string $newFileName;
 	
@@ -412,18 +412,18 @@ global proc string[] openPipelineGetLibFiles()
 }
 
 
-global proc string[] openPipelineGetSceneFiles()
+global proc string[] openPipelineGetShotFiles()
 {
-	string $allScenes[];
-	if (`optionVar -as "op_scenes"`)
-		$allScenes = `optionVar -q "op_scenes"`; 
+	string $allShots[];
+	if (`optionVar -as "op_shots"`)
+		$allShots = `optionVar -q "op_shots"`; 
 	string $fileList[];
 
-	for($eachScene in $allScenes)
+	for($eachShot in $allShots)
 	{
-		string $scenePath = $eachScene;
-		$fileList = stringArrayCatenate($fileList, `openPipelineGetWorkshops($scenePath)`);
-		$fileList = stringArrayCatenate($fileList, `openPipelineGetVersions($scenePath)`);
+		string $shotPath = $eachShot;
+		$fileList = stringArrayCatenate($fileList, `openPipelineGetWorkshops($shotPath)`);
+		$fileList = stringArrayCatenate($fileList, `openPipelineGetVersions($shotPath)`);
 	}
 	return $fileList;
 }
@@ -602,12 +602,15 @@ global proc string openPipelineGetXmlData(string $xml, string $tag)
 
 global proc openPipelineUtilityUpdateSceneStructure()
 {
+	string $currentShots[];
+	if (`optionVar -as "op_sequences"`)
+		$currentShots = `optionVar -q "op_sequences"`;
 	// get paths for all types and all assets and all components
 	string $currentProject = `optionVar -q "op_currProjectPath"`;
-	string $currentShots[] = `optionVar -q "op_sequences"`;
+	
 
 	string $tempSequence = "openPipelineSeq";
-	string $tempSequencePath = ($currentProject + "scenes/" + $tempSequence + "/");
+	string $tempSequencePath = ($currentProject + "shots/" + $tempSequence + "/");
 	
 	int $tempSequenceFound = stringArrayContains($tempSequencePath, $currentShots);
 	int $notesFound;
@@ -629,8 +632,8 @@ global proc openPipelineUtilityUpdateSceneStructure()
 	}
 	
 	// warning
-	string $confirm = `confirmDialog -title "Update Scenes" -message 
-		("This function will move all shots (aka scenes) created\n" +
+	string $confirm = `confirmDialog -title "Update Shots" -message 
+		("This function will move all shots (aka shots) created\n" +
 			"in openPipeline 0.4.2 or earlier under a dummy sequence folder\n" +
 			"for use in version 0.4.3 and beyond." +
 			"\n\nDemo will print to the script editor but not move files. \n\nContinue?")

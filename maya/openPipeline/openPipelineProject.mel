@@ -157,7 +157,7 @@ global proc openPipelineProjectUISelection()
     string $workshopname = openPipelineGetXmlData($data[$currProjIndex[0]-1], "workshopname");
     string $workshopformat = openPipelineGetXmlData($data[$currProjIndex[0]-1], "workshopformat");
     string $libraryFolder = openPipelineGetXmlData($data[$currProjIndex[0]-1], "libraryfolder");
-    string $scenesFolder = openPipelineGetXmlData($data[$currProjIndex[0]-1], "scenesfolder");
+    string $shotsFolder = openPipelineGetXmlData($data[$currProjIndex[0]-1], "scenesfolder");
     string $archiveFolder = openPipelineGetXmlData($data[$currProjIndex[0]-1], "archivefolder");
 		
 		if ($status=="")
@@ -176,7 +176,7 @@ global proc openPipelineProjectUISelection()
                           "Workshop Files:\nname - " + $workshopname + "\nformat - " +$workshopformat + "\n" +
                           "-------------------------------------\n"+
                           "Library Sub-folder:     " + $libraryFolder + "\n" +
-                          "Scenes Sub-folder:      " + $scenesFolder + "\n" +
+                          "Shots Sub-folder:      " + $shotsFolder + "\n" +
                           "Archive Sub-folder:     " + $archiveFolder + "\n";
                           
     scrollField -e -tx $projectInfo op_projectInfoBox;
@@ -339,8 +339,8 @@ global proc openPipelineProjDialogWindow(int $mode)
 			    textField -h 20  -width 100 op_projectLibraryLocation;
 			    setParent..;
 			rowLayout -nc 2 -cw2 240 100;
-			    text -fn "smallPlainLabelFont" -label "Scenes:" -align "left" -width 240;
-			    textField -h 20 -width 100 op_projectSceneLocation;
+			    text -fn "smallPlainLabelFont" -label "Shot Library:" -align "left" -width 240;
+			    textField -h 20 -width 100 op_projectShotLocation;
 			    setParent..;
 			rowLayout -nc 2 -cw2 240 100;
 			    text -fn "smallPlainLabelFont" -label "Archive:" -align "left" -width 240;
@@ -359,7 +359,7 @@ global proc openPipelineProjDialogWindow(int $mode)
 	    textField -e -text $date op_projectCreationDate;
 	    textField -e -text $date op_projectDeadline;
 	    textField -e -text "lib" op_projectLibraryLocation;
-	    textField -e -text "scenes" op_projectSceneLocation;
+	    textField -e -text "scenes" op_projectShotLocation;
 	    textField -e -text "archive" op_projectArchiveLocation;
 	    textField -e -text "master" op_projectMasterName;
 	    textField -e -text "workshop" op_projectWorkshopName;
@@ -386,7 +386,7 @@ global proc openPipelineProjDialogWindow(int $mode)
 	        string $curr_workshopname = openPipelineGetXmlData($projXml,"workshopname");
 	        string $curr_workshopformat = openPipelineGetXmlData($projXml,"workshopformat");
 	        string $curr_libraryFolder = openPipelineGetXmlData($projXml,"libraryfolder");
-	        string $curr_scenesFolder = openPipelineGetXmlData($projXml,"scenesfolder");
+	        string $curr_shotsFolder = openPipelineGetXmlData($projXml,"scenesfolder");
             string $curr_archiveFolder = openPipelineGetXmlData($projXml,"archivefolder");
             textField -e -text $curr_name op_projectNameField;
             textField -e -text $curr_path op_projectPathField;
@@ -394,7 +394,7 @@ global proc openPipelineProjDialogWindow(int $mode)
             textField -e -text $curr_date op_projectCreationDate;
 	        textField -e -text $curr_deadline op_projectDeadline;      
 	        textField -e -ed 0 -text $curr_libraryFolder op_projectLibraryLocation;
-	        textField -e -ed 0 -text $curr_scenesFolder op_projectSceneLocation;
+	        textField -e -ed 0 -text $curr_shotsFolder op_projectShotLocation;
 	        textField -e -ed 0 -text $curr_archiveFolder op_projectArchiveLocation;
 	        textField -e -ed 0 -text $curr_mastername op_projectMasterName;
 	        optionMenu -e -en 0 -v $curr_masterformat op_projectMasterFormat;
@@ -426,7 +426,7 @@ global proc openPipelineProjDialogCallback(int $mode, string $editProjName)
 	string $newWorkshopName = strip(`textField -q -tx op_projectWorkshopName`);
 	string $newWorkshopFormat = strip(`optionMenu -q -v op_projectWorkshopFormat`);
 	string $newLibraryLocation = strip(`textField -q -tx op_projectLibraryLocation`);
-	string $newSceneLocation = strip(`textField -q -tx op_projectSceneLocation`);
+	string $newShotLocation = strip(`textField -q -tx op_projectShotLocation`);
 	string $newArchiveLocation = strip(`textField -q -tx op_projectArchiveLocation`);
 	
 	//input validation
@@ -441,8 +441,8 @@ global proc openPipelineProjDialogCallback(int $mode, string $editProjName)
 	    $error += "Workshop name cannot exceed 18 characters.\n";
 	if (size($newLibraryLocation)>22)
 	    $error += "Library sub-folder name cannot exceed 22 characters.\n";
-	if (size($newSceneLocation)>22)
-	    $error += "Scene sub-folder name cannot exceed 22 characters.\n";
+	if (size($newShotLocation)>22)
+	    $error += "Shot sub-folder name cannot exceed 22 characters.\n";
 	if (size($newArchiveLocation)>22)
 	    $error += "Archive sub-folder name cannot exceed 22 characters.\n";
 	if (size($newDate)>18)
@@ -460,12 +460,12 @@ global proc openPipelineProjDialogCallback(int $mode, string $editProjName)
 	    $error += "Workshop name is not valid (remove spaces and special characters ).\n";
 	if (!isValidString($newLibraryLocation,"([a-zA-Z0-9_])*"))
 	    $error += "Library sub-folder is not valid (remove spaces and special characters ).\n";
-	if (!isValidString($newSceneLocation,"([a-zA-Z0-9_])*"))
+	if (!isValidString($newShotLocation,"([a-zA-Z0-9_])*"))
 	    $error += "Location sub-folder is not valid (remove spaces and special characters ).\n";
 	if (!isValidString($newArchiveLocation,"([a-zA-Z0-9_])*"))
 	    $error += "Archive sub-folder is not valid (remove spaces and special characters ).\n";
-	if (($newLibraryLocation==$newArchiveLocation)||($newLibraryLocation==$newSceneLocation)||($newSceneLocation==$newArchiveLocation))
-	    $error += "Sub-folders (library, scene and archive) must have unique names.\n";
+	if (($newLibraryLocation==$newArchiveLocation)||($newLibraryLocation==$newShotLocation)||($newShotLocation==$newArchiveLocation))
+	    $error += "Sub-folders (asset library, shot library and archive) must have unique names.\n";
 
 	if (!`filetest -d $newPath`)
 		{
@@ -507,7 +507,7 @@ global proc openPipelineProjDialogCallback(int $mode, string $editProjName)
     	                  "<workshopname>" + $newWorkshopName + "</workshopname>" +
     	                  "<workshopformat>" + $newWorkshopFormat + "</workshopformat>" +
     	                  "<libraryfolder>" + $newLibraryLocation + "</libraryfolder>" +
-    	                  "<scenesfolder>" + $newSceneLocation + "</scenesfolder>" +
+    	                  "<scenesfolder>" + $newShotLocation + "</scenesfolder>" +
     	                  "<archivefolder>" + $newArchiveLocation + "</archivefolder>";
     	int $index;
     	if (!$mode)
