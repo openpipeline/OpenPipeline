@@ -228,8 +228,8 @@ global proc int openPipelineAssetAction(string $type, int $versionOffset, string
 		}
 		else if ($type=="workshop")
 		{
-			string $choice = `confirmDialog -t "Edit Asset" -m "You are about to edit an asset for the first time. Would you like to start with an new scene, or the currently open scene?" -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Shot"`;
-			if ($choice=="New Shot")
+			string $choice = `confirmDialog -t "Edit Asset" -m "You are about to edit an asset for the first time. Would you like to start with an new scene, or the currently open scene?" -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
+			if ($choice=="New Scene")
 				file -f -new;
 			else if ($choice=="Cancel")
 				return 1;
@@ -311,8 +311,8 @@ global proc int openPipelineComponentAction(string $type, int $versionOffset, st
 		}
 		else if ($type=="workshop")
 		{
-			string $choice = `confirmDialog -t "Edit Component" -m ("You are about to edit a component with no existing "+$wName+"s.\nWould you like to start with an new scene, or the currently open scene?") -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Shot"`;
-			if ($choice=="New Shot")
+			string $choice = `confirmDialog -t "Edit Component" -m ("You are about to edit a component with no existing "+$wName+"s.\nWould you like to start with an new scene, or the currently open scene?") -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
+			if ($choice=="New Scene")
 				file -f -new;
 			else if ($choice=="Cancel")
 				return 1;
@@ -402,8 +402,8 @@ global proc int openPipelineShotAction(string $type, int $versionOffset, string 
 		}
 		else if ($type=="workshop")
 		{
-			string $choice = `confirmDialog -t "Edit Shot" -m ("You are about to edit a shot with no existing " + $wName + ".\nWould you like to start with an new scene, or the currently open scene?") -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Shot"`;
-			if ($choice=="New Shot")
+			string $choice = `confirmDialog -t "Edit Shot" -m ("You are about to edit a shot with no existing " + $wName + ".\nWould you like to start with an new scene, or the currently open scene?") -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
+			if ($choice=="New Scene")
 			{
 				file -f -new;
 			}else if ($choice=="Cancel"){
@@ -493,8 +493,8 @@ global proc int openPipelineShotComponentAction(string $type, int $versionOffset
 		}
 		else if ($type=="workshop")
 		{
-			string $choice = `confirmDialog -t "Edit Component" -m ("You are about to edit a component with no existing "+$wName+"s.\nWould you like to start with an new scene, or the currently open scene?") -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Shot"`;
-			if ($choice=="New Shot")
+			string $choice = `confirmDialog -t "Edit Component" -m ("You are about to edit a component with no existing "+$wName+"s.\nWould you like to start with an new scene, or the currently open scene?") -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
+			if ($choice=="New Scene")
 				file -f -new;
 			else if ($choice=="Cancel")
 				return 1;
