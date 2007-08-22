@@ -743,7 +743,13 @@ global proc openPipelineUpdateCurrentlyOpen()
 			text -e -label "none open" op_currOpenShotHeading;//other side
 		}
 
-
+		if ($currType=="master")
+		{
+			button -e -en 0 op_saveShotWorkshopButton;	
+			button -e -en 0 op_saveWorkshopButton;
+			button -e -en 0 op_masterShotButton;
+			button -e -en 0 op_masterButton;
+		}
 	
 
 	}
@@ -772,7 +778,7 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 	string $projXml = openPipelineGetSingleProjectXml($projName);
 	string $projPath = openPipelineGetXmlData($projXml, "path");
 	if (!endsWith($projPath,"/")) 
-        $projPath += "/"; 
+  	$projPath += "/"; 
 	progressWindow -e -s 1;
 	string $projLib = openPipelineGetXmlData($projXml, "libraryfolder");
 	string $projShots = openPipelineGetXmlData($projXml, "scenesfolder");
@@ -794,7 +800,6 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 	optionVar -sv "op_libPath" $libPath;
 	optionVar -sv "op_shotPath" $shotPath;
 	optionVar -sv "op_archivePath" $archivePath;
-	
 	optionVar -sv "op_masterFormat" $projMFormat;
 	optionVar -sv "op_workshopFormat" $projWFormat;
 	optionVar -sv "op_masterName" $projMName;
@@ -1758,7 +1763,7 @@ global proc openPipelineSaveMasterFileGUI()
 	setParent..;
 
 	rowLayout -numberOfColumns 2 -cw2 125 125 -cl2 "center" "center";
-		button -w 125 -l $mName -c "openPipelineProcessAssetSave master" -bgc .9 .7 .4;
+		button -w 125 -l $mName -c "openPipelineProcessSave master" -bgc .9 .7 .4;
 		button -w 125 -l "cancel" -c "deleteUI op_secondaryUI;" -bgc .8 .4 .4;
 	setParent..;
 
@@ -1787,7 +1792,7 @@ global proc openPipelineSaveWorkshopGUI()
 	setParent..;
 
 	rowLayout -numberOfColumns 2 -cw2 125 125 -cl2 "center" "center";
-		button -w 125 -l ("SAVE "+$wName) -c "openPipelineProcessAssetSave workshop;" -bgc .8 .6 .5;
+		button -w 125 -l ("SAVE "+$wName) -c "openPipelineProcessSave workshop;" -bgc .8 .6 .5;
 		button -w 125 -l "cancel" -c "deleteUI op_secondaryUI;" -bgc .8 .4 .4;
 	setParent..;
 

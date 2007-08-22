@@ -16,7 +16,8 @@ global proc openPipelineLoadAssetNote()
     	string $assetNoteTextArray[] = `openPipelineReadXML $notePath`;
     	$assetNoteText = stringArrayToString($assetNoteTextArray, "");
     }	
-	scrollField -edit -text $assetNoteText op_commentField;
+	if (`scrollField -q -ex op_commentField`)
+		scrollField -edit -text $assetNoteText op_commentField;
 }
 
 global proc openPipelineLoadShotNote()
@@ -62,7 +63,7 @@ global proc openPipelineLoadCurrentShotNote()
 
 global proc openPipelineClearCurrentShotNote()
 {
-	scrollField -edit -text "" op_currentShotNoteField;	
+	scrollField -edit -text "" op_currentShotNoteField;
 }
 
 
@@ -398,8 +399,12 @@ global proc int openPipelineNoteWriter(string $inputMode)
 		
 			case "workshop":
 				// get comment
-				string $commentAdded = `textField -q -text op_saveWorkshopCommentField`;
-				$commentAdded = `strip $commentAdded`;
+				string $commentAdded = "";
+				if (`textField -q -ex op_saveWorkshopCommentField`)
+				{
+					$commentAdded = `textField -q -text op_saveWorkshopCommentField`;
+					$commentAdded = `strip $commentAdded`;
+				}
 			break;
 		}
 		

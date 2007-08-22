@@ -562,10 +562,9 @@ global proc int openPipelineShotAssetAction(string $action)
 //          -call "openPipelineLoadCurrentAssetNote" for displaying the updated notes
 //          -call "openPipeline____Action" to open the file which was just saved
 //
-global proc openPipelineProcessAssetSave(string $saveType)
+global proc openPipelineProcessSave(string $saveType)
 {
 	string $currCat = `optionVar -q "op_currOpenCategory"`;
-
 	switch($saveType)
 	{
 		case "workshop":
@@ -578,36 +577,31 @@ global proc openPipelineProcessAssetSave(string $saveType)
 			openPipelineNoteWriter master;
 			break;
 	}
-
-	int $openMaster = 0;
 	
+	int $openMaster = 0;
 	if(`checkBox -q -exists masterOpenMasterBox`)
 		$openMaster = `checkBox -q -v masterOpenMasterBox`;
-
-	if(($saveType == "master")&&($openMaster == 1))
+	
+	if ($saveType == "master")
 	{
-		if ($currCat=="asset")
-			openPipelineAssetAction master 0 open 1;	
-		else if ($currCat=="component")
-			openPipelineComponentAction master 0 open 1;	
-		else if ($currCat=="shot")
-			openPipelineShotAction master 0 open 1;	
-		else if ($currCat=="shotComponent")
-			openPipelineShotComponentAction master 0 open 1;	
+		string $openType;
+		if ($openMaster)
+			$openType="master";
 		else
-			error("openPipelineProcessAssetSave error: invalid category:"+$currCat);		
-	}else{
+			$openType="workshop";
 		if ($currCat=="asset")
-			openPipelineAssetAction workshop 0 open 1;	
+			openPipelineAssetAction $openType 0 open 1;	
 		else if ($currCat=="component")
-			openPipelineComponentAction workshop 0 open 1;	
+			openPipelineComponentAction $openType 0 open 1;	
 		else if ($currCat=="shot")
-			openPipelineShotAction workshop 0 open 1;	
+			openPipelineShotAction $openType 0 open 1;	
 		else if ($currCat=="shotComponent")
-			openPipelineShotComponentAction workshop 0 open 1;	
+			openPipelineShotComponentAction $openType 0 open 1;	
 		else
-			error("openPipelineProcessAssetSave error: invalid category:"+$currCat);
+			error("openPipelineProcessSave error: invalid category:"+$currCat);		
 	}
+	else if (`window -q -exists openPipelineUI`)
+		openPipelineUpdateCurrentlyOpen();
 }
 
 //*** Saves a workshop for the currently open asset / component / shot / shot component
@@ -615,12 +609,10 @@ global proc openPipelineSaveWorkshop()
 {
   string $wName = `optionVar -q "op_workshopName"`;
 	string $ext = `optionVar -q "op_workshopFormat"`;
-	
 	string $currPath = `optionVar -q "op_currOpenPath"`;
 	string $currType = `optionVar -q "op_currOpenType"`;
 	string $currCat = `optionVar -q "op_currOpenCategory"`;
 	int $currVersion = `optionVar -q "op_currOpenVersion"`;
-
 	string $workshop;
 	string $workshopFiles[];
 	int $numWorkshops;
@@ -649,9 +641,7 @@ global proc openPipelineSaveWorkshop()
 		if ($numWorkshops)
 			$latestWorkshop = openPipelineGetVersionFromFile($workshopFiles[$numWorkshops-1]);
 		string $suffix = openPipelinePad(($latestWorkshop+1),4);
-		$destinationFile = ($workshop + $assetName + "_" + $componentName + "_" + $wName +"_" + 
-
-$suffix + "."+$ext);
+		$destinationFile = ($workshop + $assetName + "_" + $componentName + "_" + $wName +"_" + $suffix + "."+$ext);
 	}
 
 	// save the current file to the master location
@@ -665,8 +655,9 @@ $suffix + "."+$ext);
 	{
 	    $type = "mayaBinary";
 	    warning ("Invalid file format ("+$ext+") specified: saving to Maya Binary");
-	}   
+	}
 	file -save -type $type;
+	optionVar -iv "op_currOpenVersion" ($latestWorkshop+1);
 }
 
 //*** Saves a master for the currently open asset / component / shot / shot component
