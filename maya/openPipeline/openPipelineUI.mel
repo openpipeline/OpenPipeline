@@ -750,11 +750,8 @@ global proc openPipelineUpdateCurrentlyOpen()
 			button -e -en 0 op_masterShotButton;
 			button -e -en 0 op_masterButton;
 		}
-	
-
 	}
-	//remove any secondary windows ("save workshop" "revive workshop" "master" "archive")
-	openPipelineRemoveSecondaryWindows();
+	openPipelineRemoveSecondaryWindows;
 }
 
 
@@ -1726,118 +1723,156 @@ global proc openPipelineNewShotUI()
 	
 global proc openPipelineSaveMasterFileGUI()
 {
-	string $mName = capitalizeString(`optionVar -q "op_masterName"`);
-	string $windowExists = `window -exists op_secondaryUI`;
-	if($windowExists == 1)
+	string $type="";
+	if (`optionVar -ex op_currOpenType`)
+		$type = `optionVar -q op_currOpenType`;
+	if ($type=="workshop")
 	{
-		deleteUI op_secondaryUI;
+		string $mName = capitalizeString(`optionVar -q "op_masterName"`);
+		string $windowExists = `window -exists op_secondaryUI`;
+		if($windowExists == 1)
+		{
+			deleteUI op_secondaryUI;
+		}
+		
+		window -t ($mName+" File Switchboard") -w 300 -h 200 op_secondaryUI;
+	
+		columnLayout -rs 5 -co "both" 10;
+		rowLayout -numberOfColumns 2 -cw2 150 150 -cl2 "center" "center";
+			// flatten reference...
+			checkBox -label "Import References" -v 1 masterImportReferencesBox;
+			//  ...
+		setParent..;
+	
+		rowLayout -numberOfColumns 2 -cw2 150 150 -cl2 "center" "center";
+			// delete layers...	
+			checkBox -label "Delete Display Layers" -v 1 masterDeleteLayersBox;
+			//  ...
+			// delete layers...	
+			checkBox -label ("Open " + $mName) -v 0 masterOpenMasterBox;
+			//  ...
+		setParent ..;
+	
+		columnLayout -co "both" 10;
+			text -l ("Custom " + $mName + " Command:");
+			textField -w 240 op_masterCommandField;
+		setParent ..;
+	
+		// notes...
+		rowLayout -numberOfColumns 2 -cw2 60 230 -cl2 "center" "center";
+			text -l "comment: " -w 60 -h 20;
+			scrollField -w 190 -h 40 -ww 1 op_masterCommentField;
+		setParent..;
+	
+		rowLayout -numberOfColumns 2 -cw2 125 125 -cl2 "center" "center";
+			button -w 125 -l $mName -c "openPipelineProcessSave master;openPipelineRemoveSecondaryWindows;" -bgc .9 .7 .4;
+			button -w 125 -l "cancel" -c "deleteUI op_secondaryUI;" -bgc .8 .4 .4;
+		setParent..;
+	
+		window -e -w 280 -h 200 op_secondaryUI;
+		showWindow op_secondaryUI;
 	}
-	
-	window -t ($mName+" File Switchboard") -w 300 -h 200 op_secondaryUI;
-
-	columnLayout -rs 5 -co "both" 10;
-	rowLayout -numberOfColumns 2 -cw2 150 150 -cl2 "center" "center";
-		// flatten reference...
-		checkBox -label "Import References" -v 1 masterImportReferencesBox;
-		//  ...
-	setParent..;
-
-	rowLayout -numberOfColumns 2 -cw2 150 150 -cl2 "center" "center";
-		// delete layers...	
-		checkBox -label "Delete Display Layers" -v 1 masterDeleteLayersBox;
-		//  ...
-		// delete layers...	
-		checkBox -label ("Open " + $mName) -v 0 masterOpenMasterBox;
-		//  ...
-	setParent ..;
-
-	columnLayout -co "both" 10;
-		text -l ("Custom " + $mName + " Command:");
-		textField -w 240 op_masterCommandField;
-	setParent ..;
-
-	// notes...
-	rowLayout -numberOfColumns 2 -cw2 60 230 -cl2 "center" "center";
-		text -l "comment: " -w 60 -h 20;
-		scrollField -w 190 -h 40 -ww 1 op_masterCommentField;
-	setParent..;
-
-	rowLayout -numberOfColumns 2 -cw2 125 125 -cl2 "center" "center";
-		button -w 125 -l $mName -c "openPipelineProcessSave master" -bgc .9 .7 .4;
-		button -w 125 -l "cancel" -c "deleteUI op_secondaryUI;" -bgc .8 .4 .4;
-	setParent..;
-
-	window -e -w 280 -h 200 op_secondaryUI;
-	showWindow op_secondaryUI;
-	
+	else if ($type == "master")
+	{
+		string $mName = capitalizeString(`optionVar -q "op_masterName"`);
+		confirmDialog -message ("You're currently viewing a "+$mName+" file. Action not possible.") -button "OK" -title "openPipeline message";
+	}
+	else
+		confirmDialog -message ("Nothing is currently open for editing. Action not possible.") -button "OK" -title "openPipeline message";
 }
 
 global proc openPipelineSaveWorkshopGUI()
 {
-	string $wName = capitalizeString(`optionVar -q "op_workshopName"`);
-	string $windowExists = `window -exists op_secondaryUI`;
-	if($windowExists == 1)
+	string $type="";
+	if (`optionVar -ex op_currOpenType`)
+		$type = `optionVar -q "op_currOpenType"`;
+	if ($type=="workshop")
 	{
-		deleteUI op_secondaryUI;
+		string $wName = capitalizeString(`optionVar -q "op_workshopName"`);
+		string $windowExists = `window -exists op_secondaryUI`;
+		if($windowExists == 1)
+		{
+			deleteUI op_secondaryUI;
+		}
+		
+		window -t ("Save "+$wName) -w 300 -h 85 op_secondaryUI;
+	
+		columnLayout -rs 5 -co "both" 10;
+		
+		// notes...
+		rowLayout -numberOfColumns 2 -cw2 60 230 -cl2 "center" "center";
+			text -l "comment: " -w 60 -h 20;
+			textField -w 190 -h 20 op_saveWorkshopCommentField;
+		setParent..;
+	
+		rowLayout -numberOfColumns 2 -cw2 125 125 -cl2 "center" "center";
+			button -w 125 -l ("SAVE "+$wName) -c "openPipelineProcessSave workshop;openPipelineRemoveSecondaryWindows;" -bgc .8 .6 .5;
+			button -w 125 -l "cancel" -c "deleteUI op_secondaryUI;" -bgc .8 .4 .4;
+		setParent..;
+	
+		window -e -w 280 -h 90 op_secondaryUI;
+		showWindow op_secondaryUI;
 	}
-	
-	window -t ("Save "+$wName) -w 300 -h 85 op_secondaryUI;
-
-	columnLayout -rs 5 -co "both" 10;
-	
-	// notes...
-	rowLayout -numberOfColumns 2 -cw2 60 230 -cl2 "center" "center";
-		text -l "comment: " -w 60 -h 20;
-		textField -w 190 -h 20 op_saveWorkshopCommentField;
-	setParent..;
-
-	rowLayout -numberOfColumns 2 -cw2 125 125 -cl2 "center" "center";
-		button -w 125 -l ("SAVE "+$wName) -c "openPipelineProcessSave workshop;" -bgc .8 .6 .5;
-		button -w 125 -l "cancel" -c "deleteUI op_secondaryUI;" -bgc .8 .4 .4;
-	setParent..;
-
-	window -e -w 280 -h 90 op_secondaryUI;
-	showWindow op_secondaryUI;
+	else if ($type == "master")
+	{
+		string $mName = capitalizeString(`optionVar -q "op_masterName"`);
+		confirmDialog -message ("You're currently viewing a "+$mName+" file. Action not possible.") -button "OK" -title "openPipeline message";
+	}
+	else
+		confirmDialog -message ("Nothing is currently open for editing. Action not possible.") -button "OK" -title "openPipeline message";
 }
 
 global proc openPipelineReviveGUI()
 {
-	string $wName = `optionVar -q "op_workshopName"`;
-	string $currPath = `optionVar -q "op_currOpenPath"`;
-  string $wExt = `optionVar -q "op_workshopFormat"`;
-	string $workshop = ($currPath + $wName + "/");
-	string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_" + $wName + "_*."+$wExt)`;
-	$workshopFiles = sort($workshopFiles);
-	int $numVersions = `size($workshopFiles)`;
-	
-	if(`window -exists op_secondaryUI`)
-		deleteUI op_secondaryUI;
-	window -t ("Revive "+$wName) -w 275 -h 85 op_secondaryUI;
-
-	columnLayout -rs 5 -co "both" 10;
-	
-	// notes...
-	rowLayout -numberOfColumns 2 -cw2 130 50 -cl2 "left" "right";
-		text -l "Select Version to Revive: " -w 130 -h 30 -al "left";
-		optionMenu -w 50 -h 30 -cc openPipelineReviveWorkshopNotesCallback op_reviveVersionMenu;
-			int $i;
-			for ($i=0;$i<$numVersions;$i++)
-			{
-				int $version = openPipelineGetVersionFromFile($workshopFiles[$i]);
-				menuItem -l $version;
-			}
-	setParent..;
-	
-	scrollField -editable 0 -wordWrap 1 -text "" -w 260 -h 100 op_reviveWorkshopNotes;
-	
-	rowLayout -numberOfColumns 2 -cw2 85 85 -cl2 "center" "center";
-		button -w 85 -l "REVIVE" -c "openPipelineReviveWorkshopCallback" -bgc .5 .7 .7;
-		button -w 85 -l "cancel" -c "deleteUI op_secondaryUI" -bgc .8 .4 .4;
-	setParent..;
-	optionMenu -e -sl $numVersions op_reviveVersionMenu;
-	window -e -w 275 -h 210 op_secondaryUI;
-	showWindow op_secondaryUI;
-	openPipelineReviveWorkshopNotesCallback;
+	string $path="";
+	if (`optionVar -ex op_currOpenPath`)
+		$path = `optionVar -q op_currOpenPath`;
+	if ($path!="")
+	{
+		string $wName = `optionVar -q "op_workshopName"`;
+		string $currPath = `optionVar -q "op_currOpenPath"`;
+	  string $wExt = `optionVar -q "op_workshopFormat"`;
+		string $workshop = ($currPath + $wName + "/");
+		string $workshopFiles[] = `getFileList -folder $workshop -filespec ("*_" + $wName + "_*."+$wExt)`;
+		$workshopFiles = sort($workshopFiles);
+		int $numVersions = `size($workshopFiles)`;
+		
+		if ($numVersions)
+		{
+			if(`window -exists op_secondaryUI`)
+				deleteUI op_secondaryUI;
+			window -t ("Revive "+$wName) -w 275 -h 85 op_secondaryUI;
+		
+			columnLayout -rs 5 -co "both" 10;
+			
+			// notes...
+			rowLayout -numberOfColumns 2 -cw2 130 50 -cl2 "left" "right";
+				text -l "Select Version to Revive: " -w 130 -h 30 -al "left";
+				optionMenu -w 50 -h 30 -cc openPipelineReviveWorkshopNotesCallback op_reviveVersionMenu;
+					int $i;
+					for ($i=0;$i<$numVersions;$i++)
+					{
+						int $version = openPipelineGetVersionFromFile($workshopFiles[$i]);
+						menuItem -l $version;
+					}
+			setParent..;
+			
+			scrollField -editable 0 -wordWrap 1 -text "" -w 260 -h 100 op_reviveWorkshopNotes;
+			
+			rowLayout -numberOfColumns 2 -cw2 85 85 -cl2 "center" "center";
+				button -w 85 -l "REVIVE" -c "openPipelineReviveWorkshopCallback;openPipelineRemoveSecondaryWindows;" -bgc .5 .7 .7;
+				button -w 85 -l "cancel" -c "deleteUI op_secondaryUI" -bgc .8 .4 .4;
+			setParent..;
+			optionMenu -e -sl $numVersions op_reviveVersionMenu;
+			window -e -w 275 -h 210 op_secondaryUI;
+			showWindow op_secondaryUI;
+			openPipelineReviveWorkshopNotesCallback;
+		}
+		else
+			confirmDialog -message ("No previous "+$wName+" versions exist. Revive not possible.") -button "OK" -title "openPipeline message";
+	}
+	else
+		confirmDialog -message ("Nothing is currently open for editing. Action not possible.") -button "OK" -title "openPipeline message";
 }
 	
 global proc openPipelineReviveWorkshopCallback()

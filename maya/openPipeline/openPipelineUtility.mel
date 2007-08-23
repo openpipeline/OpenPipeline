@@ -47,19 +47,27 @@ global proc string openPipelineGetNotePath(string $inputMode)
 	string $creationPath = `optionVar -q "op_creationPath"`;
 	string $creationType = `optionVar -q "op_creationType"`;
 	int $currTab = `optionVar -q "op_currTab"`;
-	string $asset = `openPipelineGetSelectedAsset`;
-	string $openPipeline_menuCurrentAsset = basename($asset,"");	
-	string $component = `openPipelineGetSelectedComponent`;
-	string $openPipeline_menuCurrentAssetComponent = basename($component, "");	
-	string $shot = `openPipelineGetSelectedShot`;
-	string $selectedShot = basename($shot, "");
-	string $shotComponent = `openPipelineGetSelectedShotComponent`;
-	string $selectedShotComponent = basename($shotComponent,"");
+	
+
 	string $outputString;
 	switch($inputMode)
 	{
 		//"note:" returns the note file for the currently selected asset / component / shot
 		case "note":
+			string $asset = `openPipelineGetSelectedAsset`;
+			string $component = `openPipelineGetSelectedComponent`;
+			string $shot = `openPipelineGetSelectedShot`;
+			string $shotComponent = `openPipelineGetSelectedShotComponent`;
+				string $openPipeline_menuCurrentAsset = basename($asset,"");	
+	
+	string $openPipeline_menuCurrentAssetComponent = basename($component, "");	
+	
+	string $selectedShot = basename($shot, "");
+	
+	string $selectedShotComponent = basename($shotComponent,"");
+			
+			
+			
 			string $notesPath;
 			//if user in Asset Management Tab
 			if ($currTab ==1)

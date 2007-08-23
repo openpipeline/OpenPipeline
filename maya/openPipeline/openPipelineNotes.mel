@@ -407,9 +407,7 @@ global proc int openPipelineNoteWriter(string $inputMode)
 				}
 			break;
 		}
-		
 		string $notePath = `openPipelineGetNotePath "openednote"`;
-		
 		if(`filetest -f $notePath`)
 		{
 			openPipelineFilePermisson "-R" $notePath;
@@ -417,7 +415,6 @@ global proc int openPipelineNoteWriter(string $inputMode)
 		}else{
 			$fileId=`fopen $notePath "w"`;
 		}
-					
 		fprint $fileId  "   <note>\n";
 		fprint $fileId ("       <notetype>" + $inputMode + "</notetype>\n");
 		fprint $fileId ("		<author>" + $openPipeline_userName + "</author>\n");
@@ -430,9 +427,9 @@ global proc int openPipelineNoteWriter(string $inputMode)
 	 	fclose $fileId;
 	 	
 
-	 	
-	 	//reload the note
-	 	openPipelineLoadAssetNote;
+	 	//if UI is open, reload the note
+	 	if (`window -q -ex openPipelineUI`)
+	 		openPipelineLoadAssetNote;
 	}
 	return 1;
 }
