@@ -39,6 +39,13 @@
 //*** returns the full path and filename for the appropriate note file
 //      $inputMode - 'note', 'openednote' or 'newnote'. 
 //          See below for specific explanations of the different modes.
+
+//###########################################
+// Name: openPipelineGetNotePath
+// Description: Returns a note file for the asset/component/scene specified by "$inputMode" (see below)
+// Input: inputMode - 'note' (currently selected), 'openednote'(currently open) or 'newnote' (newly created) (string) 
+// Returns: The full path and filename for the appropriate note file (string)
+//###########################################
 global proc string openPipelineGetNotePath(string $inputMode)
 {
 	string $currPath = `optionVar -q "op_currOpenPath"`;
@@ -158,7 +165,13 @@ global proc string openPipelineGetNotePath(string $inputMode)
 	return $outputString;
 }
 
-//*** returns the current date
+
+//###########################################
+// Name: openPipelineGetDate
+// Description: Returns the current date
+// Input: none
+// Returns: The current date in the format MM/DD/YY (string)
+//###########################################
 global proc string openPipelineGetDate()
 {
 	string $date = `about -cd`;
@@ -168,17 +181,29 @@ global proc string openPipelineGetDate()
 	return $date;
 }
 
-//*** returns the current time
+//###########################################
+// Name: openPipelineGetTime
+// Description: Returns the current time
+// Input: none
+// Returns: The current time (string)
+//###########################################
 global proc string openPipelineGetTime()
 {
 	string $time = `about -ct`;
 	return $time;
 }
 
-//*** returns a padded string from non-negative integer
+//###########################################
+// Name: openPipelinePad
+// Description: Returns a non-negative integer as a string with padding
+// Input: num - input integer (int) 
+//				padding - the padding to apply (int)
+// Returns: The number as a padded string (an input of 12 and 4 yields "0012")
+// Note: If the padding specified doesn't exceed the number of digits in the number, no leading zeroes are addded
+//###########################################
 global proc string openPipelinePad(int $num, int $padding)
 {
-	string $prefix;
+	string $prefix="";
 	string $numString = string($num);
 	int $length = size($numString);
 	int $i;
@@ -187,7 +212,12 @@ global proc string openPipelinePad(int $num, int $padding)
 	return ($prefix+$numString);
 }
 
-//*** returns an integer from a padded string
+//###########################################
+// Name: openPipelineUnpad
+// Description: Returns an integer from a padded string representation of a number
+// Input: numString - string to be "unpadded"
+// Returns: The number as an integer (an input of "00304" yields the integer 304)
+//###########################################
 global proc int openPipelineUnpad(string $numString)
 {
 	string $prefix = `match "^0*" $numString`;
@@ -198,7 +228,13 @@ global proc int openPipelineUnpad(string $numString)
 	return (int($subString));
 }
 
-//*** returns the version of an ma or mb file, assuming a padding of 4
+//###########################################
+// Name: openPipelineGetVersionFromFile
+// Description: Returns the version of an ma or mb file, assuming a padding of 4
+// Input: file - the filename (string) 	
+// Returns: The version of the file (int)
+// Note: This proc is designed to work with files that adhere to the numbering convention of openPipeline (e.g. "filename0034.mb")
+//###########################################
 global proc int openPipelineGetVersionFromFile(string $file)
 {
 	string $suffix = endString($file,7);
@@ -207,7 +243,12 @@ global proc int openPipelineGetVersionFromFile(string $file)
 	return $version;
 }
 
-//*** checks if a given asset, or shot has at least one workshop
+//###########################################
+// Name: openPipelineAssetHasWorkshop
+// Description: Checks if a given asset has at least one workshop
+// Input: path - the full path of the asset to check (string)
+// Returns: 0 if no workshops exist, non-zero integer otherwise.
+//###########################################
 global proc int openPipelineAssetHasWorkshop(string $path)
 {
 	string $wExt = `optionVar -q "op_workshopFormat"`;
@@ -217,7 +258,12 @@ global proc int openPipelineAssetHasWorkshop(string $path)
 	return size($workshopFiles);
 }
 
-//*** checks if a given component has at least one workshop
+//###########################################
+// Name: openPipelineComponentHasWorkshop
+// Description: Checks if a given component has at least one workshop
+// Input: path - the full path of the component to check (string)
+// Returns: 0 if no workshops exist, non-zero integer otherwise.
+//###########################################
 global proc int openPipelineComponentHasWorkshop(string $path)
 {	
 	string $wExt = `optionVar -q "op_workshopFormat"`;
@@ -228,7 +274,12 @@ global proc int openPipelineComponentHasWorkshop(string $path)
 	return size($workshopFiles);
 }
 
-//*** checks if a given asset has been mastered at least once
+//###########################################
+// Name: openPipelineAssetHasMaster
+// Description: Checks if a given asset has been mastered
+// Input: path - the full path of the asset to check (string)
+// Returns: 0 if no master exists, non-zero integer otherwise.
+//###########################################
 global proc int openPipelineAssetHasMaster(string $path)
 {
 	string $mExt = `optionVar -q "op_masterFormat"`;
@@ -238,7 +289,12 @@ global proc int openPipelineAssetHasMaster(string $path)
 	return $exists;
 }
 
-//*** checks if a given shot has been mastered at least once
+//###########################################
+// Name: openPipelineShotHasMaster
+// Description: Checks if a given shot has been mastered
+// Input: path - the full path of the shot to check (string)
+// Returns: 0 if no master exists, non-zero integer otherwise.
+//###########################################
 global proc int openPipelineShotHasMaster(string $path)
 {
 	string $mExt = `optionVar -q "op_masterFormat"`;
@@ -248,7 +304,12 @@ global proc int openPipelineShotHasMaster(string $path)
 	return $exists;
 }
 
-//*** checks if a given component has been mastered at least once
+//###########################################
+// Name: openPipelineComponentHasMaster
+// Description: Checks if a given component has been mastered
+// Input: path - the full path of the component to check (string)
+// Returns: 0 if no master exists, non-zero integer otherwise.
+//###########################################
 global proc int openPipelineComponentHasMaster(string $path)
 {	
 	string $mExt = `optionVar -q "op_masterFormat"`;
@@ -259,7 +320,12 @@ global proc int openPipelineComponentHasMaster(string $path)
 	return $masterExists;
 }
 
-//*** returns the number of workshops that exist for a shot, asset or component
+//###########################################
+// Name: openPipelineNumWorkshops
+// Description: Returns the number of workshops that exist for a shot, asset or component
+// Input: path - the full path of the shot, asset, component to check (string)
+// Returns: The number of workshops (int)
+//###########################################
 global proc int openPipelineNumWorkshops(string $path)
 {
 	string $wExt = `optionVar -q "op_workshopFormat"`;
@@ -269,7 +335,12 @@ global proc int openPipelineNumWorkshops(string $path)
 	return size($workshopFiles);
 }
 
-//*** returns the number of old mastered versions that exist for a shot, asset or component
+//###########################################
+// Name: openPipelineNumVersions
+// Description: Returns the number of old mastered versions that exist for a shot, asset or component
+// Input: path - the full path of the shot, asset, component to check (string)
+// Returns: The number of versions (int)
+//###########################################
 global proc int openPipelineNumVersions(string $path)
 {
 	string $mExt = `optionVar -q "op_masterFormat"`;
@@ -278,8 +349,12 @@ global proc int openPipelineNumVersions(string $path)
 	return size($versionFiles);
 }
 
-//*** returns the workshop files for a given asset, component or shot
-//*** note: filenames are returned as full paths
+//###########################################
+// Name: openPipelineGetWorkshops
+// Description: Returns all of the workshop files for a given asset, component or shot
+// Input: path - the full path of the shot, asset, component to check (string)
+// Returns: A string array of the full paths to the workshop files
+//###########################################
 global proc string[] openPipelineGetWorkshops(string $path)
 {
 	string $wExt = `optionVar -q "op_workshopFormat"`;
@@ -293,8 +368,12 @@ global proc string[] openPipelineGetWorkshops(string $path)
 	return $workshopFullPaths;
 }
 
-//*** returns the version files for a given asset, component or shot
-//*** note: filenames are returned as full paths
+//###########################################
+// Name: openPipelineGetVersions
+// Description: Returns all of the version files for a given asset, component or shot
+// Input: path - the full path of the shot, asset, component to check (string)
+// Returns: A string array of the full paths to the version files
+//###########################################
 global proc string[] openPipelineGetVersions(string $path)
 {
 	string $mExt = `optionVar -q "op_masterFormat"`;
@@ -308,6 +387,12 @@ global proc string[] openPipelineGetVersions(string $path)
 	return $versionFullPaths;
 }
 
+//###########################################
+// Name: openPipelineGetLatestWorkshopVersion
+// Description: Returns the version of the latest workshop for a given asset, component or shot
+// Input: path - the full path of the shot/asset/component to check (string)
+// Returns: The latest workshop version number (int)
+//###########################################
 global proc int openPipelineGetLatestWorkshopVersion(string $path)
 {
 	string $workshopFiles[] = openPipelineGetWorkshops($path);
@@ -321,6 +406,12 @@ global proc int openPipelineGetLatestWorkshopVersion(string $path)
 	return $version;
 }
 
+//###########################################
+// Name: openPipelineGetLatestMasterVersion
+// Description: Returns the version of the most recent previously mastered version for a given asset, component or shot
+// Input: path - the full path of the shot, asset, component to check (string)
+// Returns: The latest master version number (int)
+//###########################################
 global proc int openPipelineGetLatestMasterVersion(string $path)
 {
 	string $versionFiles[] = openPipelineGetVersions($path);
@@ -334,8 +425,14 @@ global proc int openPipelineGetLatestMasterVersion(string $path)
 	return $version;
 }
 
-//*** returns the folder name at a given depth of a path
-//*** passing in 0 as the second parameter has the same function as the "basename" mel command
+//###########################################
+// Name: openPipelineGetFolderFromPath
+// Description: Returns the folder name at a given depth of a path
+// Input: path - the full path (string) 
+//				offsetFromLast - the depth of the folder, counting backwards from the deepest (string)
+// Returns: The name of the folder
+// Note: passing in 0 as the second parameter has the same function as the "basename" mel command
+//###########################################
 global proc string openPipelineGetFolderFromPath(string $path, int $offsetFromLast)
 {
 	string $tokenizedPath[];
@@ -346,6 +443,12 @@ global proc string openPipelineGetFolderFromPath(string $path, int $offsetFromLa
 	    return "";
 }
 
+//###########################################
+// Name: openPipelineUtilityUpdatePadding
+// Description: Updates filename padding for users upgrading from version 0.3 or below
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineUtilityUpdatePadding()
 {
 	// get paths for all types and all assets and all components
@@ -388,7 +491,13 @@ global proc openPipelineUtilityUpdatePadding()
 	}
 }
 
-
+//###########################################
+// Name: openPipelineGetLibFiles
+// Description: Returns all maya files in the asset library of the current project
+// Input: none
+// Returns: string array of filenames with full paths
+// Note: This procedure is only used by the "openPipelineUtilityUpdatePadding" proc
+//###########################################
 global proc string[] openPipelineGetLibFiles()
 {
 	string $assetTypes[];
@@ -419,7 +528,13 @@ global proc string[] openPipelineGetLibFiles()
 	return $fileList;
 }
 
-
+//###########################################
+// Name: openPipelineGetShotFiles
+// Description: Returns all maya files in the shot library of the current project
+// Input: none
+// Returns: string array of filenames with full paths
+// Note: This procedure is only used by the "openPipelineUtilityUpdatePadding" proc
+//###########################################
 global proc string[] openPipelineGetShotFiles()
 {
 	string $allShots[];
@@ -436,6 +551,13 @@ global proc string[] openPipelineGetShotFiles()
 	return $fileList;
 }
 
+//###########################################
+// Name: openPipelineIsValidFolder
+// Description: Returns whether a folder exists and doesn't have a period "." at the start of its name
+// Input: path - the path to be tested (string)
+// Returns: 1 of valid, 0 if not
+// Note: This proc was created to prevent oP from mistaking folders like ".svn" for project folders
+//###########################################
 global proc int openPipelineIsValidFolder(string $path)
 {
 	if (!`filetest -d $path`)
@@ -451,6 +573,12 @@ global proc int openPipelineIsValidFolder(string $path)
 	}
 }
 
+//###########################################
+// Name: openPipelineGetXmlAll
+// Description: Parses an xml file and returns each tag and entry as a separate array entry
+// Input: xmlFile - the file to be evaluated (string)
+// Returns: A string array with each entry holding either an xml tag or data
+//###########################################
 global proc string[] openPipelineGetXmlAll(string $xmlFile)
 {
 	string $output[];
@@ -530,6 +658,13 @@ global proc string[] openPipelineGetXmlAll(string $xmlFile)
 	return $output;
 }
 
+//###########################################
+// Name: openPipelineGetXmlTop
+// Description: Returns all the xml data which is a child to the root element specific by "$tag"
+// Input: xml - The input xml with tags and data as separate entries in a string array (string array)
+//				tag - the root element tag in the xml file (string)
+// Returns: A string array with each entry holding either an xml tag or data
+//###########################################
 global proc string[] openPipelineGetXmlTop(string $xml[], string $tag)
 {
     int $i=0;
@@ -555,6 +690,13 @@ global proc string[] openPipelineGetXmlTop(string $xml[], string $tag)
     return $output;
 }
 
+//###########################################
+// Name: openPipelineIsXmlInTag
+// Description: Checks if a string is a specific opening xml tag
+// Input: xml - the string to be evaluated (string) 
+//				tag - the name of the tag being tested (string)
+// Returns: 1 if the string is the correct opening tag, 0 if not
+//###########################################
 global proc int openPipelineIsXmlInTag(string $xml, string $tag)
 {
     string $matchString = "<[ ]*"+$tag+"[ ]*.*>";
@@ -562,6 +704,13 @@ global proc int openPipelineIsXmlInTag(string $xml, string $tag)
     return $match;
 }
 
+//###########################################
+// Name: openPipelineIsXmlOutTag
+// Description: XML tool
+// Input: xml - xml data (string) 
+//				tag - the tag to be searched for (string)
+// Returns: 1 if the string is the correct closing tag, 0 if not
+//###########################################
 global proc int openPipelineIsXmlOutTag(string $xml, string $tag)
 {
     string $matchString = "</[ ]*"+$tag+"[ ]*>";
@@ -569,32 +718,44 @@ global proc int openPipelineIsXmlOutTag(string $xml, string $tag)
     return $match;
 }
 
+//###########################################
+// Name: openPipelineGetXmlSecondary
+// Description: XML tool
+// Input: xml - xml data (string array)
+//				tag - the tag to be searched for (string)
+// Returns: 1 if the string is the correct closing tag, 0 if not
+//###########################################
 global proc string[] openPipelineGetXmlSecondary(string $xml[], string $tag)
 {
     int $i=0;
     int $j=0;
     string $output[];
-    $mode = 0;
     for ($i=0; $i<size($xml); $i++)
     {
-            string $line = strip($xml[$i]);
-            if (openPipelineIsXmlInTag($line,$tag))
-            {
-                $i++;
-                string $line = strip($xml[$i]);
-                while ((!openPipelineIsXmlOutTag($line,$tag))&&($i<size($xml)))
-                {
-                    $line = strip($xml[$i]);
-                    $output[$j]=$output[$j]+$line;
-                    $i++;
-                    $line = strip($xml[$i]);
-                }
-                $j++;
-            }
+       string $line = strip($xml[$i]);
+       if (openPipelineIsXmlInTag($line,$tag))
+       {
+           $i++;
+           $line = strip($xml[$i]);
+           while ((!openPipelineIsXmlOutTag($line,$tag))&&($i<size($xml)))
+           {
+               $output[$j]=$output[$j]+$line;
+               $i++;
+               $line = strip($xml[$i]);
+           }
+           $j++;
+       }
    }   
    return $output;
 }
 
+//###########################################
+// Name: openPipelineGetXmlData
+// Description: XML tool - returns the data encapsulated by the opening and closing tags of an xml element
+// Input: xml - xml data (string) 
+//				tag - the tag to be searched for (string)
+// Returns: The data found (string)
+//###########################################
 global proc string openPipelineGetXmlData(string $xml, string $tag)
 {
     $xml = strip($xml);
@@ -608,6 +769,12 @@ global proc string openPipelineGetXmlData(string $xml, string $tag)
     return $output;
 }
 
+//###########################################
+// Name: openPipelineUtilityUpdateSceneStructure
+// Description: Updates the folder structure when updating from an oP version without Shot->Sequence functionality
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineUtilityUpdateSceneStructure()
 {
 	string $currentShots[];

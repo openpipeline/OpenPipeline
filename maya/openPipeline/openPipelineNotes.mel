@@ -2,6 +2,12 @@
 // openPipeline Notes Functions
 //
 
+//###########################################
+// Name: openPipelineLoadAssetNote
+// Description: Updates the "History" section of the Asset Management tab, depending on what item is currently selected
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineLoadAssetNote()
 {
 	string $notePath = `openPipelineGetNotePath "note"`;
@@ -20,6 +26,12 @@ global proc openPipelineLoadAssetNote()
 		scrollField -edit -text $assetNoteText op_commentField;
 }
 
+//###########################################
+// Name: openPipelineLoadShotNote
+// Description: Updates the "History" section of the Shot Management tab, depending on what item is currently selected
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineLoadShotNote()
 {
 	string $notePath = `openPipelineGetNotePath "note"`;
@@ -37,6 +49,12 @@ global proc openPipelineLoadShotNote()
 	scrollField -edit -text $shotNoteText op_shotCommentField;
 }
 
+//###########################################
+// Name: openPipelineLoadCurrentAssetNote
+// Description: Updates the "Most Recent Action" section of the Asset Management tab, depending on what item is currently open
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineLoadCurrentAssetNote()
 {
 	string $notePath = `openPipelineGetNotePath "openednote"`;
@@ -45,13 +63,23 @@ global proc openPipelineLoadCurrentAssetNote()
 	scrollField -edit -text $assetNoteText op_currentAssetNoteField;
 }
 
-
+//###########################################
+// Name: openPipelineClearCurrentAssetNote
+// Description: Clears the "Most Recent Action" section of the Asset Management tab
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineClearCurrentAssetNote()
 {
 	scrollField -edit -text "" op_currentAssetNoteField;	
 }
 
-
+//###########################################
+// Name: openPipelineLoadCurrentShotNote
+// Description: Updates the "Most Recent Action" section of the Shot Management tab, depending on what item is currently open
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineLoadCurrentShotNote()
 {
 	string $notePath = `openPipelineGetNotePath "openednote"`;
@@ -60,13 +88,23 @@ global proc openPipelineLoadCurrentShotNote()
 	scrollField -edit -text $shotNoteText op_currentShotNoteField;
 }
 
-
+//###########################################
+// Name: openPipelineClearCurrentShotNote
+// Description: Clears the "Most Recent Action" section of the Shot Management tab
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineClearCurrentShotNote()
 {
 	scrollField -edit -text "" op_currentShotNoteField;
 }
 
-
+//###########################################
+// Name: openPipelineReadLatestNote
+// Description: Get the latest note for a specific asset/component/shot
+// Input: inputPath - the path to the item (string)
+// Returns: A string array with entry 0 containing the appropriate note
+//###########################################
 global proc string[] openPipelineReadLatestNote(string $inputPath)
 {
 	string $outputString[];
@@ -85,7 +123,12 @@ global proc string[] openPipelineReadLatestNote(string $inputPath)
 	return $outputString;
 }
 
-
+//###########################################
+// Name: openPipelineReviveWorkshopNotesCallback
+// Description: Refreshes the notes in the Revive Workshop dialog depending on the version the user has selected.
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineReviveWorkshopNotesCallback()
 {
 	string $notePath = `openPipelineGetNotePath "openednote"`;
@@ -107,7 +150,12 @@ global proc openPipelineReviveWorkshopNotesCallback()
 	scrollField -edit -text $assetNoteText op_reviveWorkshopNotes;
 }
 
-
+//###########################################
+// Name: openPipelineReadXML
+// Description: Formats notes in XML format to be displayed
+// Input: inputPath - the path of the notes
+// Returns: A string array with each entry representing a Note in display format
+//###########################################
 global proc string[] openPipelineReadXML(string $inputPath)
 {
 	string $outputString[];
@@ -124,7 +172,12 @@ global proc string[] openPipelineReadXML(string $inputPath)
 	return $outputString;
 }
 
-// formats the specified XML array
+//###########################################
+// Name: openPipelineFormatXML
+// Description: Formats an XML note to be displayed
+// Input: line - the note in XML(string)
+// Returns: A string with the note in display mode
+//###########################################
 global proc string openPipelineFormatXML(string $line)
 {
 	int $debug = 0;
@@ -187,7 +240,12 @@ global proc string openPipelineFormatXML(string $line)
 	return $formatedXML;
 }
 
-
+//###########################################
+// Name: openPipelineReadAllNotes
+// Description: Read all notes of a specified item
+// Input: inputPath - The note path of the item to be queried (string)
+// Returns: A string array with each entry representing a note
+//###########################################
 global proc string[] openPipelineReadAllNotes(string $inputPath)
 {
 	string $noteContents[];
@@ -228,7 +286,12 @@ global proc string[] openPipelineReadAllNotes(string $inputPath)
 	return $noteContents;
 }
 
-
+//###########################################
+// Name: openPipelineCountNotes
+// Description: Counts the number of note entries for a specific item
+// Input: inputPath - the path of the item to query
+// Returns: The number of note entries (int)
+//###########################################
 global proc int openPipelineCountNotes(string $inputPath)
 {
 	string $allTheNotes[] = openPipelineReadAllNotes($inputPath);
@@ -236,7 +299,13 @@ global proc int openPipelineCountNotes(string $inputPath)
 	return $count;
 }
 
-
+//###########################################
+// Name: openPipelineReadIndividualNote
+// Description: Reads an individual note
+// Input: inputPath - the note path of the item (string)
+//				index - the index of the individual note to return
+// Returns: A string with the specified note
+//###########################################
 global proc string openPipelineReadIndividualNote(string $inputPath, int $index)
 {
 	string $noteContents;
@@ -250,7 +319,13 @@ global proc string openPipelineReadIndividualNote(string $inputPath, int $index)
 	return $noteContents;
 }
 
-
+//###########################################
+// Name: openPipelineReadNotesByEvent
+// Description: Read all notes that describe a particular event
+// Input: inputPath - The note path for the item to be queried (string)
+//				type - The type of event to look for (created, workshop, etc.) (string)
+// Returns: A string array with the notes that match the given event (in XML format)
+//###########################################
 global proc string[] openPipelineReadNotesByEvent(string $inputPath, string $type)
 {
 	string $allTheNotes[] = openPipelineReadAllNotes($inputPath);
@@ -270,7 +345,13 @@ global proc string[] openPipelineReadNotesByEvent(string $inputPath, string $typ
 	return $noteContents;
 }
 
-
+//###########################################
+// Name: openPipelineReadNotesByType
+// Description: Read all notes that match a particular type
+// Input: inputPath - The note path for the item to be queried (string)
+//				type - The type to look for (creation, workshop, master, etc.) (string)
+// Returns: A string array with the notes that match the given type (in XML format)
+//###########################################
 global proc string[] openPipelineReadNotesByType(string $inputPath, string $type)
 {
 	string $allTheNotes[] = openPipelineReadAllNotes($inputPath);
@@ -290,7 +371,13 @@ global proc string[] openPipelineReadNotesByType(string $inputPath, string $type
 	return $noteContents;
 }
 
-
+//###########################################
+// Name: openPipelineReadNotesByVersion
+// Description: Read all notes that match a particular version
+// Input: inputPath - The note path for the item to be queried (string)
+//				version - The version to look for (int)
+// Returns: A string array with the notes that match the given version (in XML format)
+//###########################################
 global proc string[] openPipelineReadNotesByVersion(string $inputPath, int $version)
 {
 	string $allTheNotes[] = openPipelineReadAllNotes($inputPath);
@@ -310,7 +397,15 @@ global proc string[] openPipelineReadNotesByVersion(string $inputPath, int $vers
 	return $noteContents;
 }
 
-
+//###########################################
+// Name: openPipelineCullNotesByVersion
+// Description: Read all notes that match a particular version
+// Input: allTheNotes - All the notes to be considered (string array)
+//				version - The version to look for (int)
+// Returns: A string array with the notes that match the given version (in XML format)
+// Note: 	This proc has the same functionality as "openPipelineReadNotesByVersion" 
+//				but it takes in the actual notes as an input rather than a path to the note file.
+//###########################################
 global proc string[] openPipelineCullNotesByVersion(string $allTheNotes[], int $version)
 {
 	string $noteMatch = ("*<version>" + $version + "</version>*");
@@ -329,6 +424,12 @@ global proc string[] openPipelineCullNotesByVersion(string $allTheNotes[], int $
 	return $noteContents;
 }
 
+//###########################################
+// Name: openPipelineGetCleanLineXML
+// Description: Removes the white space from a string and adds escape characters to 
+// Input: nextLine - The line to clean (string)
+// Returns: The cleaned line as a string
+//###########################################
 global proc string openPipelineGetCleanLineXML(string $nextLine)
 {
 	$nextLine = `strip($nextLine)`;
@@ -336,6 +437,12 @@ global proc string openPipelineGetCleanLineXML(string $nextLine)
 	return $nextLine;
 }
 
+//###########################################
+// Name: openPipelineNoteWriter
+// Description: Creates a new note
+// Input: inputMode - The mode of the note to be created (creation, missing, etc.) (string)
+// Returns: 1 if successful (int)
+//###########################################
 global proc int openPipelineNoteWriter(string $inputMode)
 {
 	global string $openPipeline_userName;	
@@ -434,19 +541,25 @@ global proc int openPipelineNoteWriter(string $inputMode)
 	return 1;
 }
 
-//change the file permission in Windows
-//
-// + set
-// - clean
-// R read-Only
-// H hidden
-//
+//###########################################
+// Name: openPipelineFilePermisson
+// Description: Change the file permission in Windows
+// Input: inputMode - + set, - clean, R read-Only, H hidden (string)
+//				inputPath - The path to apply the permission on (string)
+// Returns: none
+//###########################################
 global proc openPipelineFilePermisson(string $inputMode, string $input_Path)
 {
 	string $exeCommand = "ATTRIB " + $inputMode + " " + $input_Path;
 	system($exeCommand);
 }
 
+//###########################################
+// Name: openPipelineCreateDescription
+// Description: Create a description file for an item
+// Input: path - The path of the item for which to create the description (string)
+// Returns: none
+//###########################################
 global proc openPipelineCreateDescription(string $path)
 {
 	string $creationPath = $path+"notes/info.xml";
@@ -462,6 +575,12 @@ global proc openPipelineCreateDescription(string $path)
 	fclose $fileId;
 }
 
+//###########################################
+// Name: openPipelineGetDescription
+// Description: Gets the description for an item
+// Input: path - The path of the item to query (string)
+// Returns: The description (string)
+//###########################################
 global proc string openPipelineGetDescription(string $path)
 {
 	string $output="";
@@ -487,6 +606,13 @@ global proc string openPipelineGetDescription(string $path)
 	return $output;
 }
 
+//###########################################
+// Name: openPipelineSetDescription
+// Description: Set the description of an item
+// Input: path - The path of the item for which to set the description (string)
+//				newDescription - The new description (string)
+// Returns: none
+//###########################################
 global proc openPipelineSetDescription(string $path, string $newDescription)
 {
 	string $infoFile = $path+"notes/info.xml";

@@ -2,7 +2,12 @@
 // openPipeline GUI functions
 //
 
-//build user interface
+//###########################################
+// Name: openPipelineUI
+// Description: Builds the main oP UI
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineUI()
 {
 	global string $openPipeline_scriptPath;
@@ -36,7 +41,7 @@ global proc openPipelineUI()
 		$shotInfoHeight = 82;
 	}
 	//set annotation strings
-	string $anno_assetList="Double-click to edit Asset. Hold " +$mbString+" mouse button for more options.";
+	string $anno_assetList=("Double-click to edit Asset. Hold " +$mbString+" mouse button for more options.");
 	string $anno_componentList="Double-click to edit Component. Hold down " +$mbString+" mouse button for more options.";
 	string $anno_shotList="Double-click to Edit Shot. Hold down " +$mbString+" mouse button for more options.";	
 	string $anno_projectList="Select from the available Projects.";
@@ -416,7 +421,7 @@ global proc openPipelineUI()
 				rowLayout -numberOfColumns 3 -w 410 -cw3 135 135 135 -cl3 "right" "right" "right";
 					columnLayout -w 120 -rs 0 -cal "center";
 						text -l "Sequence" -w 125 -fn "smallBoldLabelFont" -al "left";
-						textScrollList -w 125 -h 90 -ams 1 -sc "openPipelineUpdateShotList 0" -fn "smallPlainLabelFont" -ann $anno_sequenceList op_sequenceScrollList;
+						textScrollList -w 125 -h 90 -ams 0 -sc "openPipelineUpdateShotList 0" -fn "smallPlainLabelFont" -ann $anno_sequenceList op_sequenceScrollList;
 						separator -style "none" -w 125 -h 5;
 						rowLayout -numberOfColumns 2 -cw2 65 60;			
     						button -l "New..." -bgc .6 .8 .5 -w 65 -c "openPipelineNewSequenceUI" -ann $anno_newSequence op_assetTypeNewButton; 
@@ -547,7 +552,7 @@ global proc openPipelineUI()
 			columnLayout -cal "center" -cw 410 -cat "left" 2 refreshUIColumn;
 			separator -style "none" -w 410 -h 10;
 			frameLayout -labelVisible false -w 410 -h 20;
-				helpLine -w 395;
+				//helpLine -w 395 op_helpLine;
 				setParent..;
 			
 				separator -style "none" -w 125 -h 10;
@@ -603,6 +608,12 @@ global proc openPipelineUI()
 	}
 }
 
+//###########################################
+// Name: openPipelineCloseUI
+// Description: Closes all oP-related windows
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineCloseUI()
 {
 	if (`window -q -exists openPipelineUI`)
@@ -611,7 +622,12 @@ global proc openPipelineCloseUI()
 	openPipelineCloseProjUI();
 }
 
-//updates the "Currently Open" displays on both "Asset Management" and "Shot Management" tabs
+//###########################################
+// Name: openPipelineUpdateCurrentlyOpen
+// Description: Updates the "Currently Open" displays on both "Asset Management" and "Shot Management" tabs
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineUpdateCurrentlyOpen()
 {
 	//get information about the currently open file
@@ -758,14 +774,24 @@ global proc openPipelineUpdateCurrentlyOpen()
 
 
 
-//removes secondary windows
+//###########################################
+// Name: openPipelineRemoveSecondaryWindows
+// Description: Closes secondary oP windows
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineRemoveSecondaryWindows()
 {
 	if(`window -exists op_secondaryUI`)
 		deleteUI op_secondaryUI;
 }
 
-//
+//###########################################
+// Name: openPipelineProjSelected
+// Description: This proc is run whenever a new Project is selected.  In turn, it updates all UI elements below the project level. 
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineProjSelected(int $refreshCurrOpen)
 {
 	global string $openPipeline_scriptPath; 
@@ -850,6 +876,12 @@ global proc openPipelineProjSelected(int $refreshCurrOpen)
 	progressWindow -ep;
 }
 
+//###########################################
+// Name: openPipelineUpdateCustomUI
+// Description: Updates the UI to reflect user-defined names for "workshop" and "master"
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineUpdateCustomUI()
 {
     string $masterName = `optionVar -q "op_masterName"`;
@@ -899,12 +931,15 @@ global proc openPipelineUpdateCustomUI()
     menuItem -e -l $masterButton op_shotMenuImportMaster2;
     menuItem -e -l $workshopButton op_shotMenuReferenceWorkshop2;
     menuItem -e -l $masterButton op_shotMenuReferenceMaster2;
-    
-    
 }
 
-
-global proc openPipelineUpdateShotList(string $preserveSelection)
+//###########################################
+// Name: openPipelineUpdateShotList
+// Description: Updates list of shots in the UI
+// Input: preserveSelection - whether the current selected item in the list should still be selected after updating (int)
+// Returns: none
+//###########################################
+global proc openPipelineUpdateShotList(int $preserveSelection)
 {
 	string $lastSelectedShot = openPipelineGetSelectedShot();
 	textScrollList -e -ra "op_shotScrollList";
@@ -960,7 +995,12 @@ global proc openPipelineUpdateShotList(string $preserveSelection)
 	openPipelineUpdateShotAssetTypeList();
 }
 
-
+//###########################################
+// Name: openPipelineUpdateShotAssetTypeList
+// Description: Updates list of asset types in the "Available Assets" section of the Shot Management Tab
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineUpdateShotAssetTypeList()
 {
 	string $lastSelectedPaths[] = `textScrollList -q -si op_shotAssetTypeList`;
@@ -984,7 +1024,12 @@ global proc openPipelineUpdateShotAssetTypeList()
 	openPipelineShotAssetTypeSelected();
 }
 
-
+//###########################################
+// Name: openPipelineShotSelected
+// Description: This proc is called whenever a Shot is selected in the UI. In turn, it updates all the UI elements affected by what Shot is selected.
+// Input: preserveSelection - whether currently selected items should still be selected after updating (int)
+// Returns: none
+//###########################################
 global proc openPipelineShotSelected(int $preserveSelection)
 {
 	string $selCompPath = openPipelineGetSelectedShotComponent();
@@ -1053,7 +1098,12 @@ global proc openPipelineShotSelected(int $preserveSelection)
 	
 }
 
-
+//###########################################
+// Name: openPipelineShotAssetTypeSelected
+// Description: This proc is called whenever an Asset Type is selected from the Available Assets section of the Shot Managment Tab. 
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineShotAssetTypeSelected()
 {
 	textScrollList -e -ra "op_shotAssetList";
@@ -1114,7 +1164,12 @@ global proc openPipelineShotAssetTypeSelected()
 	openPipelineShotAssetSelected();
 }
 
-
+//###########################################
+// Name: openPipelineShotAssetSelected
+// Description: This proc is called whenever an Asset is selected from the Available Assets section of the Shot Managment Tab. 
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineShotAssetSelected()
 {
 	string $currAssetPath = openPipelineGetSelectedShotAsset();
@@ -1129,7 +1184,12 @@ global proc openPipelineShotAssetSelected()
 	}
 }
 
-
+//###########################################
+// Name: openPipelineUpdateAssetTypeList
+// Description: Updates the list of Asset Types in the UI
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineUpdateAssetTypeList()
 {
 	string $lastSelectedPaths[] = openPipelineGetSelectedAssetTypes();
@@ -1156,6 +1216,12 @@ global proc openPipelineUpdateAssetTypeList()
 	openPipelineAssetTypeSelected(1);
 }
 
+//###########################################
+// Name: openPipelineUpdateSequenceList
+// Description: Updates the list of Sequences in the UI
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineUpdateSequenceList()
 {
 	string $lastSelectedPath = openPipelineGetSelectedSequence();
@@ -1181,6 +1247,12 @@ global proc openPipelineUpdateSequenceList()
 	openPipelineUpdateShotList(1);
 }
 
+//###########################################
+// Name: openPipelineGetSelectedShotAssetTypes
+// Description: Returns the Asset Types selected under the Available Assets list of the Shot Management tab
+// Input: none
+// Returns: A string array, with each entry representing a full path to the Asset Type selected. Empty array is returned if no Asset Type is selected.
+//###########################################
 global proc string[] openPipelineGetSelectedShotAssetTypes()
 {
 	string $selectedTypePaths[];
@@ -1200,7 +1272,12 @@ global proc string[] openPipelineGetSelectedShotAssetTypes()
 	return $selectedTypePaths;
 }
 
-
+//###########################################
+// Name: openPipelineGetSelectedShotAssetTypes
+// Description: Returns the Asset selected under the Available Assets list of the Shot Management tab
+// Input: none
+// Returns: A string representing the full path to the Asset selected. Empty string is returned if no Asset is selected.
+//###########################################
 global proc string openPipelineGetSelectedShotAsset()
 {
 	string $selectedAssetPath="";
@@ -1217,6 +1294,12 @@ global proc string openPipelineGetSelectedShotAsset()
 	return $selectedAssetPath;
 }
 
+//###########################################
+// Name: openPipelineGetSelectedAssetTypes
+// Description: Returns the currently selected Asset Types 
+// Input: none
+// Returns: A string array, with each entry representing a full path to the Asset Type selected. Empty array is returned if no Asset Type is selected.
+//###########################################
 global proc string[] openPipelineGetSelectedAssetTypes()
 {
 	string $selectedTypePaths[];
@@ -1236,6 +1319,12 @@ global proc string[] openPipelineGetSelectedAssetTypes()
 		return $selectedTypePaths;
 }
 
+//###########################################
+// Name: openPipelineGetSelectedSequence
+// Description: Returns the currently selected Sequence
+// Input: none
+// Returns: A full path to the Sequence selected. An empty string is returned if none is selected. (string)
+//###########################################
 global proc string openPipelineGetSelectedSequence()
 {
 	string $selectedSequencePath="";
@@ -1251,6 +1340,12 @@ global proc string openPipelineGetSelectedSequence()
 	return $selectedSequencePath;
 }
 
+//###########################################
+// Name: openPipelineGetSelectedAsset
+// Description: Returns the currently selected Asset
+// Input: none
+// Returns: A full path to the Asset selected. An empty string is returned if none is selected. (string)
+//###########################################
 global proc string openPipelineGetSelectedAsset()
 {
 	string $selectedAssetPath="";
@@ -1267,6 +1362,12 @@ global proc string openPipelineGetSelectedAsset()
 	return $selectedAssetPath;
 }
 
+//###########################################
+// Name: openPipelineGetSelectedComponent
+// Description: Returns the currently selected Component
+// Input: none
+// Returns: A full path to the Component selected. An empty string is returned if none is selected. (string)
+//###########################################
 global proc string openPipelineGetSelectedComponent()
 {
 	string $selectedCompPath="";
@@ -1283,6 +1384,12 @@ global proc string openPipelineGetSelectedComponent()
 	return $selectedCompPath;
 }
 
+//###########################################
+// Name: openPipelineGetSelectedShotComponent
+// Description: Returns the currently selected Shot Component
+// Input: none
+// Returns: A full path to the Shot Component selected. An empty string is returned if none is selected. (string)
+//###########################################
 global proc string openPipelineGetSelectedShotComponent()
 {
 	string $selectedCompPath="";
@@ -1299,6 +1406,12 @@ global proc string openPipelineGetSelectedShotComponent()
 	return $selectedCompPath;
 }
 
+//###########################################
+// Name: openPipelineGetSelectedShot
+// Description: Returns the currently selected Shot 
+// Input: none
+// Returns: A full path to the Shot selected. An empty string is returned if none is selected. (string)
+//###########################################
 global proc string openPipelineGetSelectedShot()
 {
 	string $selectedShotPath="";
@@ -1315,6 +1428,12 @@ global proc string openPipelineGetSelectedShot()
 	return $selectedShotPath;
 }
 
+//###########################################
+// Name: openPipelineAssetTypeSelected
+// Description: This proc is called whenever an Asset Type is selected. It updates all the UI elements below the Asset Type level.
+// Input: preserveSelection - whether previously selected items should still be selected after the update (int)
+// Returns: none
+//###########################################
 global proc openPipelineAssetTypeSelected(int $preserveSelection)
 {
 	string $lastSelectedPath = openPipelineGetSelectedAsset();
@@ -1374,6 +1493,12 @@ global proc openPipelineAssetTypeSelected(int $preserveSelection)
 	openPipelineAssetSelected(1);
 }
 
+//###########################################
+// Name: openPipelineAssetSelected
+// Description: This proc is called whenever an Asset is selected. It updates all the UI elements below the Asset level.
+// Input: preserveSelection - Whether previously selected items should still be selected after the update (int)
+// Returns: none
+//###########################################
 global proc openPipelineAssetSelected(int $preserveSelection)
 {
 	string $lastSelectedPath = openPipelineGetSelectedComponent();
@@ -1446,6 +1571,12 @@ global proc openPipelineAssetSelected(int $preserveSelection)
 	openPipelineComponentSelected();
 }
 
+//###########################################
+// Name: openPipelineComponentSelected
+// Description: This proc is called whenever a Component is selected. It updates all the UI affected by what Component is currently selected.
+// Input: preserveSelection - none
+// Returns: none
+//###########################################
 global proc openPipelineComponentSelected()
 {
 	string $currComponent = openPipelineGetSelectedComponent();
@@ -1472,6 +1603,13 @@ global proc openPipelineComponentSelected()
 	openPipelineAssetInformation;
 	openPipelineLoadAssetNote;
 }
+
+//###########################################
+// Name: openPipelineShotComponentSelected
+// Description: This proc is called whenever a Shot Component is selected. It updates all the UI affected by what Shot Component is currently selected.
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineShotComponentSelected()
 {
 	string $currComponent = openPipelineGetSelectedShotComponent();
@@ -1498,6 +1636,13 @@ global proc openPipelineShotComponentSelected()
 	openPipelineShotInformation;
 	openPipelineLoadShotNote;
 }
+
+//###########################################
+// Name: openPipelineAboutDialog
+// Description: Shows the "About" window, with information and credits
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineAboutDialog()
 {
 	if (`window -q -exists infoWindow`)
@@ -1526,12 +1671,24 @@ global proc openPipelineAboutDialog()
 }
 
 
+//###########################################
+// Name: openPipelineHelpLaunch
+// Description: Launches the online Help for oP
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineHelpLaunch()
 {
 	string $URL = "http://openpipeline.sourceforge.net/";
 	showHelp -absolute $URL;
 }	
 
+//###########################################
+// Name: openPipelineNewAssetTypeUI
+// Description: Launches the UI for creating a new Asset Type
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineNewAssetTypeUI()
 {
 	string $assetType;
@@ -1560,9 +1717,14 @@ global proc openPipelineNewAssetTypeUI()
 			openPipelineUpdateAssetTypeList();					
 		}
 	}
-	
 }
 
+//###########################################
+// Name: openPipelineNewSequenceUI
+// Description: Launches the UI for creating a new Sequence
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineNewSequenceUI()
 {
 	string $sequence;
@@ -1596,6 +1758,12 @@ global proc openPipelineNewSequenceUI()
 	
 }
 
+//###########################################
+// Name: openPipelineNewAssetUI
+// Description: Launches the UI for creating a new Asset
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineNewAssetUI()
 {
 	string $error="";
@@ -1625,6 +1793,12 @@ global proc openPipelineNewAssetUI()
 	}
 }
 
+//###########################################
+// Name: openPipelineNewAssetComponentUI
+// Description: Launches the UI for creating a new Component
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineNewAssetComponentUI()
 {
 	string $error;
@@ -1653,6 +1827,12 @@ global proc openPipelineNewAssetComponentUI()
 	}
 }
 
+//###########################################
+// Name: openPipelineNewShotComponentUI
+// Description: Launches the UI for creating a new Shot Component
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineNewShotComponentUI()
 {
 	string $error;
@@ -1681,6 +1861,12 @@ global proc openPipelineNewShotComponentUI()
 	}
 }
 
+//###########################################
+// Name: openPipelineNewShotUI
+// Description: Launches the UI for creating a new Shot
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineNewShotUI()
 {
 	global string $openPipelineNewShotName = "";
@@ -1709,7 +1895,13 @@ global proc openPipelineNewShotUI()
 		}
 	}
 }
-	
+
+//###########################################
+// Name: openPipelineSaveMasterFileGUI
+// Description: Launches the UI for Mastering
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineSaveMasterFileGUI()
 {
 	string $type="";
@@ -1770,6 +1962,12 @@ global proc openPipelineSaveMasterFileGUI()
 		confirmDialog -message ("Nothing is currently open for editing. Action not possible.") -button "OK" -title "openPipeline message";
 }
 
+//###########################################
+// Name: openPipelineSaveWorkshopGUI
+// Description: Launches the UI for Saving a Workshop
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineSaveWorkshopGUI()
 {
 	string $type="";
@@ -1811,6 +2009,12 @@ global proc openPipelineSaveWorkshopGUI()
 		confirmDialog -message ("Nothing is currently open for editing. Action not possible.") -button "OK" -title "openPipeline message";
 }
 
+//###########################################
+// Name: openPipelineReviveGUI
+// Description: Launches the UI for Reviving an old Workshop
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineReviveGUI()
 {
 	string $path="";
@@ -1863,7 +2067,13 @@ global proc openPipelineReviveGUI()
 	else
 		confirmDialog -message ("Nothing is currently open for editing. Action not possible.") -button "OK" -title "openPipeline message";
 }
-	
+
+//###########################################
+// Name: openPipelineReviveWorkshopCallback
+// Description: Reads the user input from the Revive window and calls the appropriate file operation to revive an old Workshop.
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineReviveWorkshopCallback()
 {
 	string $currPath = `optionVar -q "op_currOpenPath"`;
@@ -1881,8 +2091,12 @@ global proc openPipelineReviveWorkshopCallback()
 		openPipelineShotComponentAction workshop $versionOffset open 1;
 }
 
-// fill the asset information box with the collected info
-//
+//###########################################
+// Name: openPipelineAssetInformation
+// Description: Updates the Description box in the Asset Management tab
+// Input: none
+// Returns: none
+//###########################################
 global proc	openPipelineAssetInformation()
 {
 	string $outputText;
@@ -1896,9 +2110,14 @@ global proc	openPipelineAssetInformation()
 	else
 		$outputText = openPipelineGetDescription($path);
 	scrollField -e -text $outputText op_infoField;
-
 }
 
+//###########################################
+// Name: openPipelineShotInformation
+// Description: Updates the Description box in the Shot Management tab
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineShotInformation()
 {
 	string $outputText;
@@ -1914,6 +2133,12 @@ global proc openPipelineShotInformation()
 	scrollField -e -text $outputText op_shotInfoField;
 }
 
+//###########################################
+// Name: openPipelineUpdateShotMenus
+// Description: Updates the Pop-up menus of the Shot list
+// Input: shotPath - the path of the currently selected Shot (string)
+// Returns: none
+//###########################################
 global proc openPipelineUpdateShotMenus(string $shotPath)
 {
 	int $hasMaster = openPipelineShotHasMaster($shotPath);
@@ -1931,6 +2156,12 @@ global proc openPipelineUpdateShotMenus(string $shotPath)
 	menuItem -e -en $hasWorkshop op_shotMenuReferenceWorkshop2;
 }
 
+//###########################################
+// Name: openPipelineUpdateAssetMenus
+// Description: Updates the Pop-up menus of the Asset list
+// Input: assetPath - the path of the currently selected Asset (string)
+// Returns: none
+//###########################################
 global proc openPipelineUpdateAssetMenus(string $assetPath)
 {
 	int $hasMaster = openPipelineAssetHasMaster($assetPath);
@@ -1948,7 +2179,12 @@ global proc openPipelineUpdateAssetMenus(string $assetPath)
 	menuItem -e -en $hasWorkshop op_assetMenuReferenceWorkshop2;
 }
 
-
+//###########################################
+// Name: openPipelineUpdateComponentMenus
+// Description: Updates the Pop-up menus of the Component list
+// Input: componentPath - the path of the currently selected Component (string)
+// Returns: none
+//###########################################
 global proc openPipelineUpdateComponentMenus(string $componentPath)
 {
 	int $hasMaster = openPipelineComponentHasMaster($componentPath);
@@ -1966,6 +2202,12 @@ global proc openPipelineUpdateComponentMenus(string $componentPath)
 	menuItem -e -en $hasWorkshop op_compMenuReferenceWorkshop2;
 }
 
+//###########################################
+// Name: openPipelineUpdateShotComponentMenus
+// Description: Updates the Pop-up menus of the ShotComponent list
+// Input: componentPath - the path of the currently selected Shot Component (string)
+// Returns: none
+//###########################################
 global proc openPipelineUpdateShotComponentMenus(string $componentPath)
 {
 	int $hasMaster = openPipelineComponentHasMaster($componentPath);
@@ -1983,6 +2225,12 @@ global proc openPipelineUpdateShotComponentMenus(string $componentPath)
 	menuItem -e -en $hasWorkshop op_shotcompMenuReferenceWorkshop2;
 }
 
+//###########################################
+// Name: openPipelineArchiveDialog
+// Description: Creates the Archive UI
+// Input: type - the type of the item being archived ('asset', 'component', 'shotComponent', 'shot') (string)
+// Returns: none
+//###########################################
 global proc openPipelineArchiveDialog(string $type)
 {
 	string $path;
@@ -2019,7 +2267,7 @@ global proc openPipelineArchiveDialog(string $type)
 	intField -v 1 -min 1 -max 3 -step 1 -w 40 op_archiveField2;
 	setParent..;
 	separator -h 10 -w 370 -style "out";
-		button -w 370 -l "Archive"-c ("openPipelineArchiveFolder \""+$type+"\" \""+$path+"\"") -bgc .6 .7 .9;
+		button -w 370 -l "Archive"-c ("openPipelineArchiveFolder \""+$path+"\"") -bgc .6 .7 .9;
 	setParent..;
 	separator -h 10 -w 370 -style "out";
 		text -align "left" -font "smallPlainLabelFont" -l ("Retrieving archived files for the current "+$type+" will return them \nto their original working directories.");
@@ -2030,7 +2278,7 @@ global proc openPipelineArchiveDialog(string $type)
 	setParent..;
 	setParent ..;
 	separator -h 10 -w 370 -style "out";
-		button -w 370 -l "Retrieve"-c ("openPipelineRetrieveFolder \""+$type+"\" \""+$path+"\"") -bgc 1 1 1;
+		button -w 370 -l "Retrieve"-c ("openPipelineRetrieveFolder \""+$path+"\"") -bgc 1 1 1;
 	setParent..;
 	separator -h 10 -w 370 -style "out";
 	button -w 370 -l "Close" -c "deleteUI op_secondaryUI;";
@@ -2053,12 +2301,24 @@ global proc openPipelineArchiveDialog(string $type)
 		intField -e -max $maxVersions op_archiveField2;
 }
 
+//###########################################
+// Name: openPipelineUpdateWorkingTab
+// Description: Updates the optionVar which keeps track of which tab is currently active
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineUpdateWorkingTab()
 {
 	int $tab = `tabLayout -q -selectTabIndex op_mainTabLayout`;
 	optionVar -iv "op_currTab" $tab;
 }
 
+//###########################################
+// Name: openPipelineSaveAssetDescription
+// Description: Saves the user-specified description of the currently selected Asset or Component
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineSaveAssetDescription()
 {
 	string $newText = `scrollField -q -tx op_infoField`;
@@ -2074,6 +2334,12 @@ global proc openPipelineSaveAssetDescription()
 	button -e -en 0 op_saveAssetInfoButton;
 }
 
+//###########################################
+// Name: openPipelineSaveShotDescription
+// Description: Saves the user-specified description of the currently selected Shot or Shot Component
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineSaveShotDescription()
 {
 	string $newText = `scrollField -q -tx op_shotInfoField`;
@@ -2087,12 +2353,24 @@ global proc openPipelineSaveShotDescription()
 	button -e -en 0 op_saveShotInfoButton;
 }
 
+//###########################################
+// Name: openPipelineClearAssetInfo
+// Description: Clears the description of the currently selected Asset or Component
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineClearAssetInfo()
 {
 	scrollField  -e -tx "" op_infoField;
 	openPipelineSaveAssetDescription;
 }
 
+//###########################################
+// Name: openPipelineClearShotInfo
+// Description: Clears the description of the currently selected Shot or Shot Component
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineClearShotInfo()
 {
 	scrollField  -e -tx "" op_shotInfoField;

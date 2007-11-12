@@ -2,7 +2,12 @@
 // openPipeline File Functions
 //
 
-//*** creates a new Asset Type
+//###########################################
+// Name: openPipelineNewAssetTypeProcess
+// Description: Creates a new Asset Type under the currently selected project
+// Input: name - the name of the new Asset Type (string)
+// Returns: none
+//###########################################
 global proc string openPipelineNewAssetTypeProcess(string $name)
 {
 	string $libPath = `optionVar -q "op_libPath"`;
@@ -22,7 +27,12 @@ global proc string openPipelineNewAssetTypeProcess(string $name)
 	return $assetTypePath;
 }
 
-//*** creates a new Sequence
+//###########################################
+// Name: openPipelineNewSequenceProcess
+// Description: Creates a new Sequence  under the currently selected project
+// Input: name - the name of the new Sequence (string)
+// Returns: none
+//###########################################
 global proc string openPipelineNewSequenceProcess(string $name)
 {
 	string $shotPath = `optionVar -q "op_shotPath"`;
@@ -40,7 +50,12 @@ global proc string openPipelineNewSequenceProcess(string $name)
 	return $sequencePath;
 }
 
-//*** creates a new Asset
+//###########################################
+// Name: openPipelineNewAssetProcess
+// Description: Creates a new Asset under the currently selected Asset Type
+// Input: name - the name of the new Asset (string)
+// Returns: none
+//###########################################
 global proc string openPipelineNewAssetProcess(string $assetName)
 {
 	string $error = "";
@@ -75,7 +90,12 @@ global proc string openPipelineNewAssetProcess(string $assetName)
 	return $assetPath;
 }
 
-//*** creates a new Component
+//###########################################
+// Name: openPipelineNewComponentProcess
+// Description: Creates a new Component under the currently selected Asset
+// Input: name - the name of the new Component (string)
+// Returns: none
+//###########################################
 global proc string openPipelineNewComponentProcess(string $componentName)
 {
 	string $error = "";
@@ -107,7 +127,13 @@ global proc string openPipelineNewComponentProcess(string $componentName)
 	return $componentPath;
 }
 
-//*** creates a new Shot Component
+
+//###########################################
+// Name: openPipelineNewShotComponentProcess
+// Description: Creates a new Shot Component under the currently selected Shot
+// Input: name - the name of the new Component (string)
+// Returns: none
+//###########################################
 global proc string openPipelineNewShotComponentProcess(string $componentName)
 {
 	string $error = "";
@@ -140,7 +166,12 @@ global proc string openPipelineNewShotComponentProcess(string $componentName)
 	return $componentPath;
 }
 
-//*** creates a new Shot
+//###########################################
+// Name: openPipelineNewShotProcess
+// Description: Creates a new Asset Shot under the currently selected Sequence
+// Input: name - the name of the new Asset Type (string)
+// Returns: none
+//###########################################
 global proc string openPipelineNewShotProcess(string $shotName)
 {
 	string $error = "";
@@ -175,11 +206,15 @@ global proc string openPipelineNewShotProcess(string $shotName)
 	return $shotPath;
 }
 
-//*** performs an action on an Asset (open, import, or reference)
-//      $type - 'master' or 'workshop'
-//      $versionOffset - for opening previous workshop versions. 0 means latest version
-//      $action - action to perform  ('open', 'import', or 'reference')
-//      $currentlyOpen - 1 to perform action on currently open Asset, 0 for currently selected Asset
+//###########################################
+// Name: openPipelineAssetAction
+// Description: Performs an action on an Asset (open, import, or reference)
+// Input: type - 'master' or 'workshop' (string),
+//      	versionOffset - for opening previous workshop versions. 0 means latest version (int),
+//      	action - action to perform  ('open', 'import', or 'reference') (string),
+//      	currentlyOpen - 1 to perform action on currently open Asset, 0 for currently selected Asset (int)
+// Returns: 1 if successful, 0 if not
+//###########################################
 global proc int openPipelineAssetAction(string $type, int $versionOffset, string $action, int $currentlyOpen)
 {
 	string $wName = `optionVar -q "op_workshopName"`;
@@ -264,11 +299,16 @@ global proc int openPipelineAssetAction(string $type, int $versionOffset, string
 	}
 		
 }
-//*** performs an action on a Component (open, import, or reference)
-//      $type - 'master' or 'workshop'
-//      $versionOffset - for opening previous workshop versions. 0 means latest version
-//      $action - action to perform  ('open', 'import', or 'reference')
-//      $currentlyOpen - 1 to perform action on currently open Component, 0 for currently selected Component
+
+//###########################################
+// Name: openPipelineComponentAction
+// Description: Performs an action on a Component (open, import, or reference)
+// Input: type - 'master' or 'workshop' (string),
+//      	versionOffset - for opening previous workshop versions. 0 means latest version (int),
+//      	action - action to perform  ('open', 'import', or 'reference') (string),
+//      	currentlyOpen - 1 to perform action on currently open Component, 0 for currently selected Component (int)
+// Returns: 1 if successful, 0 if not
+//###########################################
 global proc int openPipelineComponentAction(string $type, int $versionOffset, string $action, int $currentlyOpen)
 { 
 	string $wName = `optionVar -q "op_workshopName"`;
@@ -351,11 +391,15 @@ global proc int openPipelineComponentAction(string $type, int $versionOffset, st
 	
 }
 
-//*** performs an action on an Shot (open, import, or reference)
-//      $type - 'master' or 'workshop'
-//      $versionOffset - for opening previous workshop versions. 0 means latest version
-//      $action - action to perform  ('open', 'import', or 'reference')
-//      $currentlyOpen - 1 to perform action on currently open Shot, 0 for currently selected Shot
+//###########################################
+// Name: openPipelineShotAction
+// Description: Performs an action on a Shot (open, import, or reference)
+// Input: type - 'master' or 'workshop' (string),
+//      	versionOffset - for opening previous workshop versions. 0 means latest version (int),
+//      	action - action to perform  ('open', 'import', or 'reference') (string),
+//      	currentlyOpen - 1 to perform action on currently open Shot, 0 for currently selected Shot (int)
+// Returns: 1 if successful, 0 if not
+//###########################################
 global proc int openPipelineShotAction(string $type, int $versionOffset, string $action, int $currentlyOpen)
 {
 	string $wName = `optionVar -q "op_workshopName"`;
@@ -452,11 +496,15 @@ global proc int openPipelineShotAction(string $type, int $versionOffset, string 
 	}
 }
 
-//*** performs an action on a Shot Component (open, import, or reference)
-//      $type - 'master' or 'workshop'
-//      $versionOffset - for opening previous workshop versions. 0 means latest version
-//      $action - action to perform  ('open', 'import', or 'reference')
-//      $currentlyOpen - 1 to perform action on currently open Component, 0 for currently selected Component
+//###########################################
+// Name: openPipelineShotComponentAction
+// Description: Performs an action on a Shot Component(open, import, or reference)
+// Input: type - 'master' or 'workshop' (string),
+//      	versionOffset - for opening previous workshop versions. 0 means latest version (int),
+//      	action - action to perform  ('open', 'import', or 'reference') (string),
+//      	currentlyOpen - 1 to perform action on currently open Shot Component, 0 for currently selected Shot Component (int)
+// Returns: 1 if successful, 0 if not
+//###########################################
 global proc int openPipelineShotComponentAction(string $type, int $versionOffset, string $action, int $currentlyOpen)
 { 
 	string $wName = `optionVar -q "op_workshopName"`;
@@ -540,8 +588,13 @@ global proc int openPipelineShotComponentAction(string $type, int $versionOffset
 	
 }
 
-//*** performs an action on an Asset in the Shot Management tab (import, or reference)
-//      $action - action to perform  ('import' or 'reference')
+//###########################################
+// Name: openPipelineShotAssetAction
+// Description: Performs an action on the Asset currently selected in "Available Assets" in the Shot Management tab (import, or reference)
+// Input: action - action to perform  ('reference' or 'import') (string)
+// Returns: 1 if successful, 0 if not
+// Notes: The Action is always performed on the latest mastered version of the Asset
+//###########################################
 global proc int openPipelineShotAssetAction(string $action)
 {
 	string $assetPath = openPipelineGetSelectedShotAsset();
@@ -566,15 +619,17 @@ global proc int openPipelineShotAssetAction(string $action)
 	return 1;
 }
 
-//*** saves the currently open Asset, Component, Shot or Shot Component
-//          $saveType - 'workshop' or 'master'
-//
-//      this procedure will: 
+//###########################################
+// Name: openPipelineProcessSave
+// Description: Saves the currently open Asset, Component, Shot or Shot Component
+// Input: saveType - 'workshop' or 'master' (string)
+// Returns: none
+// Notes: this procedure will: 
 //          -call "openPipelineSaveWorkshop" and/or "openPipelineSaveMaster" for actual file operations
 //          -call "openPipelineAssetNoteWriter" for updating the appropriate note file
 //          -call "openPipelineLoadCurrentAssetNote" for displaying the updated notes
 //          -call "openPipeline____Action" to open the file which was just saved
-//
+//###########################################
 global proc openPipelineProcessSave(string $saveType)
 {
 	string $currCat = `optionVar -q "op_currOpenCategory"`;
@@ -617,7 +672,12 @@ global proc openPipelineProcessSave(string $saveType)
 		openPipelineUpdateCurrentlyOpen();
 }
 
-//*** Saves a workshop for the currently open asset / component / shot / shot component
+//###########################################
+// Name: openPipelineSaveWorkshop
+// Description: Saves a workshop for the currently open asset / component / shot / shot component
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineSaveWorkshop()
 {
   string $wName = `optionVar -q "op_workshopName"`;
@@ -673,7 +733,12 @@ global proc openPipelineSaveWorkshop()
 	optionVar -iv "op_currOpenVersion" ($latestWorkshop+1);
 }
 
-//*** Saves a master for the currently open asset / component / shot / shot component
+//###########################################
+// Name: openPipelineSaveMaster
+// Description: Saves a master for the currently open asset/component/shot/shot component
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineSaveMaster()
 {
 	string $ext = `optionVar -q "op_masterFormat"`;
@@ -748,7 +813,12 @@ global proc openPipelineSaveMaster()
 	file -save -type $type;
 }
 
-
+//###########################################
+// Name: openPipelineCleanMaster
+// Description: Performs optional clean-up steps prior to mastering (flattens references, removes display layers)
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineCleanMaster()
 {
 	// flatten the references to create a publishable master file
@@ -781,6 +851,12 @@ global proc openPipelineCleanMaster()
 	}
 }
 
+//###########################################
+// Name: openPipelineImportRefs
+// Description: Flattens the scene by importing all the referenced files
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineImportRefs()
 {
 	// list all references in shot
@@ -799,11 +875,16 @@ global proc openPipelineImportRefs()
 	}
 }
 
-//*** move files and folders to the archive
-//          $category - 'type', 'asset', 'component', 'sequence', 'shot', 'shotComponent'
+//###########################################
+// Name: openPipelineRemoveFolder
+// Description: Moves the files and folders under the selected item to the "deleted" folder
+// Input: category -  the category of the item to be deleted: ('type', 'asset', 'component', 'sequence', 'shot', 'shotComponent') (string)
+// Returns: none
+//###########################################
 global proc openPipelineRemoveFolder(string $category)
 {
-
+	string $currCategory;
+	$category = `optionVar -q op_currOpenCategory`;
 	string $currPath = `optionVar -q "op_currOpenPath"`;
 	string $currCat = `optionVar -q "op_currOpenCategory"`;
 	
@@ -967,10 +1048,13 @@ global proc openPipelineRemoveFolder(string $category)
 	}
 }
 
-//*** move files and folders to the archive
-//          $category - 'asset', 'component' or 'shot'
-//					$path - path of asset/component/shot
-global proc openPipelineArchiveFolder(string $type, string $path)
+//###########################################
+// Name: openPipelineArchiveFolder
+// Description: Moves the files and folders under the selected item to the archive
+// Input: path - path of asset/component/shot (string)
+// Returns: none
+//###########################################
+global proc openPipelineArchiveFolder(string $path)
 {
 	string $wName = `optionVar -q "op_workshopName"`;
 	int $wAttempts = 0;
@@ -1039,10 +1123,13 @@ global proc openPipelineArchiveFolder(string $type, string $path)
 	
 }
 
-//*** move files and folders back from the archive
-//          $category - 'asset', 'component' or 'shot'
-//					$path - path of asset/component/shot
-global proc openPipelineRetrieveFolder(string $type, string $path)
+//###########################################
+// Name: openPipelineRetrieveFolder
+// Description: Moves files and folders back from the archive
+// Input: path - path of asset/component/shot (string)
+// Returns: none
+//###########################################
+global proc openPipelineRetrieveFolder(string $path)
 {
 	int $wAttempts = 0;
 	int $wSuccesses = 0;

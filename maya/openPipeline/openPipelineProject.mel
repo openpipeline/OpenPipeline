@@ -2,7 +2,12 @@
 // openPipeline Project Functions
 //
 
-//*** opens the openPipeline Project UI
+//###########################################
+// Name: openPipelineProjectUI
+// Description: Opens the oP Project UI
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineProjectUI()
 {
 	global string $openPipeline_projectFilePath;
@@ -65,7 +70,12 @@ global proc openPipelineProjectUI()
 	showWindow;
 }
 
-//*** returns a string array; each string contains the full data of a project in xml
+//###########################################
+// Name: openPipelineGetProjectsData
+// Description: Returns the full data of all existing projects
+// Input: none
+// Returns: A string array with each entry containing the full data of a single project in XML
+//###########################################
 global proc string[] openPipelineGetProjectsData()
 {
     string $topLevelTag = "openPipeline_project_list";
@@ -80,6 +90,7 @@ global proc string[] openPipelineGetProjectsData()
 	    $xml = openPipelineGetXmlAll($projectsFile);    
 	    $projList = openPipelineGetXmlTop($xml,$topLevelTag);
 	    $projectsData = openPipelineGetXmlSecondary($projList, $projectTag);    
+    	//$projectsData = openPipelineGetXmlTop($projList, $projectTag);    
     }
     else
 	{
@@ -92,6 +103,12 @@ global proc string[] openPipelineGetProjectsData()
 	return $projectsData;
 }
 
+//###########################################
+// Name: openPipelineGetProjectsData
+// Description: Returns the data for a single project in XML
+// Input: projName - the name of the project to query (string)
+// Returns: A string containing the full data of a project in XML
+//###########################################
 global proc string openPipelineGetSingleProjectXml(string $projName)
 {
     string $projData[] = openPipelineGetProjectsData();
@@ -115,7 +132,12 @@ global proc string openPipelineGetSingleProjectXml(string $projName)
 	return $returnString;
 }
 
-//*** returns a string array with each project name and its corresponding file path.  
+//###########################################
+// Name: openPipelineGetProjectList
+// Description: Returns the the names and paths of all existing projects
+// Input: none
+// Returns: A string array with even entries containing project names and odd entries containing their corresponding paths
+//###########################################
 global proc string[] openPipelineGetProjectList()
 {
 	string $projects[] = openPipelineGetProjectsData();
@@ -131,6 +153,12 @@ global proc string[] openPipelineGetProjectList()
 	return $projectsList;
 }
 
+//###########################################
+// Name: openPipelineCloseProjUI
+// Description: Closes the Project UI
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineCloseProjUI()
 {
 	if (`window -q -exists openPipelineProjUI`)
@@ -139,7 +167,12 @@ global proc openPipelineCloseProjUI()
 		deleteUI openPipelineProjDialog;
 }
 
-//*** this proc is called whenever a project is selected in the Project UI
+//###########################################
+// Name: openPipelineProjectUISelection
+// Description: This proc is called whenever a project is selected in the Project UI. It queries and displays the appropriate info.
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineProjectUISelection()
 {
     button -e -en 1 op_projectEditButton; 
@@ -182,13 +215,23 @@ global proc openPipelineProjectUISelection()
     scrollField -e -tx $projectInfo op_projectInfoBox;
 }
 
-//*** opens up the Edit Project Dialog
+//###########################################
+// Name: openPipelineEditProject
+// Description: Opens the Edit Project Dialog
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineEditProject()
 {
 	openPipelineProjDialogWindow(1);
 }
-	
-//*** removes the currently open project
+
+//###########################################
+// Name: openPipelineRemoveProject
+// Description: Removes the currently selected project
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineRemoveProject()
 {	
 	string $projNameGet[] = `textScrollList -q -si op_projectList`;
@@ -227,7 +270,12 @@ global proc openPipelineRemoveProject()
     }
 }
 
-//*** rewrites the project xml file with the data it is passed as a string array
+//###########################################
+// Name: openPipelineRewriteProjFile
+// Description: Rewrites the project xml file with the data it is passed as a string array
+// Input: A string array, with each entry containing the data of the project in an xml file
+// Returns: none
+//###########################################
 global proc openPipelineRewriteProjFile(string $projList[])
 {
 	string $projFile = openPipelineGetProjFile();
@@ -258,8 +306,12 @@ global proc openPipelineRewriteProjFile(string $projList[])
 	openPipelineUI();
 }
 
-//*** opens the Project Dialog Window
-//    $mode - 0: new project, 1: edit project
+//###########################################
+// Name: openPipelineProjDialogWindow
+// Description: Opens the Project Dialog Window. This is used either for creating a new project or editing an existing project.
+// Input: mode - 0 for creating a new project, 1 for editing an existing project (int)
+// Returns: none
+//###########################################
 global proc openPipelineProjDialogWindow(int $mode)
 {
 	string $windowExists = `window -q -exists openPipelineProjDialog`;
@@ -410,7 +462,14 @@ global proc openPipelineProjDialogWindow(int $mode)
 	window  -e -w 380 -h 590 -title $title_txt openPipelineProjDialog;
 	showWindow;
 }
-	
+
+//###########################################
+// Name: openPipelineProjDialogCallback
+// Description: Performs the actions specified by the project dialog box
+// Input: mode - 0 for creating a new project, 1 for editing an existing project (int)
+//				editProjName - the new project name (if in edit mode) (string)
+// Returns: none
+//###########################################
 global proc openPipelineProjDialogCallback(int $mode, string $editProjName)
 {
 	string $projData[] = openPipelineGetProjectsData();
@@ -538,21 +597,47 @@ global proc openPipelineProjDialogCallback(int $mode, string $editProjName)
 	}
 }
 
+//###########################################
+// Name: openPipelineSetProjDialogPath
+// Description: This proc is called by the file browser dialog.  It sets the appropriate text field to the path the user has chosen.
+// Input: path - the path chosen by the user (string)
+//				type - not used (string)
+// Returns: none
+//###########################################
 global proc openPipelineSetProjDialogPath(string $path, string $type)
 {
 	textField -e -tx $path op_projectPathField;	
 }
 
+//###########################################
+// Name: openPipelineSetProjLocationDialogPath
+// Description: This proc is called by the file browser dialog.  It sets the appropriate text field to the path the user has chosen.
+// Input: path - the path chosen by the user (string)
+//				type - not used (string)
+// Returns: none
+//###########################################
 global proc openPipelineSetProjLocationDialogPath(string $path, string $type)
 {
 	textField -e -tx $path op_projLocationField;
 }
 
+//###########################################
+// Name: openPipelineNewProject
+// Description: Opens the New Project Dialog
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineNewProject()
 {
 	openPipelineProjDialogWindow(0);
 }
 
+//###########################################
+// Name: openPipelineGetProjFile
+// Description: Returns the full path of the Project File
+// Input: none
+// Returns: The full path of the Project File (string)
+//###########################################
 global proc string openPipelineGetProjFile()
 {
 	global string $openPipeline_projectFilePath;
