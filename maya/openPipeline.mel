@@ -6,7 +6,12 @@
 // Meng-Han Ho (mho@pratt.edu)
 //
 
-//*** finds all the script files in a path (and potentially subpath) and sources them 
+//###########################################
+// Name: sourceModule
+// Description: Finds all the mel files in a path (and potentially subpath) and sources them 
+// Input: path - The path to look in (string)
+// Returns: none
+//###########################################
 global proc sourceModule(string $path)
 { 
 	string $melFiles[] = `getFileList -folder $path -filespec "*.mel"`; 
@@ -22,19 +27,38 @@ global proc sourceModule(string $path)
 	} 
 } 
 
-//*** sets the text for the project file path text field
+//###########################################
+// Name: openPipelineSetMainPath
+// Description: Sets the text for the project file path text field
+// Input: path - The path to set the field to (string)
+//				type - Not used (string)
+// Returns: none
+// Note: Called directly by the browse file dialog
+//###########################################
 global proc openPipelineSetMainPath(string $path, string $type)
 {
     textField -e -tx $path mainPathTextField;    
 }
 
-//*** sets the text for the script path text field
+//###########################################
+// Name: openPipelineSetProjPathField
+// Description: Sets the text for the script path text field
+// Input: path - The path to set the field to (string)
+//				type - Not used (string)
+// Returns: none
+// Note: Called directly by the browse file dialog
+//###########################################
 global proc openPipelineSetProjPathField(string $path, string $type)
 {
     textField -e -tx $path mainProjPathTextField;    
 }
 
-//*** Toggles the text field for setting the project file path between Default and Custom
+//###########################################
+// Name: openPipelineProjPathFieldToggle
+// Description: Toggles the text field for setting the project file path between Default and Custom
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineProjPathFieldToggle()
 {
     global string $openPipeline_projectFilePath;
@@ -53,10 +77,15 @@ global proc openPipelineProjPathFieldToggle()
     }
 }
 
-//*** Sets up the Project File Path and the Script Path depending on user input
-//		This method checks the user's input for validity 
-//		and then edits the 'openPipeline.mel' script to reflect the changes 
-//		to global variables $openPipeline_projectFilePath and $openPipeline_scriptPath
+//###########################################
+// Name: openPipelineSetupExec
+// Description: Sets up the Project File Path and the Script Path depending on user input
+//							This method checks the user's input for validity 
+//							and then edits the 'openPipeline.mel' script to reflect the changes 
+//							to global variables $openPipeline_projectFilePath and $openPipeline_scriptPath
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineSetupExec()
 {
     string $newProjFilePath;
@@ -147,7 +176,12 @@ global proc openPipelineSetupExec()
      }
 }
 
-//*** Creates the openPipeline Setup UI
+//###########################################
+// Name: openPipelineSetup
+// Description: Creates the openPipeline Setup UI
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipelineSetup()
 {
     global string $openPipeline_scriptPath;
@@ -195,9 +229,14 @@ global proc openPipelineSetup()
     showWindow;
 } 
 
-//*** Checks if the given folder is a valid script path
-//		a valid script path contains the file 'openPipeline.mel'
-//		and contains a folder name 'openPipeline'
+//###########################################
+// Name: openPipelineIsValidScriptPath
+// Description: Checks if the given folder is a valid script path
+//							a valid script path contains the file 'openPipeline.mel'
+//							and contains a folder name 'openPipeline'
+// Input: folder - The path to be checked (string)
+// Returns: 1 if path is a valid script path, 0 if not (int)
+//###########################################
 global proc  int openPipelineIsValidScriptPath(string $folder)
 {
     int $valid = 1;
@@ -214,16 +253,26 @@ global proc  int openPipelineIsValidScriptPath(string $folder)
     return $valid;       
 }
 
-//*** Checks if the given folder is a valid project path
-//		The path needs to be an existing path.
+//###########################################
+// Name: openPipelineIsValidProjFilePath
+// Description: Checks if the given folder is a valid project path
+//							The path needs to be an existing path.
+// Input: folder - The path to be checked (string)
+// Returns: 1 if path is valid, 0 if not (int)
+//###########################################
 global proc  int openPipelineIsValidProjFilePath(string $folder)
 {
     int $valid = `filetest -d $folder`;
     return $valid;       
 }
 
-//*** Checks of the given file is readable and writeable
-//		This is used to check if the openPipeline.mel file can be read and edited.
+//###########################################
+// Name: openPipelineIsEditableFile
+// Description: Checks of the given file is readable and writeable
+//							This is used to check if the openPipeline.mel file can be read and edited.
+// Input: filename - Full path to the file to be checked (string)
+// Returns: 1 if file is readable and writeable, 0 if not (int)
+//###########################################
 global proc int openPipelineIsEditableFile(string $filename)
 {
     int $result = 1;
@@ -238,7 +287,12 @@ global proc int openPipelineIsEditableFile(string $filename)
     return $result;
 }
 
-//*** Main openPipeline procedure
+//###########################################
+// Name: openPipeline
+// Description: Main openPipeline procedure
+// Input: none
+// Returns: none
+//###########################################
 global proc openPipeline() 
 {
 	//the following two lines are edited by the script whenever the user changes the Script Path or the Project File Path
