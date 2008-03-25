@@ -731,6 +731,15 @@ global proc openPipelineSaveWorkshop()
 	}
 	file -save -type $type;
 	optionVar -iv "op_currOpenVersion" ($latestWorkshop+1);
+	
+	//if openPipeline UI is open, update list 
+	if (`window -q -exists openPipelineUI`)
+	{
+			if (($currCat == "asset")||($currCat == "component"))
+				openPipelineAssetTypeSelected(1);
+			else
+				openPipelineUpdateShotList(1);
+	}
 }
 
 //###########################################
@@ -883,8 +892,6 @@ global proc openPipelineImportRefs()
 //###########################################
 global proc openPipelineRemoveFolder(string $category)
 {
-	string $currCategory;
-	$category = `optionVar -q op_currOpenCategory`;
 	string $currPath = `optionVar -q "op_currOpenPath"`;
 	string $currCat = `optionVar -q "op_currOpenCategory"`;
 	
@@ -1172,5 +1179,37 @@ global proc openPipelineRetrieveFolder(string $path)
 	openPipelineRemoveSecondaryWindows();
 	openPipelineUpdateCurrentlyOpen();
 	confirmDialog -t "Retrieve Results" -m $message -button "OK" ;
-	
+}
+
+//###########################################
+// Name: openPipelineCloseFile
+// Description: Closes the currently open file
+// Input: none
+// Returns: none
+//###########################################
+global proc int openPipelineCloseFile()
+{
+	string $wName = `optionVar -q "op_workshopName"`;
+	string $currOpen = `optionVar -q "op_currOpenPath"`;
+	if ((`file -q -mf`)&&(size($currOpen)))
+	{
+		string $confirm;
+		$confirm = `confirmDialog -t "openPipeline" -m ("Would you like to Save "+$wName+" before editing Asset?") -b "Save" -b "Don't Save" -b "Cancel" -db "Don't Save"`;
+		if ($confirm==("Save"))
+			openPipelineSaveWorkshop;
+		else if ($confirm=="Cancel")
+			return 1;
+	}
+	optionVar -sv "op_currOpenPath" "";
+	optionVar -sv "op_currOpenType" "";
+	optionVar -iv "op_currOpenVersion" 0;
+	optionVar -sv "op_currOpenCategory" "";
+	file -f -newFile;
+	if (`window -q -ex openPipelineUI`)
+	{	
+		openPipelineUpdateShotList(1);
+		openPipelineAssetTypeSelected(1);
+		openPipelineUpdateCurrentlyOpen();
+	}
+	return 1;
 }

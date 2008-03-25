@@ -49,6 +49,7 @@ global proc openPipelineUI()
 	string $anno_saveWorkshop="Save a workshop file for the current Asset/Shot/Component.";
 	string $anno_master="Save a master file for the current Asset/Shot/Component.";
 	string $anno_revive="Revive an old version of the current Asset/Shot/Component.";
+	string $anno_closeFile="Close the currently open file.";
 	string $anno_assetTypeList="Choose Asset Type(s). Hold Shift of Ctrl for multiple selection.";
 	string $anno_newAssetType="Create a new Asset Type";
 	string $anno_removeAssetType="Remove the selected Asset Type(s) from the inventory.";
@@ -248,8 +249,11 @@ global proc openPipelineUI()
 							text -fn "smallBoldLabelFont" -label "Actions" -w 70 -al "left";
 							setParent..;
 							button -l "Save Workshop..." -w 164 -bgc .8 .6 .5 -c "openPipelineSaveWorkshopGUI" -ann $anno_saveWorkshop op_saveWorkshopButton;
-								button -l "Revive Workshop..."  -bgc .5 .7 .7 -w 164 -c "openPipelineReviveGUI" -ann $anno_revive op_reviveButton;
-								button -l "MASTER..." -w 164 -bgc .9 .7 .4 -c "openPipelineSaveMasterFileGUI" -ann $anno_master op_masterButton;
+							rowLayout -nc 2 -cw2 82 82 -cl2 "center" "center";
+								button -l "Revive"  -bgc .5 .7 .7 -w 82 -c "openPipelineReviveGUI" -ann $anno_revive op_reviveButton;
+								button -l "Close"  -bgc .8 .8 .8 -w 82 -c "openPipelineCloseFile" -ann $anno_closeFile op_closeButton;
+							setParent..;
+							button -l "MASTER..." -w 164 -bgc .9 .7 .4 -c "openPipelineSaveMasterFileGUI" -ann $anno_master op_masterButton;
 							setParent..;
 						columnLayout -rs 5;
 							text -fn "smallBoldLabelFont" -label "Most Recent Action" -w 180 -al "left";
@@ -404,7 +408,10 @@ global proc openPipelineUI()
 							setParent..;
 					
 							button -l "Save Workshop..." -w 164 -bgc .8 .6 .5 -c "openPipelineSaveWorkshopGUI" -ann $anno_saveWorkshop op_saveShotWorkshopButton;				
-							button -l "Revive Workshop..."  -bgc .5 .7 .7 -w 164 -c "openPipelineReviveGUI" -ann $anno_revive op_reviveShotButton;
+							rowLayout -nc 2 -cw2 82 82 -cl2 "center" "center";
+								button -l "Revive"  -bgc .5 .7 .7 -w 82 -c "openPipelineReviveGUI" -ann $anno_revive op_reviveShotButton;
+								button -l "Close"  -bgc .8 .8 .8 -w 82 -c "openPipelineCloseFile" -ann $anno_closeFile op_closeShotButton;
+							setParent..;
 							button -l "MASTER..." -w 164 -bgc .9 .7 .4 -c "openPipelineSaveMasterFileGUI" -ann $anno_master op_masterShotButton;
 							setParent..;
 						columnLayout -rs 5;
@@ -643,11 +650,13 @@ global proc openPipelineUpdateCurrentlyOpen()
 		button -e -en 0 op_saveWorkshopButton;
 		button -e -en 0 op_masterButton;
 		button -e -en 0 op_reviveButton;
+		button -e -en 0 op_closeButton;
 		text -e -label "none open" op_currOpenHeading;
 		text -e -vis 0 op_currOpenHeadingVersion;
 		button -e -en 0 op_saveShotWorkshopButton;
 		button -e -en 0 op_masterShotButton;
 		button -e -en 0 op_reviveShotButton;
+		button -e -en 0 op_closeShotButton;
 		text -e -label "none open" op_currOpenShotHeading;
 		text -e -vis 0 op_currOpenShotHeadingVersion;
 		text -e -label "" -fn "obliqueLabelFont" op_currOpenShotLabel;
@@ -713,7 +722,9 @@ global proc openPipelineUpdateCurrentlyOpen()
 			openPipelineClearCurrentAssetNote;//other side
 			//update Buttons
 			button -e -en $reviveEnabled  op_reviveShotButton;
+			button -e -en 1 op_closeShotButton;
 			button -e -en 0 op_reviveButton;//other side
+			button -e -en 0 op_closeButton;
 			button -e -en 1 op_saveShotWorkshopButton;	
 			button -e -en 0 op_saveWorkshopButton;//other side
 			button -e -en 1 op_masterShotButton;
@@ -740,7 +751,9 @@ global proc openPipelineUpdateCurrentlyOpen()
 			openPipelineClearCurrentShotNote();
 			openPipelineLoadCurrentAssetNote();
 			button -e -en $reviveEnabled  op_reviveButton;
+			button -e -en 1 op_closeButton;
 			button -e -en 0 op_reviveShotButton;//other side
+			button -e -en 0 op_closeShotButton;
 			button -e -en 1 op_saveWorkshopButton;	
 			button -e -en 0 op_saveShotWorkshopButton;//other side
 			button -e -en 1 op_masterButton;
@@ -889,11 +902,11 @@ global proc openPipelineUpdateCustomUI()
     string $workshopButton = capitalizeString($workshopName);
     string $masterButton = capitalizeString($masterName);
     button -e -l ("Save "+$workshopButton) -w 164 op_saveWorkshopButton;
-    button -e -l ("Revive "+$workshopButton) -w 164 op_reviveButton;
+    //button -e -l ("Revive "+$workshopButton) -w 164 op_reviveButton;
     button -e -l ("Save " + $masterButton) -w 164 op_masterButton;
     
     button -e -l ("Save "+$workshopButton) -w 164 op_saveShotWorkshopButton;
-    button -e -l ("Revive "+$workshopButton) -w 164 op_reviveShotButton;
+    //button -e -l ("Revive "+$workshopButton) -w 164 op_reviveShotButton;
     button -e -l ("Save " + $masterButton) -w 164 op_masterShotButton;
     
     menuItem -e -label ("View "+$masterButton)op_assetMenuView;
