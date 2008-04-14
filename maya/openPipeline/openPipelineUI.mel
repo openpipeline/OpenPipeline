@@ -36,7 +36,7 @@ global proc openPipelineUI()
 	{
 		$mbString = "right";
 		$mbInt = 3;
-		$windowHeight = 900;
+		$windowHeight = 930;
 		$infoHeight = 130;
 		$shotInfoHeight = 82;
 	}
@@ -1708,9 +1708,10 @@ global proc openPipelineNewAssetTypeUI()
 	string $error="";
 	string $result = `promptDialog 
 		-title "new asset type"
-		-message "asset type name: \n(no spaces or special characters)"
+		-message "asset type name\n (no spaces or special characters):\n "
 		-button "create" -button "cancel"
 		-defaultButton "create" -cancelButton "cancel"
+		-sf 1
 		-dismissString "cancel"`;
 	
 	if ($result == "create")
@@ -1744,7 +1745,7 @@ global proc openPipelineNewSequenceUI()
 	string $error="";
 	string $result = `promptDialog 
 		-title "new sequence"
-		-message "sequence name: \n(no spaces or special characters)"
+		-message "sequence name: \n (no spaces or special characters)\n "
 		-button "create" -button "cancel"
 		-defaultButton "create" -cancelButton "cancel"
 		-dismissString "cancel"`;
@@ -1782,7 +1783,7 @@ global proc openPipelineNewAssetUI()
 	string $error="";
 	string $result = `promptDialog 
 		-title "new asset"
-		-message "asset name:\n(no spaces or special characters)"
+		-message "asset name:\n(no spaces or special characters)\n "
 		-button "create" -button "cancel"
 		-defaultButton "create" -cancelButton "cancel"
 		-dismissString "cancel"`;
@@ -1817,7 +1818,7 @@ global proc openPipelineNewAssetComponentUI()
 	string $error;
 	string $result = `promptDialog 
 		-title "new component" 
-		-message "component name:\n(no spaces or special characters) "
+		-message "component name:\n(no spaces or special characters)\n  "
 		-button "create" -button "cancel"
 		-defaultButton "create" -cancelButton "cancel"
 		-dismissString "cancel"`;
@@ -1851,7 +1852,7 @@ global proc openPipelineNewShotComponentUI()
 	string $error;
 	string $result = `promptDialog 
 		-title "new shot component" 
-		-message "component name:\n(no spaces or special characters)"
+		-message "component name:\n(no spaces or special characters)\n "
 		-button "create" -button "cancel"
 		-defaultButton "create" -cancelButton "cancel"
 		-dismissString "cancel"`;
@@ -1887,7 +1888,7 @@ global proc openPipelineNewShotUI()
 	string $error;
 	string $result = `promptDialog 
 		-title "new shot"
-		-message "shot name:\n(no spaces or special characters)"
+		-message "shot name:    \n (no spaces or special characters)\n "
 		-button "create" -button "cancel"
 		-defaultButton "create" -cancelButton "cancel"
 		-dismissString "cancel"`;
