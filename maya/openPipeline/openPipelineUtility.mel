@@ -1,4 +1,4 @@
-//
+ //
 // openPipeline Info Retrieval functions
 //
 
@@ -33,7 +33,7 @@
 //op_shotComponents - list of shot components under the selected shot
 //
 //UI STATES
-//op_currTab - the current tab the user is working in (1=asset management, 2=shot management)
+//op_currTab - the current tab the user is working in (1=currently editing, 2=asset browser, 3=shot browser)
 
 
 //*** returns the full path and filename for the appropriate note file
@@ -77,7 +77,7 @@ global proc string openPipelineGetNotePath(string $inputMode)
 			
 			string $notesPath;
 			//if user in Asset Management Tab
-			if ($currTab ==1)
+			if ($currTab ==2)
 			{
 				if (size($component))
 				{
@@ -94,7 +94,7 @@ global proc string openPipelineGetNotePath(string $inputMode)
 				    $outputString = "";
 			}
 			//if user in AShot Management Tab
-			else
+			else if ($currTab ==3)
 			{
 				if (size($shotComponent))
 				{

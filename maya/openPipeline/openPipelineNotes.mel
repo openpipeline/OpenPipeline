@@ -3,103 +3,6 @@
 //
 
 //###########################################
-// Name: openPipelineLoadAssetNote
-// Description: Updates the "History" section of the Asset Management tab, depending on what item is currently selected
-// Input: none
-// Returns: none
-//###########################################
-global proc openPipelineLoadAssetNote()
-{
-	string $notePath = `openPipelineGetNotePath "note"`;
-    string $assetNoteText = "";
-    if (size($notePath))
-    {
-    	if(`filetest -f $notePath` == 0)
-    	{
-            openPipelineNoteWriter "missing";
-    	}
-    
-    	string $assetNoteTextArray[] = `openPipelineReadXML $notePath`;
-    	$assetNoteText = stringArrayToString($assetNoteTextArray, "");
-    }	
-	if (`scrollField -q -ex op_commentField`)
-		scrollField -edit -text $assetNoteText op_commentField;
-}
-
-//###########################################
-// Name: openPipelineLoadShotNote
-// Description: Updates the "History" section of the Shot Management tab, depending on what item is currently selected
-// Input: none
-// Returns: none
-//###########################################
-global proc openPipelineLoadShotNote()
-{
-	string $notePath = `openPipelineGetNotePath "note"`;
-    string $shotNoteText = "";
-    if (size($notePath))
-    {
-    	if(`filetest -f $notePath` == 0)
-    	{
-            openPipelineNoteWriter "missing";
-    	}
-    
-    	string $shotNoteTextArray[] = `openPipelineReadXML $notePath`;
-    	$shotNoteText = stringArrayToString($shotNoteTextArray, "");
-    }	
-	scrollField -edit -text $shotNoteText op_shotCommentField;
-}
-
-//###########################################
-// Name: openPipelineLoadCurrentAssetNote
-// Description: Updates the "Most Recent Action" section of the Asset Management tab, depending on what item is currently open
-// Input: none
-// Returns: none
-//###########################################
-global proc openPipelineLoadCurrentAssetNote()
-{
-	string $notePath = `openPipelineGetNotePath "openednote"`;
-	string $assetNoteTextArray[] = `openPipelineReadLatestNote $notePath`;
-	string $assetNoteText = stringArrayToString($assetNoteTextArray, "");
-	scrollField -edit -text $assetNoteText op_currentAssetNoteField;
-}
-
-//###########################################
-// Name: openPipelineClearCurrentAssetNote
-// Description: Clears the "Most Recent Action" section of the Asset Management tab
-// Input: none
-// Returns: none
-//###########################################
-global proc openPipelineClearCurrentAssetNote()
-{
-	scrollField -edit -text "" op_currentAssetNoteField;	
-}
-
-//###########################################
-// Name: openPipelineLoadCurrentShotNote
-// Description: Updates the "Most Recent Action" section of the Shot Management tab, depending on what item is currently open
-// Input: none
-// Returns: none
-//###########################################
-global proc openPipelineLoadCurrentShotNote()
-{
-	string $notePath = `openPipelineGetNotePath "openednote"`;
-	string $shotNoteTextArray[] = `openPipelineReadLatestNote $notePath`;
-	string $shotNoteText = stringArrayToString($shotNoteTextArray, "");
-	scrollField -edit -text $shotNoteText op_currentShotNoteField;
-}
-
-//###########################################
-// Name: openPipelineClearCurrentShotNote
-// Description: Clears the "Most Recent Action" section of the Shot Management tab
-// Input: none
-// Returns: none
-//###########################################
-global proc openPipelineClearCurrentShotNote()
-{
-	scrollField -edit -text "" op_currentShotNoteField;
-}
-
-//###########################################
 // Name: openPipelineReadLatestNote
 // Description: Get the latest note for a specific asset/component/shot
 // Input: inputPath - the path to the item (string)
@@ -135,8 +38,8 @@ global proc openPipelineReviveWorkshopNotesCallback()
 	string $outputString[];
 	string $selectedVersionNumber = `optionMenu -q -v op_reviveVersionMenu`;
 	int $version = $selectedVersionNumber;
-
-	string $assetNoteTextArray[] = `openPipelineReadNotesByEvent $notePath "workshop"`;
+	string $wName = `optionVar -q "op_workshopName"`;
+	string $assetNoteTextArray[] = `openPipelineReadNotesByEvent $notePath $wName`;
 	string $notes[] = `openPipelineCullNotesByVersion $assetNoteTextArray $version`;
 	
 	// format string for display...
@@ -274,6 +177,7 @@ global proc string[] openPipelineReadAllNotes(string $inputPath)
 				$nextLine = `fgetline $fileId`;
 				$nextLine = openPipelineGetCleanLineXML($nextLine);
 			}
+
 			$noteContents[$i] = $foo;
 			$foo = "";
 			$i++;
@@ -283,7 +187,16 @@ global proc string[] openPipelineReadAllNotes(string $inputPath)
 		}
 	}
 	fclose $fileId;
-	return $noteContents;
+	int $i;
+	int $x=0;
+	string $output[];
+	//reverse order before returning
+	for ($i=size($noteContents);$i>0;$i--)
+		{
+		$output[$x] = $noteContents[$i-1];
+		$x++;
+		}
+	return $output;
 }
 
 //###########################################
@@ -536,7 +449,7 @@ global proc int openPipelineNoteWriter(string $inputMode)
 
 	 	//if UI is open, reload the note
 	 	if (`window -q -ex openPipelineUI`)
-	 		openPipelineLoadAssetNote;
+	 		openPipelineLoadAssetHistory;
 	}
 	return 1;
 }
@@ -569,7 +482,7 @@ global proc openPipelineCreateDescription(string $path)
 	fprint $fileId "<?xml-stylesheet type=\"text/xsl\" href=\"xsl/plStylesheet.xsl\"?>\n";
 	fprint $fileId "<openPipeline_objectInfo>\n";
 	fprint $fileId "		<description>\n";
-	fprint $fileId "			[insert description here]\n";
+	fprint $fileId "			\n";
 	fprint $fileId "		</description>\n";
 	fprint $fileId "</openPipeline_objectInfo>";
 	fclose $fileId;
