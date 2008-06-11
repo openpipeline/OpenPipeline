@@ -160,6 +160,7 @@ global proc openPipelineSetupExec()
 			if (!size($error))
 			{
 				sourceModule($openPipeline_scriptPath+$scriptsFolderName+"/"); 
+				sourceModule($openPipeline_scriptPath+$scriptsFolderName+"/addons/"); 
 				catch(`eval "openPipelineUI"`);
 			}
 			//If paths are not valid, run openPipeline setup.
@@ -317,6 +318,7 @@ global proc openPipeline()
     if (!size($error))
     {
 		sourceModule($openPipeline_scriptPath+$scriptsFolderName+"/"); 
+		sourceModule($openPipeline_scriptPath+$scriptsFolderName+"/addons/"); 
         catch(`eval "openPipelineUI"`);
     }
     //If paths are not valid, run openPipeline setup.
