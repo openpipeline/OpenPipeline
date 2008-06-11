@@ -19,6 +19,9 @@ global proc openPipelineUI()
 	global string $openPipeline_noPreviewFilename;
 	global string $openPipeline_previewFilename;
 	
+	string $addonPath = $openPipeline_scriptPath+"/openPipeline/addons/";
+	string $addons[] = `getFileList -fld $addonPath -fs "*.mel"`;
+	
 	//set platform-specific UI settings
 	string $mbString;
 	int $mbInt;
@@ -149,11 +152,23 @@ global proc openPipelineUI()
  	menu -label "Maya Tools" -parent $window;
  		menuItem -label "Maya Reference Editor" -command "ReferenceEditor";
  		menuItem -label "Maya Project Manager" -command "projectSetup 2";
-
+/*
  	menu -label "Utilities" -parent $window;
  		menuItem -label "Update Tree Padding" -command openPipelineUtilityUpdatePadding;
  		menuItem -label "Moves Shots under Temp Sequence" -command openPipelineUtilityUpdateSceneStructure;
-
+*/
+	menu -label "Add-ons" -parent $window;
+		for ($item in $addons)
+		{
+			int $length = size($item);
+			$length-=4;
+			string $command = `startString $item $length`;
+			//string $label = substituteAllString($command,"_"," ");
+			//$label = $command;
+			menuItem -label $command -command $command;
+		}
+		menuItem -label "How to add to this menu..." -c openPipelineAddonsDialog;
+	
  	menu -label "Help" -helpMenu true -parent $window;
  		menuItem -label "About openPipeline..." -command openPipelineAboutDialog;
  		menuItem -label "Help..." -command openPipelineHelpLaunch;
@@ -1599,6 +1614,40 @@ global proc openPipelineAboutDialog()
  	showWindow $infoWindow;		
 }
 
+//###########################################
+// Name: openPipelineAddonsDialog
+// Description: Shows instructions on how to add Add-ons to openPipeline
+// Input: none
+// Returns: none
+//###########################################
+global proc openPipelineAddonsDialog()
+{
+	if (`window -q -exists infoWindow`)
+	{
+		deleteUI infoWindow;	
+	}
+	
+	string $infoWindow = `window 
+			-title "openPipeline Add-ons"
+			-widthHeight 300 280
+			infoWindow`;
+
+	columnLayout -adjustableColumn true;
+		scrollField -wordWrap true -width 300 -height 230
+			-text ("openPipeline Add-ons\n\nTo add a custom command to the " + 
+				"Add-ons menu, copy the mel script you want to add to the" + 
+				"\"addons\" directory inside the \"openPipeline\" folder." +
+				"Make sure the mel command and the mel script file have the" + 
+				" same name. \n\nIf you'd like to make your add-on a part of the openPipeline, package please contact us. \n"+
+				"\n Rob O'Neill (roneill@dal.pratt.edu)\n " +
+				"Paris Mavroidis (paris@parismav.com)")
+				-editable false;
+				
+ 	    button -label "Close" -command ("deleteUI -window " + $infoWindow);
+ 	setParent ..;
+ 	window -e -widthHeight 300 280 $infoWindow;
+ 	showWindow $infoWindow;		
+}
 
 //###########################################
 // Name: openPipelineHelpLaunch
