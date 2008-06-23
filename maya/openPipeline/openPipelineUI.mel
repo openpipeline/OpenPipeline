@@ -1638,7 +1638,7 @@ global proc openPipelineAddonsDialog()
 				"Add-ons menu, copy the mel script you want to add to the" + 
 				"\"addons\" directory inside the \"openPipeline\" folder." +
 				"Make sure the mel command and the mel script file have the" + 
-				" same name. \n\nIf you'd like to make your add-on a part of the openPipeline, package please contact us. \n"+
+				" same name. \n\nIf you'd like to make your add-on a part of the openPipeline package please contact us. \n"+
 				"\n Rob O'Neill (roneill@dal.pratt.edu)\n " +
 				"Paris Mavroidis (paris@parismav.com)")
 				-editable false;
