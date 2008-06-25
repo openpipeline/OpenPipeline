@@ -875,6 +875,18 @@ global proc openPipelineUpdateCustomUI()
     menuItem -e -l $masterButton op_shotMenuImportMaster2;
     menuItem -e -l $workshopButton op_shotMenuReferenceWorkshop2;
     menuItem -e -l $masterButton op_shotMenuReferenceMaster2;
+    
+    menuItem -e -label ("View "+$masterButton) op_shotcompMenuView;
+    menuItem -e -l $workshopButton op_shotcompMenuImportWorkshop;
+    menuItem -e -l $masterButton op_shotcompMenuImportMaster;
+    menuItem -e -l $workshopButton op_shotcompMenuReferenceWorkshop;
+    menuItem -e -l $masterButton op_shotcompMenuReferenceMaster;
+    
+    menuItem -e -label ("View "+$masterButton) op_shotcompMenuView2;
+    menuItem -e -l $workshopButton op_shotcompMenuImportWorkshop2;
+    menuItem -e -l $masterButton op_shotcompMenuImportMaster2;
+    menuItem -e -l $workshopButton op_shotcompMenuReferenceWorkshop2;
+    menuItem -e -l $masterButton op_shotcompMenuReferenceMaster2;
 }
 
 //###########################################
@@ -895,6 +907,7 @@ global proc openPipelineUpdateShotList(int $preserveSelection)
 	if (size($selectedSequence))
 	{
 		string $shotFiles[] = `getFileList -folder $selectedSequence`;
+		$shotFiles = `sort $shotFiles`;
 		int $numShots = `size($shotFiles)`;
 		for ($j = 0; $j < $numShots; $j++)
 			{
@@ -1003,6 +1016,7 @@ global proc openPipelineShotSelected(int $preserveSelection)
 	{
 		string $compPath = ($currShot + "components/");
 		string $compFiles[] = `getFileList -folder $compPath`;
+		$compFiles = `sort $compFiles`;
 		int $numComps = `size($compFiles)`;
 		openPipelineUpdateShotMenus($currShot);
 		for($j = 0; $j < $numComps; $j++)
@@ -1145,6 +1159,7 @@ global proc openPipelineUpdateAssetTypeList()
 	optionVar -ca "op_assetTypes"; 
 	string $libPath = `optionVar -q "op_libPath"`;
 	string $libTypeFiles[] = `getFileList -folder $libPath`;
+	$libTypeFiles = `sort $libTypeFiles`;
 	int $numLibType = `size($libTypeFiles)`;
 	for($i = 0; $i < $numLibType; $i++)
 	{
@@ -1177,6 +1192,7 @@ global proc openPipelineUpdateSequenceList()
 	optionVar -ca "op_sequences"; 
 	string $shotPath = `optionVar -q "op_shotPath"`;
 	string $sequenceFiles[] = `getFileList -folder $shotPath`;
+	$sequenceFiles = `sort $sequenceFiles`;
 	int $numSequences = `size($sequenceFiles)`;
 	for($i = 0; $i < $numSequences; $i++)
 	{
@@ -1397,6 +1413,7 @@ global proc openPipelineAssetTypeSelected(int $preserveSelection)
 		{
 			string $currType = $selectedTypes[$i];
 			string $assetFiles[] = `getFileList -folder $currType`;
+			$assetFiles = `sort $assetFiles`;
 			int $numAssets = `size($assetFiles)`;
 			for ($j = 0; $j < $numAssets; $j++)
 			{
@@ -1477,6 +1494,7 @@ global proc openPipelineAssetSelected(int $preserveSelection)
 	{
 		string $compPath = ($currAsset + "components/");
 		string $compFiles[] = `getFileList -folder $compPath`;
+		$compFiles = `sort $compFiles`;
 		int $numComps = `size($compFiles)`;
 			
 		openPipelineUpdateAssetMenus($currAsset);
