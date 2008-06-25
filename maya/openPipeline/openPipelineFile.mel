@@ -254,7 +254,11 @@ global proc int openPipelineAssetAction(string $type, int $versionOffset, string
 	}
 	
 	int $fileExists = `filetest -r $file`;
-
+	string $namespace;
+	$namespace = $assetName;
+	//if $namespace starts with numerical characters, append appropriate letters at the beginning to create a valid namespace for importing and referencing
+	if (!isValidString($namespace, "([a-zA-Z]+)([a-zA-Z0-9_])*"))
+		$namespace = ("asset_"+$namespace);
 	if ($action=="open")
 	{
 		if ($fileExists)
@@ -284,13 +288,13 @@ global proc int openPipelineAssetAction(string $type, int $versionOffset, string
 	}
 	else if (($action=="import")&&($fileExists))
 	{
-		file -import -ra true -rdn -namespace $assetName -pr   $file;
+		file -import -ra true -rdn -namespace $namespace -pr   $file;
 		return 1; // success
 	}
 	else if (($action=="reference")&&($fileExists))
 	{
 		//file -reference -gl -shd "renderLayersByName" -namespace $assetName -options "v=0;p=17" $file;
-		file -reference -gl -shd "displayLayers" -shd "shadingNetworks" -shd "renderLayersByName" -namespace $assetName -options "v=0;p=17" $file;
+		file -reference -gl -shd "displayLayers" -shd "shadingNetworks" -shd "renderLayersByName" -namespace $namespace -options "v=0;p=17" $file;
 		return 1; // success
 	}
 		
@@ -349,6 +353,11 @@ global proc int openPipelineComponentAction(string $type, int $versionOffset, st
 		$file = $selectedComponentPath + $assetName + "_" + $componentName + "." + $ext;
 	}
 	int $fileExists = `filetest -r $file`;
+	string $namespace;
+	$namespace = $assetName+"_"+$componentName;
+	//if name starts with numerical characters, append appropriate letters at the beginning to create a valid namespace for importing and referencing
+	if (!isValidString($namespace, "([a-zA-Z]+)([a-zA-Z0-9_])*"))
+		$namespace = ("comp_"+$namespace);
 	if ($action=="open")
 	{
 		if ($fileExists)
@@ -377,12 +386,12 @@ global proc int openPipelineComponentAction(string $type, int $versionOffset, st
 
 	else if (($action=="import")&&($fileExists))
 	{
-		file -import -ra true -rdn -namespace $componentName -pr   $file;
+		file -import -ra true -rdn -namespace $namespace -pr   $file;
 		return 1; // success
 	}
 	else if (($action=="reference")&&($fileExists))
 	{
-		file -reference -gl -shd "displayLayers" -shd "shadingNetworks" -shd "renderLayersByName" -namespace $componentName -options "v=0;p=17" $file;
+		file -reference -gl -shd "displayLayers" -shd "shadingNetworks" -shd "renderLayersByName" -namespace $namespace -options "v=0;p=17" $file;
 		return 1; // success
 	}
 	else
@@ -445,8 +454,12 @@ global proc int openPipelineShotAction(string $type, int $versionOffset, string 
 		string $ext = `optionVar -q "op_masterFormat"`;
 		$file = $selectedShotPath + $shotName + "_shot." + $ext;
 	}
-	
 	int $fileExists = `filetest -r $file`;
+	string $namespace;
+	$namespace = $shotName;
+	//if name starts with numerical characters, append appropriate letters at the beginning to create a valid namespace for importing and referencing
+	if (!isValidString($namespace, "([a-zA-Z]+)([a-zA-Z0-9_])*"))
+		$namespace = ("shot_"+$namespace);
 	if ($action=="open")
 	{
 		if ($fileExists)
@@ -476,20 +489,11 @@ global proc int openPipelineShotAction(string $type, int $versionOffset, string 
 	}
 	else if (($action=="import")&&($fileExists))
 	{
-		string $namespace;
-		$namespace = $shotName;
-		if (!isValidString($shotName, "([a-zA-Z]+)([a-zA-Z0-9_])*"))
-			$namespace = ("shot_"+$shotName);
-		
 		file -import -ra true -rdn -namespace $namespace -pr $file;
 		return 1; // success
 	}
 	else if (($action=="reference")&&($fileExists))
 	{
-		string $namespace;
-		$namespace = $shotName;
-		if (!isValidString($shotName, "([a-zA-Z]+)([a-zA-Z0-9_])*"))
-			$namespace = ("shot_"+$shotName);
 		file -reference -gl -shd "displayLayers" -shd "shadingNetworks" -shd "renderLayersByName" -namespace $namespace -options "v=0;p=17" $file;
 		return 1; // success
 	}else{
@@ -545,6 +549,11 @@ global proc int openPipelineShotComponentAction(string $type, int $versionOffset
 		$file = $selectedComponentPath + $shotName + "_" + $componentName + "." + $ext;
 	}
 	int $fileExists = `filetest -r $file`;
+	string $namespace;
+	$namespace = $shotName+"_"+$componentName;
+	//if name starts with numerical characters, append appropriate letters at the beginning to create a valid namespace for importing and referencing
+	if (!isValidString($namespace, "([a-zA-Z]+)([a-zA-Z0-9_])*"))
+		$namespace = ("shotComp_"+$namespace);
 	if ($action=="open")
 	{
 		if ($fileExists)
@@ -574,12 +583,12 @@ global proc int openPipelineShotComponentAction(string $type, int $versionOffset
 
 	else if (($action=="import")&&($fileExists))
 	{
-		file -import -ra true -rdn -namespace $componentName -pr   $file;
+		file -import -ra true -rdn -namespace $namespace -pr   $file;
 		return 1; // success
 	}
 	else if (($action=="reference")&&($fileExists))
 	{
-		file -reference -gl -shd "displayLayers" -shd "shadingNetworks"  -shd "renderLayersByName" -namespace $componentName -options "v=0;p=17" $file;
+		file -reference -gl -shd "displayLayers" -shd "shadingNetworks"  -shd "renderLayersByName" -namespace $namespace -options "v=0;p=17" $file;
 		return 1; // success
 	}
 	else
@@ -597,6 +606,7 @@ global proc int openPipelineShotComponentAction(string $type, int $versionOffset
 // Returns: 1 if successful, 0 if not
 // Notes: The Action is always performed on the latest mastered version of the Asset
 //###########################################
+/*
 global proc int openPipelineShotAssetAction(string $action)
 {
 	string $assetPath = openPipelineGetSelectedShotAsset();
@@ -620,7 +630,7 @@ global proc int openPipelineShotAssetAction(string $action)
 	}
 	return 1;
 }
-
+*/
 //###########################################
 // Name: openPipelineProcessSave
 // Description: Saves the currently open Asset, Component, Shot or Shot Component
