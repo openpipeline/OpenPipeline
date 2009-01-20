@@ -880,12 +880,14 @@ global proc openPipelineOpenLocation(int $tab, string $level1, string $level2, s
 	string $path = `openPipelineGetFileName $tab $level1 $level2 $level3 "folder" 0 0`;
 	if (`filetest -d $path`)
 	{
-		$path = `substituteAllString $path "/" "\\"`;
 		string $cmd;
 		if (`about -os`=="mac")
-			$cmd = "open -a finder "+$path;
+			$cmd = "open -a finder '"+$path+"'";
 		else
-			$cmd = "explorer "+$path;
+		{
+			$path = `substituteAllString $path "/" "\\"`;
+			$cmd = "explorer "+$path+"";
+		}
 		system $cmd;
 	}
 	else

@@ -551,7 +551,7 @@ separator -style "none" -w 410 -h 15;
 			//        helpLine -w 395 op_helpLine;
 			//    setParent..;
 
-			separator -style "none" -w 125 -h 10;
+			separator -style "none" -w 410 -h 10;
 
 
 			rowLayout -numberOfColumns 2 -h 30 -cw2 205 205 -cl2 "center" "center";
