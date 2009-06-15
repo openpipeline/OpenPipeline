@@ -1,11 +1,8 @@
-//openPipeline Project Functions
-
-
 //###########################################
-// Name: 					openPipelineProjectUI
+// Name: 			openPipelineProjectUI
 // Description: 	creates oP Project UI
-// Input: 				none
-// Returns: 			none
+// Input: 			none
+// Returns: 		none
 //###########################################
 global proc openPipelineProjectUI()
 {
@@ -283,7 +280,8 @@ global proc openPipelineProjDialogWindow(int $mode)
 			    setParent..;
 			rowLayout -nc 2 -cw2 280 60;
 			    textField -h 20 -width 280 op_projectPathField ;
-			    button -label "Browse..." -c "fileBrowserDialog -m 4 -fc \"openPipelineSetProjDialogPath\" -an \"Find Location\" " -w 60;
+			    //button -label "Browse..." -c "fileBrowserDialog -m 4 -fc \"openPipelineSetProjDialogPath\" -an \"Find Location\" " -w 60;
+			    button -w 60 -l "Browse..." -c "fileBrowser \"openPipelineSetProjDialogPath\" \"OK\" \"\" 4";
 			    setParent..;
 			separator -h 5 -st "out" -w 340;
 		    rowLayout -nc 2 -cw2 80 260;
@@ -357,12 +355,14 @@ global proc openPipelineProjDialogWindow(int $mode)
 			rowLayout -nc 3 -cw3 70 220 50;
 			    text -fn "smallPlainLabelFont" -label "Archive:" -align "left" -width 70;
 			    textField -h 20 -width 220 op_projectArchiveLocation;
-			    button -w 50 -l "Browse..." -c "fileBrowserDialog -m 4 -fc \"openPipelineSetArchiveDialogPath\" -an \"Find Location\" ";
+			    //button -w 50 -l "Browse..." -c "fileBrowserDialog -m 4 -fc \"openPipelineSetArchiveDialogPath\" -an \"Find Location\" ";
+			    button -w 50 -l "Browse..." -c "fileBrowser \"openPipelineSetArchiveDialogPath\" \"OK\" \"\" 4";
 			    setParent..;
 			rowLayout -nc 3 -cw3 70 220 50;
 			    text -fn "smallPlainLabelFont" -label "Deleted Items:" -align "left" -width 70;
 			    textField -h 20 -width 220 op_projectDeletedLocation;
-			     button -w 50 -l "Browse..." -c "fileBrowserDialog -m 4 -fc \"openPipelineSetDeletedDialogPath\" -an \"Find Location\" ";
+			     //button -w 50 -l "Browse..." -c "fileBrowserDialog -m 4 -fc \"openPipelineSetDeletedDialogPath\" -an \"Find Location\" ";
+			     button -w 50 -l "Browse..." -c "fileBrowser \"openPipelineSetDeletedDialogPath\" \"OK\" \"\" 4";
 			    setParent..;
 			separator -h 5 -w 340 -style "out";
 			rowLayout -nc 2 -cw2 170 170;

@@ -1610,7 +1610,8 @@ global proc openPipelineSaveMasterFileGUI()
 			rowLayout -numberOfColumns 2 -cw2 150 150 -cl2 "center" "center";
 					// flatten reference...
 					checkBox -label "Import References" -v 1 masterImportReferencesBox;
-					//  ...
+					//  open new
+					checkBox -label ("Open New") -v 0 op_masterOpenNewFileBox;
 			setParent..;
 
 			rowLayout -numberOfColumns 2 -cw2 150 150 -cl2 "center" "center";
@@ -1663,7 +1664,8 @@ global proc openPipelineMasterCallback()
 	int $openMaster = `checkBox -q -v masterOpenMasterBox`;
 	string $customCommand = `textField -q -tx op_masterCommandField`;
 	string $comment = `scrollField -q -tx op_masterCommentField`;
-	int $result = openPipelineSaveMaster($comment, $flatten, $deleteDispLayers, $openMaster, $customCommand);
+	int $openNew = `checkBox -q -v op_masterOpenNewFileBox`;
+	int $result = openPipelineSaveMaster($comment, $flatten, $deleteDispLayers, $openMaster, $customCommand, $openNew);
 	if ($result)
 	{
 		openPipelineRemoveSecondaryWindows;

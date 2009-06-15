@@ -78,6 +78,7 @@ global proc int openPipelineActivateProject(string $projName)
 			workspace -rt "particles" $projParticles;
 		if (size($projRenders))
 			workspace -rt "renderScenes" $projRenders;
+
 		setProject $projPath;
 		return 1;
 	}
@@ -563,7 +564,7 @@ global proc int openPipelineSaveWorkshop(string $note)
 //								$customCommand - an optional custom mel command to execute before mastering
 // Returns: 			success - 1  failure - 0
 //###########################################
-global proc int openPipelineSaveMaster(string $comment, int $flatten, int $deleteDispLayers, int $openMaster, string $customCommand)
+global proc int openPipelineSaveMaster(string $comment, int $flatten, int $deleteDispLayers, int $openMaster, string $customCommand, int $openNew)
 {
 	string $ext = `optionVar -q "op_masterFormat"`;
 	string $level1 = `optionVar -q "op_currOpenLevel1"`;
@@ -613,8 +614,11 @@ global proc int openPipelineSaveMaster(string $comment, int $flatten, int $delet
 	
 	if (!$openMaster)
 		openPipelineOpenItem("workshop", $tab, $level1, $level2, $level3, 0);
-	else
+	else if ($openNew)
+		file -new;
+	else if (!$openMaster)
 		optionVar -sv "op_currOpenType" "master";
+
 	openPipelineAddEventNote($tab, $level1, $level2, $level3, $masterName, 0, $comment);
 	return 1;
 }

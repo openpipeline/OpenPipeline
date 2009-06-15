@@ -1,11 +1,3 @@
-// openPipeline
-//
-// Developed by:
-// Rob O'Neill (roneill@dal.pratt.edu)
-// Paris Mavroidis (paris@parismav.com)
-// Meng-Han Ho (mho@pratt.edu)
-//
-
 //###########################################
 // Name: sourceModule
 // Description: Finds all the mel files in a path (and potentially subpath) and sources them 
@@ -205,7 +197,8 @@ global proc openPipelineSetup()
             textField -h 20 -text $defPath -width 380 mainPathTextField ; 
             rowLayout -nc 2  -cw2 320 60 ;
                 text -label ""; 
-                button -label "Browse..." -c "fileBrowserDialog -m 4 -fc \"openPipelineSetMainPath\" -an \"Find Location\" " -w 60; 
+                //button -label "Browse..." -c "fileBrowserDialog -m 4 -fc \"openPipelineSetMainPath\" -an \"Find Location\" " -w 60; 
+                button -w 60 -l "Browse..." -c "fileBrowser \"openPipelineSetMainPath\" \"OK\" \"\" 4";
             setParent..;
             separator -style "none" -height 10;
             text -fn "boldLabelFont" -label "Project File Setup:" -align "left" -width 280;
@@ -214,7 +207,8 @@ global proc openPipelineSetup()
             rowLayout -nc 3  -cw3 260 60 60 ;
                 text -label ""; 
                 button -label "Edit" -c "openPipelineProjPathFieldToggle" -w 60 op_projPathToggleButton; 
-                button -label "Browse..." -en 0 -c "fileBrowserDialog -m 4 -fc \"openPipelineSetProjPathField\" -an \"Find Location\" " -w 60 op_projPathBrowseButton; 
+                //button -label "Browse..." -en 0 -c "fileBrowserDialog -m 4 -fc \"openPipelineSetProjPathField\" -an \"Find Location\" " -w 60 op_projPathBrowseButton; 
+                button -w 60 -en 0 -l "Browse..." -c "fileBrowser \"openPipelineSetProjPathField\" \"OK\" \"\" 4" op_projPathBrowseButton;
                 setParent..;
             separator -h 10 -style "none";
             rowLayout -nc 2 -cw2 190 190;
