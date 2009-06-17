@@ -1598,29 +1598,38 @@ global proc openPipelineSaveMasterFileGUI()
 			$type = `optionVar -q op_currOpenType`;
 	if ($type=="workshop")
 	{
+			$switchWidth = 320;
+			$halfSwitchWidth = $switchWidth * 0.5;
+			
 			string $mName = capitalizeString(`optionVar -q "op_masterName"`);
 			string $windowExists = `window -exists op_secondaryUI`;
 			if($windowExists == 1)
 			{
 					deleteUI op_secondaryUI;
 			}
-			window -t ($mName+" File Switchboard") -w 300 -h 200 op_secondaryUI;
+			window -t ($mName+" File Switchboard") -w $switchWidth -h 200 op_secondaryUI;
 
 			columnLayout -rs 5 -co "both" 10;
-			rowLayout -numberOfColumns 2 -cw2 150 150 -cl2 "center" "center";
-					// flatten reference...
-					checkBox -label "Import References" -v 1 masterImportReferencesBox;
-					//  open new
-					checkBox -label ("Open New") -v 0 op_masterOpenNewFileBox;
+			rowLayout -numberOfColumns 2 -cw2 $halfSwitchWidth $halfSwitchWidth -cl2 "center" "center";
+				// flatten reference...
+				checkBox -label "Import References" -v 1 masterImportReferencesBox;
+
+				// delete layers...
+				checkBox -label "Delete Display Layers" -v 1 masterDeleteLayersBox;
+					
 			setParent..;
 
-			rowLayout -numberOfColumns 2 -cw2 150 150 -cl2 "center" "center";
-					// delete layers...
-					checkBox -label "Delete Display Layers" -v 1 masterDeleteLayersBox;
-					//  ...
-					// open master for viewing...
-					checkBox -label ("Open " + $mName) -v 0 masterOpenMasterBox;
-					//  ...
+			columnLayout -width $switchWidth;
+				radioButtonGrp -numberOfRadioButtons 3 -label "After Master Open:" -labelArray3 "Workshop" "Master" "New" -columnWidth4 100 70 60 60 -columnAlign4 "left" "left" "left" "left" -sl 1 op_afterMasterField;
+
+//					//  open new
+//					//
+//					checkBox -label ("Open New") -v 0 op_masterOpenNewFileBox;
+//					//
+//					// open master for viewing...
+//					// *
+//					checkBox -label ("Open " + $mName) -v 0 masterOpenMasterBox;
+//					//  ...
 			setParent ..;
 
 			columnLayout -co "both" 10;
@@ -1634,12 +1643,12 @@ global proc openPipelineSaveMasterFileGUI()
 					scrollField -w 190 -h 40 -ww 1 op_masterCommentField;
 			setParent..;
 
-			rowLayout -numberOfColumns 2 -cw2 125 125 -cl2 "center" "center";
+			rowLayout -numberOfColumns 2 -cw2 $halfSwitchWidth $halfSwitchWidth -cl2 "center" "center";
 					button -w 125 -l $mName -c "openPipelineMasterCallback" -bgc .9 .7 .4;
 					button -w 125 -l "cancel" -c "deleteUI op_secondaryUI;" -bgc .8 .4 .4;
 			setParent..;
 
-			window -e -w 280 -h 200 op_secondaryUI;
+			window -e -w $switchWidth -h 200 op_secondaryUI;
 			showWindow op_secondaryUI;
 	}
 	else if ($type == "master")
@@ -1661,11 +1670,15 @@ global proc openPipelineMasterCallback()
 {
 	int $flatten = `checkBox -q -v masterImportReferencesBox`;
 	int $deleteDispLayers = `checkBox -q -v  masterDeleteLayersBox`;
-	int $openMaster = `checkBox -q -v masterOpenMasterBox`;
 	string $customCommand = `textField -q -tx op_masterCommandField`;
 	string $comment = `scrollField -q -tx op_masterCommentField`;
-	int $openNew = `checkBox -q -v op_masterOpenNewFileBox`;
-	int $result = openPipelineSaveMaster($comment, $flatten, $deleteDispLayers, $openMaster, $customCommand, $openNew);
+
+	int $after = `radioButtonGrp -q -sl op_afterMasterField`;
+	
+	//int $openMaster = `checkBox -q -v masterOpenMasterBox`;
+	//int $openNew = `checkBox -q -v op_masterOpenNewFileBox`;
+
+	int $result = openPipelineSaveMaster($comment, $flatten, $deleteDispLayers, $after, $customCommand);
 	if ($result)
 	{
 		openPipelineRemoveSecondaryWindows;

@@ -564,7 +564,7 @@ global proc int openPipelineSaveWorkshop(string $note)
 //								$customCommand - an optional custom mel command to execute before mastering
 // Returns: 			success - 1  failure - 0
 //###########################################
-global proc int openPipelineSaveMaster(string $comment, int $flatten, int $deleteDispLayers, int $openMaster, string $customCommand, int $openNew)
+global proc int openPipelineSaveMaster(string $comment, int $flatten, int $deleteDispLayers, int $after, string $customCommand)
 {
 	string $ext = `optionVar -q "op_masterFormat"`;
 	string $level1 = `optionVar -q "op_currOpenLevel1"`;
@@ -611,13 +611,16 @@ global proc int openPipelineSaveMaster(string $comment, int $flatten, int $delet
 	    warning ("openPipelineSaveMaster: Invalid file format ("+$ext+")specified: saving to Maya Binary");
 	}   
 	file -save -type $type;
-	
-	if (!$openMaster)
+
+	if($after == 1)
+	{
 		openPipelineOpenItem("workshop", $tab, $level1, $level2, $level3, 0);
-	else if ($openNew)
-		file -new;
-	else if (!$openMaster)
+	}else if($after == 2){
 		optionVar -sv "op_currOpenType" "master";
+	}else if($after == 3){
+		openPipelineCloseCurrent;
+		file -new;
+	}
 
 	openPipelineAddEventNote($tab, $level1, $level2, $level3, $masterName, 0, $comment);
 	return 1;
