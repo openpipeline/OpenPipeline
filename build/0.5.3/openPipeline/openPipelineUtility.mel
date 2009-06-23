@@ -1,0 +1,681 @@
+//
+// openPipeline Info Retrieval functions
+//
+
+//***	The following is a full list of optionVars used. 
+//		These can be accessed for pertinent information while openPipeline is running***
+//
+//CURRENTLY OPEN FILE INFO
+//op_currOpenPath (string) - full path of the location of the currently open file
+//op_currOpenType (string) - whether it's a workshop or master
+//op_currOpenCategory (string) - whether it's a shot, asset type, asset or component
+//op_currOpenVersion (int) - version of currently open file.  0 means no workshops have been created yet.
+//
+//CURRENT PROJECT INFO
+//op_currProject (int) - 1-based index. corresponds to index in the project drop-down menu
+//op_currProjectName (string) - project name
+//op_currProjectPath (string) - full project path
+//op_libPath (string) - full path to asset library
+//op_shotPath (string) - full path to shots folder
+//op_archivePath (string) - full path to archive folder
+//op_workshopFormat (string) - file format for workshops (ma or mb)
+//op_masterFormat (string) - file format for master (ma or mb)
+//op_workshopName (string) - display name for workshop files
+//op_masterName (string) - display name for master files
+//
+//LISTS (all string arrays. each string within an array is a full, absolute path)
+//op_shots - list of shots within the current project
+//op_shotAssets - list of assets listed under the selected asset type (shot management tab)
+//op_assetTypes - list of asset types within the current project
+//op_assets - list of assets under the selected asset type (asset management tab)
+//op_components - list of components under the selected asset
+//op_sequences - list of sequences within the current project
+//op_shotComponents - list of shot components under the selected shot
+//
+//UI STATES
+//op_currTab - the current tab the user is working in (1=asset management, 2=shot management)
+
+
+//*** returns the full path and filename for the appropriate note file
+//      $inputMode - 'note', 'openednote' or 'newnote'. 
+//          See below for specific explanations of the different modes.
+global proc string openPipelineGetNotePath(string $inputMode)
+{
+	string $currPath = `optionVar -q "op_currOpenPath"`;
+	string $name = basename($currPath,"");
+	string $currCategory = `optionVar -q "op_currOpenCategory"`;
+	string $creationPath = `optionVar -q "op_creationPath"`;
+	string $creationType = `optionVar -q "op_creationType"`;
+	int $currTab = `optionVar -q "op_currTab"`;
+	
+
+	string $outputString;
+	switch($inputMode)
+	{
+		//"note:" returns the note file for the currently selected asset / component / shot
+		case "note":
+			string $asset = `openPipelineGetSelectedAsset`;
+			string $component = `openPipelineGetSelectedComponent`;
+			string $shot = `openPipelineGetSelectedShot`;
+			string $shotComponent = `openPipelineGetSelectedShotComponent`;
+				string $openPipeline_menuCurrentAsset = basename($asset,"");	
+	
+	string $openPipeline_menuCurrentAssetComponent = basename($component, "");	
+	
+	string $selectedShot = basename($shot, "");
+	
+	string $selectedShotComponent = basename($shotComponent,"");
+			
+			
+			
+			string $notesPath;
+			//if user in Asset Management Tab
+			if ($currTab ==1)
+			{
+				if (size($component))
+				{
+					$notesPath = $component + "notes/";
+					$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_ComponentNote.xml";
+				}
+				else if (size($asset))
+				{
+					$notesPath = $asset + "notes/";
+					$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_AssetNote.xml";
+				}
+				
+				else
+				    $outputString = "";
+			}
+			//if user in AShot Management Tab
+			else
+			{
+				if (size($shotComponent))
+				{
+					$notesPath = $shotComponent + "notes/";
+					$outputString = $notesPath + $selectedShot + "_" + $selectedShotComponent + "_ComponentNote.xml";
+				}
+				else if (size($shot))
+				{
+    			string $notesPath = ($shot + "notes/");
+    			$outputString = $notesPath + $selectedShot + "_SceneNote.xml";
+    	  }
+    	  else
+    	  {
+    	  	$outputString = "";
+    	  }
+			}
+			break;
+
+		//"openednote": returns the note file for the asset / component / shot which is currently open for editing
+		case "openednote":
+			
+			if ($currCategory == "asset")
+			{
+				$outputString = ($currPath + "notes/" + $name + "_AssetNote.xml");
+			}
+			else if ($currCategory == "shot")
+			{
+			    $outputString = ($currPath + "notes/" + $name + "_SceneNote.xml");
+			}
+			else if ($currCategory == "component")
+			{
+				string $aName = openPipelineGetFolderFromPath($currPath,2);
+				$outputString = ($currPath + "notes/" + $aName + "_" + $name + "_ComponentNote.xml");
+			}
+			else if ($currCategory == "shotComponent")
+			{
+				string $aName = openPipelineGetFolderFromPath($currPath,2);
+				$outputString = ($currPath + "notes/" + $aName + "_" + $name + "_ComponentNote.xml");
+			}				
+      else
+      {
+      	$outputString = "";
+      }
+			break;
+		
+		//"newnote" returns the note file for the asset / component / shot / shot component that was just created
+		case "newnote":
+			string $notesPath = $creationPath + "notes/";
+
+			if ($creationType == "asset")
+			{
+				string $assetName = basename($creationPath,"");
+				$outputString = $notesPath + $assetName + "_AssetNote.xml";
+			}
+			else if (($creationType == "component")||($creationType == "shotComponent"))
+			{
+				string $assetName = openPipelineGetFolderFromPath($creationPath,2);
+				string $componentName = basename($creationPath,"");
+				$outputString = $notesPath + $assetName + "_" + $componentName + "_ComponentNote.xml";
+			}
+			else if ($creationType == "shot")
+			{
+			    string $shotName = basename($creationPath,"");
+			    $outputString = $notesPath + $shotName + "_SceneNote.xml"; 
+			}
+			break;
+	}
+	return $outputString;
+}
+
+//*** returns the current date
+global proc string openPipelineGetDate()
+{
+	string $date = `about -cd`;
+	string $dateSeparated[];
+	tokenize($date,"/",$dateSeparated);
+	$date = $dateSeparated[1]+"/"+$dateSeparated[2]+"/"+$dateSeparated[0];
+	return $date;
+}
+
+//*** returns the current time
+global proc string openPipelineGetTime()
+{
+	string $time = `about -ct`;
+	return $time;
+}
+
+//*** returns a padded string from non-negative integer
+global proc string openPipelinePad(int $num, int $padding)
+{
+	string $prefix;
+	string $numString = string($num);
+	int $length = size($numString);
+	int $i;
+	for ($i=$length; $i<$padding; $i++)
+		$prefix = $prefix + "0";
+	return ($prefix+$numString);
+}
+
+//*** returns an integer from a padded string
+global proc int openPipelineUnpad(string $numString)
+{
+	string $prefix = `match "^0*" $numString`;
+	int $padding = size($prefix);
+	int $size = size($numString);
+	string $subString;
+	$subString = endString($numString,($size-$padding));
+	return (int($subString));
+}
+
+//*** returns the version of an ma or mb file, assuming a padding of 4
+global proc int openPipelineGetVersionFromFile(string $file)
+{
+	string $suffix = endString($file,7);
+	$suffix = startString($suffix,4);
+	int $version = openPipelineUnpad($suffix);
+	return $version;
+}
+
+//*** checks if a given asset, or shot has at least one workshop
+global proc int openPipelineAssetHasWorkshop(string $path)
+{
+	string $wExt = `optionVar -q "op_workshopFormat"`;
+	string $wName = `optionVar -q "op_workshopName"`;
+	string $name = basename($path,"");
+	string $workshopFiles[] = `getFileList -folder ($path+$wName+"/") -filespec ($name + "_" + $wName + "_*." + $wExt)`;
+	return size($workshopFiles);
+}
+
+//*** checks if a given component has at least one workshop
+global proc int openPipelineComponentHasWorkshop(string $path)
+{	
+	string $wExt = `optionVar -q "op_workshopFormat"`;
+	string $wName = `optionVar -q "op_workshopName"`;
+	string $name = basename($path,"");
+	string $asset =openPipelineGetFolderFromPath($path,2);
+	string $workshopFiles[] = `getFileList -folder ($path+$wName+"/") -filespec ($asset + "_" + $name + "_" + $wName + "_*." + $wExt)`;
+	return size($workshopFiles);
+}
+
+//*** checks if a given asset has been mastered at least once
+global proc int openPipelineAssetHasMaster(string $path)
+{
+	string $mExt = `optionVar -q "op_masterFormat"`;
+	string $name = basename($path,"");
+	string $expectedMasterFile = ($path + $name + "_asset."+$mExt);
+	int $exists = `filetest -f $expectedMasterFile`;
+	return $exists;
+}
+
+//*** checks if a given shot has been mastered at least once
+global proc int openPipelineShotHasMaster(string $path)
+{
+	string $mExt = `optionVar -q "op_masterFormat"`;
+	string $name = basename($path,"");
+	string $expectedMasterFile = ($path + $name + "_shot."+$mExt);
+	int $exists = `filetest -f $expectedMasterFile`;
+	return $exists;
+}
+
+//*** checks if a given component has been mastered at least once
+global proc int openPipelineComponentHasMaster(string $path)
+{	
+	string $mExt = `optionVar -q "op_masterFormat"`;
+	string $name = basename($path,"");
+	string $asset = openPipelineGetFolderFromPath($path,2);
+	string $expectedMasterFile = ($path + $asset + "_" + $name + "." + $mExt);
+	int $masterExists = `filetest -f $expectedMasterFile`;
+	return $masterExists;
+}
+
+//*** returns the number of workshops that exist for a shot, asset or component
+global proc int openPipelineNumWorkshops(string $path)
+{
+	string $wExt = `optionVar -q "op_workshopFormat"`;
+	string $wName = `optionVar -q "op_workshopName"`;
+	string $name = basename($path,"");
+	string $workshopFiles[] = `getFileList -folder ($path+$wName+"/") -filespec ("*" + $name + "_" + $wName + "_*." + $wExt)`;
+	return size($workshopFiles);
+}
+
+//*** returns the number of old mastered versions that exist for a shot, asset or component
+global proc int openPipelineNumVersions(string $path)
+{
+	string $mExt = `optionVar -q "op_masterFormat"`;
+	string $name = basename($path,"");
+	string $versionFiles[] = `getFileList -folder ($path+"version/") -filespec ("*" + $name + "_version_*." + $mExt)`;
+	return size($versionFiles);
+}
+
+//*** returns the workshop files for a given asset, component or shot
+//*** note: filenames are returned as full paths
+global proc string[] openPipelineGetWorkshops(string $path)
+{
+	string $wExt = `optionVar -q "op_workshopFormat"`;
+	string $wName = `optionVar -q "op_workshopName"`;
+	string $name = basename($path,"");
+	string $workshopFiles[] = `getFileList -folder ($path+$wName+"/") -filespec ("*"+$name + "_" + $wName + "_*." + $wExt)`;
+	$workshopFiles = sort($workshopFiles);
+	string $workshopFullPaths[];
+	for ($i=0; $i<size($workshopFiles); $i++)
+		$workshopFullPaths[$i] = $path+$wName+"/"+$workshopFiles[$i];
+	return $workshopFullPaths;
+}
+
+//*** returns the version files for a given asset, component or shot
+//*** note: filenames are returned as full paths
+global proc string[] openPipelineGetVersions(string $path)
+{
+	string $mExt = `optionVar -q "op_masterFormat"`;
+	string $name = basename($path,"");
+	string $versionFiles[] = `getFileList -folder ($path+"version/") -filespec ("*"+$name + "_version_*." + $mExt)`;
+	$versionFiles = sort($versionFiles);
+	string $versionFullPaths[];
+	for ($i=0; $i<size($versionFiles); $i++)
+		$versionFullPaths[$i] = $path+"version/"+$versionFiles[$i];
+	
+	return $versionFullPaths;
+}
+
+global proc int openPipelineGetLatestWorkshopVersion(string $path)
+{
+	string $workshopFiles[] = openPipelineGetWorkshops($path);
+	int $numWorkshops = size($workshopFiles);
+	int $version = 0;
+	if ($numWorkshops)
+	{
+		string $latestFile = $workshopFiles[$numWorkshops-1];
+		$version = openPipelineGetVersionFromFile($latestFile);
+	}
+	return $version;
+}
+
+global proc int openPipelineGetLatestMasterVersion(string $path)
+{
+	string $versionFiles[] = openPipelineGetVersions($path);
+	int $numVersions = size($versionFiles);
+	int $version = 0;
+	if ($numVersions)
+	{
+		string $latestFile = $versionFiles[$numVersions-1];
+		$version = openPipelineGetVersionFromFile($latestFile);
+	}	
+	return $version;
+}
+
+//*** returns the folder name at a given depth of a path
+//*** passing in 0 as the second parameter has the same function as the "basename" mel command
+global proc string openPipelineGetFolderFromPath(string $path, int $offsetFromLast)
+{
+	string $tokenizedPath[];
+	int $depth = tokenize($path,"/",$tokenizedPath);
+	if (($depth-1-$offsetFromLast)>=0)
+	    return ($tokenizedPath[$depth-1-$offsetFromLast]);
+	else
+	    return "";
+}
+
+global proc openPipelineUtilityUpdatePadding()
+{
+	// get paths for all types and all assets and all components
+	string $currentProject = `optionVar -q "op_currProjectPath"`;
+	string $wName = `optionVar -q "op_workshopName"`;
+	string $allLibFiles[] = `openPipelineGetLibFiles`;
+	string $allShotFiles[] = `openPipelineGetShotFiles`;
+	
+	string $allFiles[] = stringArrayCatenate($allLibFiles, $allShotFiles);
+	
+	string $newFileName;
+	
+	// warning
+	string $confirm = `confirmDialog -title "Update Project" -message 
+		("This function will rename " + $wName + " and versions created\n" +
+			"in openPipeline 0.3 or earlier for use in version 0.4 and beyond." +
+			"\n\nDemo will print to the script editor but not rename files. \n\nContinue?")
+    	-button "Yes" -button "No" -button "Demo" -defaultButton "No"
+    	-cancelButton "No" -dismissString "No"`;
+
+	// change padding on all found files
+	if(($confirm == "Yes")||($confirm == "Demo"))
+	{
+		for($oldFileName in $allFiles)
+		{
+			string $lost = `match "([0-9]+)\.m.$" $oldFileName`;
+			string $found = `match "[0-9]+" $lost`;
+			string $newNumber = openPipelinePad($found, 4);
+			string $newTail = `substitute $found $lost $newNumber`;
+			
+			$newFileName = `substitute $lost $oldFileName $newTail`;
+			string $command = "Preview";
+			if($confirm == "Yes")
+			{
+				$command = "Renaming";
+				sysFile -rename $newFileName $oldFileName;
+			}
+			print ("openPipeline " + $command + ": " + $oldFileName + " -> " + $newFileName + "\n");
+		}
+	}
+}
+
+
+global proc string[] openPipelineGetLibFiles()
+{
+	string $assetTypes[];
+  if (`optionVar -as "op_assetTypes"`)
+  	$assetTypes = `optionVar -q "op_assetTypes"`;
+
+	string $assets[];
+	string $components[];
+	string $fileList[];
+
+	for($assetType in $assetTypes)
+	{
+		$assets = `getFileList -folder $assetType`;
+		for($asset in $assets)
+		{
+			string $assetPath = ($assetType + $asset + "/");
+			$fileList = stringArrayCatenate($fileList, `openPipelineGetWorkshops($assetPath)`);
+			$fileList = stringArrayCatenate($fileList, `openPipelineGetVersions($assetPath)`);
+			$components = `getFileList -folder ($assetPath + "/components/")`;
+			for($component in $components)
+			{
+				string $componentPath = ($assetPath + "components/" + $component + "/");
+				$fileList = stringArrayCatenate($fileList, `openPipelineGetWorkshops($componentPath)`);
+				$fileList = stringArrayCatenate($fileList, `openPipelineGetVersions($componentPath)`);
+			}
+		}
+	}
+	return $fileList;
+}
+
+
+global proc string[] openPipelineGetShotFiles()
+{
+	string $allShots[];
+	if (`optionVar -as "op_shots"`)
+		$allShots = `optionVar -q "op_shots"`; 
+	string $fileList[];
+
+	for($eachShot in $allShots)
+	{
+		string $shotPath = $eachShot;
+		$fileList = stringArrayCatenate($fileList, `openPipelineGetWorkshops($shotPath)`);
+		$fileList = stringArrayCatenate($fileList, `openPipelineGetVersions($shotPath)`);
+	}
+	return $fileList;
+}
+
+global proc int openPipelineIsValidFolder(string $path)
+{
+	if (!`filetest -d $path`)
+		return 0;
+	else
+	{
+	string $base = basename($path,"");
+	string $firstChar = startString($base,1);
+	if ($firstChar==".")
+		return 0;
+	else
+		return 1;
+	}
+}
+
+global proc string[] openPipelineGetXmlAll(string $xmlFile)
+{
+	string $output[];
+	int $index = 0;
+	int $lineNum = 1;
+	int $open = 1;
+	string $data = "";
+	string $char;
+	string $tag;
+	int $fileId = `fopen $xmlFile "r"`;
+	string $currLine = `fgetline $fileId`;
+	while ($currLine!="")
+	{	
+		for ($i=1;$i<size($currLine);$i++)
+		{			
+			$char = `substring $currLine $i $i`;
+			if ($char=="<")
+			{
+				$data = strip($data); 
+				if ($data!="")
+				{
+					$output[$index] = $data;
+					$data = "";
+					$index++;
+				}
+				$i++;
+				$tag = "";
+				$char = `substring $currLine $i $i`;
+				$open = 1;
+				if ($char=="/")			
+				{
+					$i++;
+					$char = `substring $currLine $i $i`;
+					$open = 0;
+				}
+				
+				while (($char!=">")&&($i<=size($currLine)))
+				{
+					$i++;
+					$tag += $char;
+					$char = `substring $currLine $i $i`;
+					if ($i>size($currLine))
+					{
+						warning("XML formatting error in file "+$xmlFile+" on line "+ $lineNum+". Check file before proceeding");
+					}
+				}
+				if ($open)
+				{
+					$output[$index] = ("<"+$tag+">");
+					$index++;
+				}
+				else 
+				{
+					$output[$index] = ("</"+$tag+">");
+					$index++;
+				}
+			}
+			else
+			{
+				$data += $char;
+				$i++;
+				$char = `substring $currLine $i $i`;
+				while (($char!="<")&&($i<size($currLine)))
+				{
+					$data += $char;
+					$i++;
+					if (size($currLine))
+						$char = `substring $currLine $i $i`;
+				}
+				$i--;
+			}	
+		}
+		$currLine = `fgetline $fileId`;
+		$lineNum++;
+	}
+	fclose $fileId;
+	return $output;
+}
+
+global proc string[] openPipelineGetXmlTop(string $xml[], string $tag)
+{
+    int $i=0;
+    int $j=0;
+    string $output[];
+    for ($i=0; $i<size($xml); $i++)
+            {
+            $line = strip($xml[$i]);
+            if (openPipelineIsXmlInTag($line,$tag))
+                {
+                $i++;
+                $line = strip($xml[$i]);
+                while (!openPipelineIsXmlOutTag($line,$tag)&&($i<size($xml)))
+                   {
+                   $output[$j] = $line;
+                   $j++;
+                   $i++;
+                   $line = strip($xml[$i]);
+                   }
+                }
+             }
+        
+    return $output;
+}
+
+global proc int openPipelineIsXmlInTag(string $xml, string $tag)
+{
+    string $matchString = "<[ ]*"+$tag+"[ ]*.*>";
+    int $match = isValidString($xml,$matchString);
+    return $match;
+}
+
+global proc int openPipelineIsXmlOutTag(string $xml, string $tag)
+{
+    string $matchString = "</[ ]*"+$tag+"[ ]*>";
+    int $match = isValidString($xml,$matchString);
+    return $match;
+}
+
+global proc string[] openPipelineGetXmlSecondary(string $xml[], string $tag)
+{
+    int $i=0;
+    int $j=0;
+    string $output[];
+    $mode = 0;
+    for ($i=0; $i<size($xml); $i++)
+    {
+            string $line = strip($xml[$i]);
+            if (openPipelineIsXmlInTag($line,$tag))
+            {
+                $i++;
+                string $line = strip($xml[$i]);
+                while ((!openPipelineIsXmlOutTag($line,$tag))&&($i<size($xml)))
+                {
+                    $line = strip($xml[$i]);
+                    $output[$j]=$output[$j]+$line;
+                    $i++;
+                    $line = strip($xml[$i]);
+                }
+                $j++;
+            }
+   }   
+   return $output;
+}
+
+global proc string openPipelineGetXmlData(string $xml, string $tag)
+{
+    $xml = strip($xml);
+    string $inTag = "<[ ]*"+$tag+"[ ]*>";
+    string $outTag = "<[ ]*/"+$tag+"[ ]*>";   
+    string $matchString = $inTag+"[ !-~]*"+$outTag;
+    string $output = `match $matchString $xml`;
+    $output = substitute($inTag, $output, "");
+    $output = substitute($outTag, $output, "");
+    $output = encodeString($output);
+    return $output;
+}
+
+global proc openPipelineUtilityUpdateSceneStructure()
+{
+	string $currentShots[];
+	if (`optionVar -as "op_sequences"`)
+		$currentShots = `optionVar -q "op_sequences"`;
+
+	string $currentShotDirectory;
+	if (`optionVar -as "op_shotPath"`)
+		$currentShotDirectory = `optionVar -q "op_shotPath"`;
+	
+	string $tempSequence = "openPipelineSeq";
+	string $tempSequencePath = ($currentShotDirectory + $tempSequence + "/");
+	
+	int $tempSequenceFound = stringArrayContains($tempSequencePath, $currentShots);
+		
+	// test for notes
+	int $notesFound;
+	for($currentShot in $currentShots)
+	{
+		string $currentShotFiles[] = `getFileList -fld $currentShot`;
+		$notesFound = stringArrayContains("notes", $currentShotFiles);
+		if($notesFound == 1)
+			break;
+	}	
+
+	// test for temp sequence
+	if(($tempSequenceFound == 1)||($notesFound == 0))
+	{
+		warning "openPipeline: Sequences Exist";
+		return;
+	}
+	
+	// warning
+	string $confirm = `confirmDialog -title "Update Shots" -message 
+		("This function will move all scenes (aka shots) created\n" +
+			"in openPipeline 0.4.2 or earlier under a dummy sequence folder\n" +
+			"for use in version 0.5 and beyond." +
+			"\n\nDemo will print to the script editor but not move files. \n\nContinue?")
+    	-button "Yes" -button "No" -button "Demo" -defaultButton "No"
+    	-cancelButton "No" -dismissString "No"`;
+
+	// move all shots under temp sequence
+	if(($confirm == "Yes")||($confirm == "Demo"))
+	{
+		for($currentShot in $currentShots)
+		{
+
+			$shotName = `basename $currentShot ""`;
+			$currentShot = `substitute ($shotName + "/") $currentShot $shotName`;
+
+			$newShot = ($tempSequence + "/" + $shotName);
+			string $newPath = `substitute $shotName $currentShot $newShot`;
+			string $newPathBase = basename($newPath , "");
+			$newPath = `substitute ($shotName + "/") $newPath $newPathBase`;
+
+			string $command = "Preview";
+			if($confirm == "Yes")
+			{
+				sysFile -makeDir ($currentShotDirectory + $tempSequence);
+
+				$command = "Renaming";
+
+				sysFile -rename $newPath $currentShot;
+				
+				openPipelineUpdateSequenceList;
+			}
+			print ("openPipeline " + $command + ": " + $currentShot + " -> " + $newPath + "\n");
+		}
+	}
+}
+

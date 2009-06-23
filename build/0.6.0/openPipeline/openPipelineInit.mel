@@ -1,0 +1,9 @@
+//
+// openPipeline Initialization 
+//
+global string $openPipeline_name = "openPipeline";
+global string $openPipeline_version = "0.6.0";
+global string $openPipeline_projList = "openPipeline_projects.xml";
+global string $openPipeline_iconFilename = "openPipelineIcon.jpg";
+global string $openPipeline_userName;
+$openPipeline_userName = `getenv USER`;

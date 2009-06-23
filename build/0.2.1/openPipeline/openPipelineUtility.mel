@@ -1,0 +1,100 @@
+global proc string openPipelineGetPath(string $inputMode)
+{
+	string $currPath = `optionVar -q "op_currOpenPath"`;
+	string $name = openPipelineGetFolderFromPath($currPath,0);
+
+	global string $openPipeline_menuCurrentAssetType;
+	string $assetType[] = `openPipelineGetSelectedAssetTypes`;
+	$openPipeline_menuCurrentAssetType = openPipelineGetFolderFromPath($assetType[0], 0);
+
+	global string $openPipeline_menuCurrentAsset;
+	string $asset = `openPipelineGetSelectedAsset`;
+	$openPipeline_menuCurrentAsset = openPipelineGetFolderFromPath($asset, 0);	
+
+	global string $openPipeline_menuCurrentAssetComponent;
+	string $component = `openPipelineGetSelectedComponent`;
+	$openPipeline_menuCurrentAssetComponent = openPipelineGetFolderFromPath($component, 0);	
+
+	global string $openPipeline_menuCurrentAsset;
+	string $scene = `openPipelineGetSelectedScene`;
+	string $selectedScene = openPipelineGetFolderFromPath($scene, 0);	
+
+	global string $openPipeline_libraryDirectoryName;
+	global string $openPipeline_sceneDirectoryName;
+
+	string $selectedAssetComponent = `openPipelineGetSelectedComponent`;
+
+	global string $openPipelineNewAssetName;
+	global string $openPipelineNewSceneName;
+	
+	string $outputString;
+	string $projString = `workspace -q -fn`;
+	
+	switch($inputMode)
+	{
+		case "proj":
+			$outputString = ($projString + "/");
+			break;
+		
+		case "lib":
+			string $libPath = ($projString + "/" + $openPipeline_libraryDirectoryName + "/");
+			$outputString = $libPath;	
+			break;
+		
+		case "scenes":
+			$outputString = ($projString + "/" + $openPipeline_sceneDirectoryName + "/");	
+			break;
+
+		case "archive":
+			$outputString = ($projString + "/archive/");
+			break;
+		
+		case "note":
+			string $notesPath;
+			if($selectedAssetComponent == "")
+			{
+				$notesPath = $projString + "/" + $openPipeline_libraryDirectoryName + "/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset + "/notes/";
+				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_AssetNote.xml";
+			}else{
+				$notesPath = $projString + "/" + $openPipeline_libraryDirectoryName + "/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset + "/components/" + $openPipeline_menuCurrentAssetComponent + "/notes/";
+				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_AssetNote.xml";
+			}
+			break;
+
+		case "openedassetnote":
+			string $notesPath;
+			if($selectedAssetComponent == "")
+			{
+				$outputString = ($currPath + "notes/" + $name + "_AssetNote.xml");
+			}else{
+				$outputString = ($currPath + "notes/" + $openPipeline_menuCurrentAsset + "_" + $name + "_AssetNote.xml");
+			}		
+
+			break;
+		
+		case "newnote":
+			string $notesPath;
+			
+			if($selectedAssetComponent == "")
+			{
+				$notesPath = $projString + "/" + $openPipeline_libraryDirectoryName + "/" + $openPipeline_menuCurrentAssetType + "/" + $openPipelineNewAssetName + "/notes/";
+				$outputString = $notesPath + $openPipelineNewAssetName + "_AssetNote.xml";
+			}else{
+				$notesPath = $projString + "/" + $openPipeline_libraryDirectoryName + "/" + $openPipeline_menuCurrentAssetType + "/" + $openPipeline_menuCurrentAsset + "/components/" + $openPipeline_menuCurrentAssetComponent + "/notes/";
+				$outputString = $notesPath + $openPipeline_menuCurrentAsset + "_" + $openPipeline_menuCurrentAssetComponent + "_AssetNote.xml";
+			}
+			break;
+		
+		case "scenenote":
+			string $notesPath = ($scene + "notes/");
+			$outputString = $notesPath + $selectedScene + "_AssetNote.xml";
+			break;
+			
+		case "newscenenote":
+			string $notesPath;
+			$notesPath = $projString + "/" + $openPipeline_sceneDirectoryName + "/" + $openPipelineNewSceneName + "/notes/";
+			$outputString = $notesPath + $openPipelineNewSceneName + "_AssetNote.xml";
+			break;				
+	}
+	return $outputString;
+}

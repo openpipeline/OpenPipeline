@@ -1,0 +1,650 @@
+//
+// openPipeline Pipeline File Functions
+//
+global proc string openPipelineNewAssetTypeProcess(string $name)
+{
+	string $libPath = `optionVar -q "op_libPath"`;
+	string $assetTypePath = ($libPath + $name);
+	if(`filetest -d ($assetTypePath)` == 0)
+	{
+		sysFile -makeDir ($assetTypePath);
+	}else if(`filetest -d $assetTypePath` == 1){
+		confirmDialog -title "openPipeline Error" -message ("Asset Type "+$name+" already exists!")
+ 				-button "OK" -defaultButton "OK";
+		return $assetTypePath;
+	}else{}
+	
+	return $assetTypePath;
+}
+
+global proc string openPipelineNewAssetProcess(string $assetName)
+{
+	string $error = "";
+	int $indexSelected[] = `textScrollList -q -sii op_assetTypeScrollList`;
+	string $assetTypes[] = `optionVar -q "op_assetTypes"`;
+	string $assetTypePath = $assetTypes[$indexSelected[0]-1];
+	
+	string $assetPath = $assetTypePath + $assetName;
+
+	if (`filetest -d $assetPath`)
+	{
+		$error+=("asset \""+$assetName+"\" already exists!");
+	}
+	
+	if($error != "")
+	{
+		confirmDialog -title "openPipeline Error" -message $error
+ 			-button "OK" -defaultButton "OK";
+ 	}else{
+		sysFile -makeDir $assetPath;
+		sysFile -makeDir ($assetPath + "/" + "workshop");
+		sysFile -makeDir ($assetPath + "/" + "version");	
+		sysFile -makeDir ($assetPath + "/" + "components");
+		// asset notes
+		sysFile -makeDir ($assetPath + "/" + "notes");
+		openPipelineAssetNoteWriter "creation";
+ 	}
+	return $assetPath;
+}
+
+global proc string openPipelineNewComponentProcess(string $componentName)
+{
+	string $error = "";
+	int $indexSelected[] = `textScrollList -q -sii op_assetScrollList`;
+	string $assets[] = `optionVar -q "op_assets"`;
+	string $assetPath = $assets[$indexSelected[0]-1];
+	string $componentPath = $assetPath + "components/" + $componentName;
+	
+	if (`filetest -d $componentPath`)
+	{
+		$error+=("component \""+$componentName+"\" already exists!");
+	}
+	
+	if($error != "")
+	{
+		confirmDialog -title "openPipeline Error" -message $error
+ 			-button "OK" -defaultButton "OK";
+	}else{
+		sysFile -makeDir $componentPath;
+		sysFile -makeDir ($componentPath + "/" + "workshop");
+		sysFile -makeDir ($componentPath + "/" + "version");	
+		sysFile -makeDir ($componentPath + "/" + "notes");	
+	}
+	return $componentPath;
+}
+
+global proc string openPipelineNewSceneProcess(string $scene)
+{
+	string $error = "";
+	string $scenePath = `optionVar -q "op_scenePath"`;
+	string $newScenePath = $scenePath + $scene;
+	if (`filetest -d $newScenePath`)
+			$error+=("scene \""+$scene+"\" already exists!");
+	if($error != "")
+	{
+		confirmDialog -title "openPipeline Error" -message $error
+ 			-button "OK" -defaultButton "OK";
+	}	
+	else
+	{
+		sysFile -makeDir $newScenePath;
+		sysFile -makeDir ($newScenePath + "/" + "workshop");
+		sysFile -makeDir ($newScenePath + "/" + "version");	
+		sysFile -makeDir ($newScenePath + "/" + "notes");
+		openPipelineSceneNoteWriter "creation";
+	}
+	return $newScenePath;
+}
+
+global proc int openPipelineAssetAction(string $type, int $versionOffset, string $action, int $currentlyOpen)
+{
+	
+	string $selectedAssetPath;
+	if ($currentlyOpen)
+		$selectedAssetPath = `optionVar -q "op_currOpenPath"`;
+	else
+		$selectedAssetPath = openPipelineGetSelectedAsset();
+	string $assetName = openPipelineGetFolderFromPath($selectedAssetPath,0);
+	int $version = 0;
+	string $file;
+	if ($type=="workshop")
+	{
+		string $workshopPath = ($selectedAssetPath + "workshop/");
+		string $workshopFiles[] = `getFileList -folder $workshopPath -filespec ($assetName + "_workshop_*.mb")`;
+		int $workshopNum = `size($workshopFiles)`; 
+		$version = $workshopNum-$versionOffset;
+		$file = ($workshopPath + $assetName + "_workshop_" + $version + ".mb");
+	}
+	else if ($type=="master")
+	{
+		$file = $selectedAssetPath + $assetName + "_asset.mb";
+	}
+	
+	int $fileExists = `filetest -r $file`;
+
+	if ($action=="open")
+	{
+		if ($fileExists)
+		{
+			NewScene;
+			file -open $file;
+		}
+		else if ($type=="workshop")
+		{
+			string $choice = `confirmDialog -t "Edit Asset" -m "You are about to edit an asset with no existing workshops.\nWould you like to start with an empty scene, or the currently open scene?" -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
+			if ($choice=="New Scene")
+				NewScene; 
+			else if ($choice=="Cancel")
+				return 1;
+		}
+		optionVar -sv "op_currOpenPath" $selectedAssetPath;
+		optionVar -sv "op_currOpenType" $type;
+		optionVar -iv "op_currOpenVersion" $version;
+		optionVar -sv "op_currOpenCategory" "asset";
+		openPipelineAssetTypeSelected(1);
+		openPipelineUpdateCurrentlyOpen();
+		return 1; // success
+	}
+	else if (($action=="import")&&($fileExists))
+	{
+		file -import $file;
+		return 1; // success
+	}
+	else if (($action=="reference")&&($fileExists))
+	{
+		file -reference $file;
+		return 1; // success
+	}
+		
+	else
+	{
+		warning ("openPipeline: No " + $type +" File Exists In: " + $selectedAssetPath + " \n");
+		return 0; // failure
+	}
+		
+}
+
+global proc int openPipelineComponentAction(string $type, int $versionOffset, string $action, int $currentlyOpen)
+{ 
+	string $selectedComponentPath;
+	if ($currentlyOpen)
+		$selectedComponentPath = `optionVar -q "op_currOpenPath"`;
+	else
+		$selectedComponentPath = openPipelineGetSelectedComponent();
+	string $componentName = openPipelineGetFolderFromPath($selectedComponentPath,0);
+	string $assetName = openPipelineGetFolderFromPath($selectedComponentPath,2);
+	int $version = 0;
+	string $file;
+	if ($type=="workshop")
+	{
+		string $workshopPath = ($selectedComponentPath + "workshop/");
+		string $workshopFiles[] = `getFileList -folder $workshopPath -filespec ($assetName + "_" + $componentName  + "_workshop_*.mb")`;
+		int $workshopNum = `size($workshopFiles)`; 
+		$version = $workshopNum-$versionOffset;
+		$file = ($workshopPath + $assetName + "_" + $componentName + "_workshop_" + $version + ".mb");
+	}
+	else if ($type=="master")
+	{
+		$file = $selectedComponentPath + $assetName + "_" + $componentName + ".mb";
+	}
+	int $fileExists = `filetest -r $file`;
+
+	if ($action=="open")
+	{
+		if ($fileExists)
+		{
+			NewScene;
+			file -open $file;
+		}
+		else if ($type=="workshop")
+		{
+			string $choice = `confirmDialog -t "Edit Component" -m "You are about to edit a component with no existing workshops.\nWould you like to start with an empty scene, or the currently open scene?" -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
+			if ($choice=="New Scene")
+				NewScene; 
+			else if ($choice=="Cancel")
+				return 1;
+		}
+		optionVar -sv "op_currOpenPath" $selectedComponentPath;
+		optionVar -sv "op_currOpenType" $type;
+		optionVar -iv "op_currOpenVersion" $version;
+		optionVar -sv "op_currOpenCategory" "component";
+		openPipelineAssetTypeSelected(1);
+		openPipelineUpdateCurrentlyOpen();
+		return 1; // success
+	}
+	else if (($action=="import")&&($fileExists))
+	{
+		file -import $file;
+		return 1; // success
+	}
+	else if (($action=="reference")&&($fileExists))
+	{
+		file -reference $file;
+		return 1; // success
+	}
+	else
+	{
+		warning ("openPipeline: No " + $type +" File Exists In: " + $selectedComponentPath + " \n");
+		return 0; // failure
+	}
+}
+
+
+global proc int openPipelineSceneAction(string $type, int $versionOffset, string $action, int $currentlyOpen)
+{
+	string $selectedScenePath;
+	if ($currentlyOpen)
+	{
+		$selectedScenePath = `optionVar -q "op_currOpenPath"`;
+	}else{
+		$selectedScenePath = openPipelineGetSelectedScene();
+	}
+	
+	string $sceneName = openPipelineGetFolderFromPath($selectedScenePath,0);
+	int $version = 0;
+	string $file;
+	if ($type=="workshop")
+	{
+		string $workshopPath = ($selectedScenePath + "workshop/");
+		string $workshopFiles[] = `getFileList -folder $workshopPath -filespec ($sceneName + "_workshop_*.mb")`;
+		int $workshopNum = `size($workshopFiles)`; 
+		$version = $workshopNum-$versionOffset;
+		$file = ($workshopPath + $sceneName + "_workshop_" + $version + ".mb");
+	}else if ($type=="master")
+	{
+		$file = $selectedScenePath + $sceneName + "_scene.mb";
+	}
+	
+	int $fileExists = `filetest -r $file`;
+	if ($action=="open")
+	{
+		if ($fileExists)
+		{
+			NewScene;
+			file -open $file;
+		}
+		else if ($type=="workshop")
+		{
+			string $choice = `confirmDialog -t "Edit Scene" -m "You are about to edit a scene with no existing workshops.\nWould you like to start with an empty scene, or the currently open scene?" -b "New Scene" -b "Current Scene" -b "Cancel" -cb "Cancel" -db "Current Scene"`;
+			if ($choice=="New Scene")
+			{
+				NewScene; 
+			}else if ($choice=="Cancel"){
+				return 1;
+			}
+		}
+		optionVar -sv "op_currOpenPath" $selectedScenePath;
+		optionVar -sv "op_currOpenType" $type;
+		optionVar -iv "op_currOpenVersion" $version;
+		optionVar -sv "op_currOpenCategory" "scene";
+		openPipelineUpdateSceneList();
+		openPipelineUpdateCurrentlyOpen();
+		return 1; // success
+	}
+	else if (($action=="import")&&($fileExists))
+	{
+		file -import $file;
+		return 1; // success
+	}
+	else if (($action=="reference")&&($fileExists))
+	{
+		file -reference $file;
+		return 1; // success
+	}else{
+		warning ("openPipeline: No " + $type +" File Exists In: " + $selectedScenePath + " \n");
+		return 0; // failure
+	}
+}
+
+
+global proc int openPipelineSceneAssetAction(string $action)
+{
+	string $assetPath = openPipelineGetSelectedSceneAsset();
+	
+	if (openPipelineAssetHasMaster($assetPath))
+	{
+		string $file = $assetPath + openPipelineGetFolderFromPath($assetPath,0)+"_asset.mb";
+		if ($action=="import")
+		{
+			file -import $file;
+		}else if ($action=="reference"){
+			file -reference $file;
+		}else{
+			error("invalid action passed into `openPipelineSceneAssetAction` procedure");
+			return 0;
+		}
+	}else{
+		error("Selected Asset didn't have master!");
+		return 0;
+	}
+	return 1;
+}
+
+global proc openPipelineProcessAssetSave(string $saveType)
+{
+	string $currCat = `optionVar -q "op_currOpenCategory"`;
+
+	switch($saveType)
+	{
+		case "workshop":
+			openPipelineSaveWorkshop;
+			if ($currCat=="asset")
+				openPipelineAssetNoteWriter workshop; 
+			else if ($currCat=="component")
+				openPipelineAssetNoteWriter workshop; 
+			else if ($currCat=="scene")
+				openPipelineSceneNoteWriter workshop; 
+			else
+				warning("openPipelineProcessAssetSave error: invalid category");
+
+			break;
+		case "master":
+			openPipelineSaveWorkshop;			
+			openPipelineSaveMaster;
+			if ($currCat=="asset")
+			{
+				openPipelineAssetNoteWriter master;
+				openPipelineLoadCurrentAssetNote;
+			}else if ($currCat=="component"){
+				openPipelineAssetNoteWriter master;
+				openPipelineLoadCurrentAssetNote;
+			}else if ($currCat=="scene"){
+				openPipelineSceneNoteWriter master;
+				openPipelineLoadCurrentSceneNote; 
+			}else{
+				warning("openPipelineProcessAssetSave error: invalid category");
+			}
+					break;
+			}
+
+	if ($currCat=="asset")
+		openPipelineAssetAction workshop 0 open 1;	
+	else if ($currCat=="component")
+		openPipelineComponentAction workshop 0 open 1;	
+	else if ($currCat=="scene")
+		openPipelineSceneAction workshop 0 open 1;	
+	else
+		error("openPipelineProcessAssetSave error: invalid category");
+}
+
+
+global proc openPipelineSaveWorkshop()
+{
+	string $currPath = `optionVar -q "op_currOpenPath"`;
+	string $currType = `optionVar -q "op_currOpenType"`;
+	string $currCat = `optionVar -q "op_currOpenCategory"`;
+	int $currVersion = `optionVar -q "op_currOpenVersion"`;
+
+	string $workshop;
+	string $workshopFiles[];
+	int $workshopNum;
+	string $destinationFile;
+
+	if (($currCat == "asset")||($currCat == "scene"))
+		{
+		string $assetName = openPipelineGetFolderFromPath($currPath,0);
+		$workshop = ($currPath + "workshop/");
+		$workshopFiles = `getFileList -folder $workshop -filespec ($assetName + "_workshop_*.mb")`;
+		$workshopNum = `size($workshopFiles)` + 1; 
+		$destinationFile = ($workshop + $assetName + "_workshop_" + $workshopNum + ".mb");
+	} 
+	else if ($currCat == "component")
+	{	
+		string $componentName = openPipelineGetFolderFromPath($currPath,0);
+		string $assetName = openPipelineGetFolderFromPath($currPath,2);
+		$workshop = ($currPath + "workshop/");
+		$workshopFiles = `getFileList -folder $workshop -filespec ($assetName + "_" + $componentName + "_workshop_*.mb")`;
+		$workshopNum = `size($workshopFiles)` + 1; 
+		$destinationFile = ($workshop + $assetName + "_" + $componentName + "_workshop_" + $workshopNum + ".mb");
+	}
+
+	// save the current file to the master location
+	file -rename $destinationFile;     
+	file -save -type "mayaBinary";
+}
+
+
+global proc openPipelineSaveMaster()
+{
+	string $currPath = `optionVar -q "op_currOpenPath"`;
+	string $currType = `optionVar -q "op_currOpenType"`;
+	string $currCat = `optionVar -q "op_currOpenCategory"`;
+	int $currVersion = `optionVar -q "op_currOpenVersion"`;
+	
+	string $masterFile;
+	string $versions;
+	string $versionFiles[];
+	int $versionNum;
+	string $destinationFile;
+
+	if($currCat == "asset")
+	{
+		string $assetName = openPipelineGetFolderFromPath($currPath,0);
+		$masterFile = ($currPath + $assetName + "_asset.mb");
+		$versions = ($currPath + "version/");
+		$versionFiles = `getFileList -folder $versions`;
+		$versionNum = (`size($versionFiles)` + 1); 
+		$destinationFile = ($versions + $assetName + "_version_" + $versionNum + ".mb");	
+	} 
+	else if($currCat == "component")
+	{	
+		string $componentName = openPipelineGetFolderFromPath($currPath,0);
+		string $assetName = openPipelineGetFolderFromPath($currPath,2);
+		$masterFile = ($currPath + $assetName + "_" + $componentName + ".mb");
+		$versions = ($currPath + "version/");
+		$versionFiles = `getFileList -folder $versions`;
+		$versionNum = (`size($versionFiles)` + 1); 
+		$destinationFile = ($versions + $assetName + "_" + $componentName + "_version_" + $versionNum + ".mb");		
+	}
+	else if($currCat == "scene")
+	{
+		string $sceneName = openPipelineGetFolderFromPath($currPath,0);
+		$masterFile = ($currPath + $sceneName + "_scene.mb");
+		$versions = ($currPath + "version/");
+		$versionFiles = `getFileList -folder $versions`;
+		$versionNum = (`size($versionFiles)` + 1); 
+		$destinationFile = ($versions + $sceneName + "_version_" + $versionNum + ".mb");	
+	} 
+	// copy current master to version dir
+	string $copyCmd;
+	string $cleanCmd;
+	//windows
+	if ((`about -os`=="nt")||(`about -os`=="win64"))
+	{
+		$copyCmd = ("copy " + $masterFile + " " + $destinationFile);
+		$copyCmd = ("substituteAllString(\"" + $copyCmd + "\", \"\/\", \"\\\\\")");
+		$cleanCmd = `eval($copyCmd)`;
+	}
+	//mac
+	else
+		$cleanCmd = ("mv " + $masterFile + " " + $destinationFile);
+	
+	system($cleanCmd);
+
+	openPipelineCleanMaster;
+		
+	// save the current file to the master location
+	file -rename $masterFile;
+	file -save -type "mayaBinary";
+}
+
+
+global proc openPipelineCleanMaster()
+{
+	// flatten the references to create a publishable master file
+	int $flatten = `checkBox -q -v masterImportReferencesBox`;
+	if($flatten)
+	{
+		openPipelineImportRefs;
+	}
+
+	// delete layers from the publishable master file
+	int $deleteLayers = `checkBox -q -v masterDeleteLayersBox`;
+	if($deleteLayers)
+	{
+		string $layers[] = `ls -type displayLayer`;
+		for($layer in $layers)
+		{
+			if($layer != "defaultLayer")
+			{
+				delete $layer;
+			}
+		}
+	}
+}
+
+global proc openPipelineImportRefs()
+{
+	// list all references in scene
+	string $referencedFiles[] = `file -q -reference`;
+	string $eachReference;
+	
+	if (`size($referencedFiles)` >= 0)
+	{
+		warning ("openPipeline: no references to import\n");
+	}
+	
+	for ($eachReference in $referencedFiles)
+	{
+		file -importReference $eachReference;
+		print ("openPipeline: " + $eachReference + " imported into current scene file\n");
+	}
+}
+
+global proc openPipelineRemoveFolder(string $category)
+{
+
+	string $currPath = `optionVar -q "op_currOpenPath"`;
+	string $currCat = `optionVar -q "op_currOpenCategory"`;
+	
+	int $currCheckOffset=-1;
+	int $checkExtent=1;
+	
+	string $archivePath = `optionVar -q "op_archivePath"`;
+	string $paths[];
+	string $destinationPrefix;
+	string $destinationFolderName;
+	string $confirmText = "";
+	string $refreshCmd;
+	
+	if ($category == "type")
+	{
+		$confirmText = "Are you sure you want to remove the selected Asset Type(s)?\n(files and folders will be moved to the 'archives' folder)";
+		$paths = openPipelineGetSelectedAssetTypes();
+		$refreshCmd = "openPipelineUpdateAssetTypeList";
+		if ($currCat=="asset")
+			$currCheckOffset=1;
+		else
+			$currCheckOffset=3;
+	}
+	else if ($category == "asset")
+	{
+		$checkExtent=2;
+		$confirmText = "Are you sure you want to remove the selected Asset?\n(files and folders will be moved to the 'archives' folder)";
+		$paths[0] = openPipelineGetSelectedAsset();
+		$refreshCmd = "openPipelineAssetTypeSelected 1";
+		if ($currCat=="asset")
+			$currCheckOffset=0;
+		else
+			$currCheckOffset=2;
+	}
+	else if ($category == "component")
+	{
+		$checkExtent=4;
+		$confirmText = "Are you sure you want to remove the selected Component?\n(files and folders will be moved to the 'archives' folder)";
+		$paths[0] = openPipelineGetSelectedComponent();
+		$refreshCmd = "openPipelineAssetSelected 1";
+		if ($currCat=="component")
+			$currCheckOffset=0;
+	}
+	else if ($category == "scene")
+	{
+		$confirmText = "Are you sure you want to remove the selected Scene?\n(files and folders will be moved to the 'archives' folder)";
+		$paths[0] = openPipelineGetSelectedScene();
+		$refreshCmd = "openPipelineUpdateSceneList";
+		if ($currCat=="scene")
+			$currCheckOffset=0;
+	}
+		
+	if (`confirmDialog -t "Remove Files" -m $confirmText -ma "center" -b "Yes" -b "No" -db "Yes" -cb "No"`=="Yes")
+	{
+		if (!`filetest -d $archivePath`)
+			sysFile -makeDir $archivePath;
+		
+		int $i;
+		string $destinationPath;
+		for ($i=0; $i<size($paths);$i++)
+		{
+			if (($currCheckOffset>-1)&&($currPath!=""))
+			{
+				//check if the currently open asset, component or scene is being deleted
+				int $isCurrent=1;
+				int $k;
+				for ($k=0;$k<$checkExtent;$k++)
+				{
+					string $one=openPipelineGetFolderFromPath($paths[$i],$k);
+					string $two=openPipelineGetFolderFromPath($currPath,$k+$currCheckOffset);
+					if ($one!=$two)
+					{
+						$isCurrent=0;
+						$k=$checkExtent;
+					}
+				}
+				if ($isCurrent)
+				{
+					if (`confirmDialog -t "Remove Files" -m "You are removing an asset, component or scene which is currently open. Continue?" -ma "center" -b "Yes" -b "No" -db "Yes" -cb "No"`=="Yes")
+					{
+						optionVar -sv "op_currOpenPath" "";
+						optionVar -sv "op_currOpenType" "";
+						optionVar -sv "op_currOpenCategory" "";
+						optionVar -iv "op_currOpenVersion" 0;
+						openPipelineUpdateCurrentlyOpen();
+					}
+					else
+					{
+						return;
+					}
+				}
+			}
+			
+			if ($category == "type")
+				$destinationFolderName = openPipelineGetFolderFromPath($paths[$i],0);
+			else if ($category == "asset")
+			{
+				$destinationFolderName = openPipelineGetFolderFromPath($paths[$i],1)+"_"+openPipelineGetFolderFromPath($paths[$i],0);
+			}
+			else if ($category == "component")
+			{
+				$destinationFolderName = openPipelineGetFolderFromPath($paths[$i],3)+"_"+openPipelineGetFolderFromPath($paths[$i],2)+"_"+openPipelineGetFolderFromPath($paths[$i],0);
+			}
+			
+			int $j = 0;
+			while (`filetest -d ($archivePath+$destinationFolderName+"_archive_"+$j)`)
+			{
+				$j++;
+			}
+			int $nameSize = size(openPipelineGetFolderFromPath($paths[$i],0));
+			int $pathSize = size($paths[$i]);
+			string $renamedPath = (substring($paths[$i], 1, ($pathSize-$nameSize-1)) + $destinationFolderName + "_archive_" + $j);
+			string $renameCmd;
+			string $copyCmd;
+			//move folder(s) to archive
+			//windows
+			if ((`about -os`=="nt")||(`about -os`=="win64"))
+			{
+				$renameCmd = ("move " + substring($paths[$i], 1, size($paths[$i])-1) + " " + $renamedPath);
+				$copyCmd = ("move " + $renamedPath + " " + $archivePath);
+			}
+			//mac
+			else
+			{
+				$renameCmd = ("mv " + substring($paths[$i], 1, size($paths[$i])-1) + " " + $renamedPath);
+				$copyCmd = ("mv " + $renamedPath + " " + $archivePath);
+			}
+			
+			print(system($renameCmd));
+			print(system($copyCmd));
+		}
+		eval($refreshCmd);
+	}
+}

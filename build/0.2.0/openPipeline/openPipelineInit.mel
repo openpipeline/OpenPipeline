@@ -1,0 +1,72 @@
+//
+// CUSTOMIZATION AND SETUP (edit to suit needs...) /////////////////
+
+global string $openPipeline_name = "openPipeline";
+
+global string $openPipeline_projList_nt = "openPipeline_projects.txt";
+
+global string $openPipeline_libraryDirectoryName;
+$openPipeline_libraryDirectoryName = "lib";
+
+global string $openPipeline_sceneDirectoryName;
+$openPipeline_sceneDirectoryName = "scenes";
+
+// mac stuff for the future...
+global string $openPipeline_projList_mac = "openPipeline_projects_mac.txt";
+global string $openPipeline_macPath = "/Volumes/MID/BIN/scripts/openPipeline/";
+
+///////////////////////////////////////////////////////////////////////////
+//
+
+// STATIC openPipeline GLOBAL VARS( edit at own risk)
+//
+global string $openPipeline_version = "0.1";
+
+
+// DYNAMIC GLOBAL VARS (edit at own risk)
+///////////////////////////////////////////////////////////////////////////
+global string $openPipeline_projListName;
+if(`about -os` == "nt")
+{
+	$openPipeline_projListName = $openPipeline_projList_nt;
+} 
+//else if (`about -os` == "mac")
+//{
+//	$openPipeline_projListName = $openPipeline_projList_mac;
+//}
+
+global string $openPipeline_projListDir;
+if(`about -os` == "nt")
+{
+	$openPipeline_projListDir = $openPipeline_ntPath;
+} 
+//else if (`about -os` == "mac")
+//{
+//	$openPipeline_projListDir = $openPipeline_macPath;
+//}
+
+
+// Current file name
+global string $openPipeline_currentOpenFile; 
+
+// Current scrollList in use in Proj Inventory :: model, rig,animation, light
+global string $openPipeline_menuCurrentState;
+
+// Current selection in the scrollList in Proj Inventory.
+global string $openPipeline_menuCurrentSelection;
+
+// Current selection in the asset scrollList.
+global string $openPipeline_menuCurrentAsset;
+
+// Current selection in the component scrollList.
+global string $openPipeline_menuCurrentAssetComponent;
+
+// Current Proj Name
+global int $openPipeline_currentProjIndex = 0;
+
+// Store the GUI's position.
+global int $openPipeline_winPos[];
+
+// Username from system login name
+global string $openPipeline_userName;
+$openPipeline_userName = `getenv USER`;
