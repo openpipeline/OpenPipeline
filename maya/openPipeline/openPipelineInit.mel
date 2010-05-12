@@ -15,9 +15,12 @@ global proc openPipelineInitialize()
 	global string $openPipeline_defaultPreviewFilename = "defaultPreview.jpg";
 	global string $openPipeline_noPreviewFilename = "noPreview.jpg";
 	global string $openPipeline_userName;
-	$openPipeline_userName = `getenv USER`;
+	if (`size $openPipeline_userName` < 1 )
+		$openPipeline_userName = `getenv USER`;
 	if (!`optionVar -ex "op_currProjectName"`)
 		optionVar -sv "op_currProjectName" "";
+	if (!`optionVar -ex "op_currentUser"`)
+			optionVar -sv "op_currentUser" "default";
 	if (`optionVar -q "op_currProjectName"` =="")
 	{
 			optionVar -sv "op_currOpenType" "";

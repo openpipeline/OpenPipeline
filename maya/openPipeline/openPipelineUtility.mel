@@ -285,6 +285,12 @@ global proc string openPipelineGetXmlData(string $xml, string $tag)
     $output = substitute($inTag, $output, "");
     $output = substitute($outTag, $output, "");
     $output = encodeString($output);
+    if ( $tag == "path" )
+    {
+		python("import os");
+		$output = `python("os.path.expandvars('" + $output + "').replace('\\\\','/')")`;
+		
+	}
     return $output;
 }
 
@@ -414,4 +420,41 @@ global proc openPipelineImportRefs()
 			print ("openPipeline: " + $eachReference + " imported into current file\n");
 		}
 	}
+}
+
+//###########################################
+// Name: 		openPipelineCompareFirstToSecondList
+//
+// Description: 	Compares each item from one list to another, and returns a list
+//			that consists of all the names from the first list that are
+//			also in the second list
+//
+// Input: 		parameter1 - the list with items you want to create a new list from
+//			parameter2 - the list you want to diff against
+//
+// Returns: 		a new list that contains items from the first list that are also
+//			present in the second list
+//###########################################
+global proc string[] openPipelineCompareFirstToSecondList(string $questionableList[], string $comparisonList[]) {
+
+	string $returnList[];
+	int $i = 0;
+	
+	for ($qItem in $questionableList) {
+	
+		int $testItem = 0;
+		for ($cItem in $comparisonList)
+		{
+			if ($qItem == $cItem)
+			{
+				$testItem = 1;
+			}
+		}
+		if ($testItem)
+		{
+			$returnList[$i] = $qItem;
+			$i++;
+		}
+	}
+	return $returnList;
 }

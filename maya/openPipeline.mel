@@ -17,7 +17,47 @@ global proc sourceModule(string $path)
 		print ("//// Source: " + $cmdString + "\n"); 
 		catch(`eval $cmdString`); 
 	} 
-} 
+}
+
+//###########################################
+// Name: sourcePyModule
+// Description: Finds all the python files in a path (and potentially subpath) and sources them 
+// Input: path - The path to look in (string)
+// Returns: none
+//###########################################
+global proc sourcePyModule(string $path)
+{
+	python("import sys");
+	python("sysPath = sys.path");
+	python("appendGo = 1");
+	python("for aPath in sysPath: \n if(aPath == '" + $path + "'): appendGo = 0");
+	// Append if necessary the python add-on path
+	python("if appendGo: \n sys.path.append('" + $path + "')\n print 'appending " + $path + "'");
+	// And Here comes the MEL to Python work-around
+	// Because os.path.exists returns true even when the path is invalid for importing
+	// python modules (probably due to being called through MEL) for some computers
+	// we take the back slash off of a given path so that
+	// the directory will be recognized when importing python modules
+	python("pyPath = '" + $path + "'");
+	python("pyPath = pyPath[:-1]");
+	python("appendGo = 1");
+	python("for aPath in sysPath: \n if(aPath == pyPath): appendGo = 0");
+	python("if appendGo: \n sys.path.append(pyPath)\n print 'appending %s' % pyPath");
+	
+	string $pyFiles[] = `getFileList -folder $path -filespec "*.py"`;
+	string $eachFile;
+	for ($eachFile in $pyFiles) 
+	{
+		print ("//// PYTHON Source: " + $path + $eachFile + "\n"); 
+		// import and reload the python module
+		string $pySourceNames[];
+		tokenize $eachFile ".py" $pySourceNames;
+		$pySourceName = $pySourceNames[0];
+		python("import " + $pySourceName);
+		python("reload (" + $pySourceName + ")");
+		
+	}
+}
 
 //###########################################
 // Name: openPipelineSetMainPath
@@ -313,6 +353,8 @@ global proc openPipeline()
     {
 		sourceModule($openPipeline_scriptPath+$scriptsFolderName+"/"); 
 		sourceModule($openPipeline_scriptPath+$scriptsFolderName+"/addons/"); 
+		sourcePyModule($openPipeline_scriptPath+$scriptsFolderName+"/addons/");
+		sourceModule($openPipeline_scriptPath+$scriptsFolderName+"/custom/"); 
         catch(`eval "openPipelineUI"`);
     }
     //If paths are not valid, run openPipeline setup.

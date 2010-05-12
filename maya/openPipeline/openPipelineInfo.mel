@@ -363,7 +363,17 @@ global proc string openPipelineGetFileName(int $tab, string $level1, string $lev
 				
 				else if ($mode=="workshop")
 				{
-					string $workshopFiles[] = `getFileList -folder ($fileName+$wName+"/") -filespec ("*"+$wName + "_*." + $wExt)`;
+					string $fileStr = $fileName+$wName+"/";
+					string $filespec = "*"+$wName + "_*." + $wExt;
+					string $fullStr = $fileStr+$filespec;
+					python("import glob");
+					string $workshopFiles[] = python("glob.glob('"+$fullStr+"')");
+					int $j;
+					for ($j=0; $j<size($workshopFiles); $j++)
+					{
+						
+						$workshopFiles[$j]=basename($workshopFiles[$j],"");
+					}					
 					$workshopFiles = `sort $workshopFiles`;
 					int $workshopNum = size($workshopFiles);				
 					if ($workshopNum)
@@ -383,6 +393,7 @@ global proc string openPipelineGetFileName(int $tab, string $level1, string $lev
 					string $itemName = openPipelineGetFolderFromPath($fileName,0);
 					string $parentName = openPipelineGetFolderFromPath($fileName,2);
 					string $workshopFiles[] = `getFileList -folder ($fileName+$wName+"/") -filespec ("*"+$wName + "_*." + $wExt)`;
+					$workshopFiles = `sort($workshopFiles)`; // Sort alphabetically to ensure order is correct
 					int $workshopNum = `size($workshopFiles)`;
 					int $latestWorkshop=0;
 					if ($workshopNum)
@@ -416,6 +427,7 @@ global proc string openPipelineGetFileName(int $tab, string $level1, string $lev
 					string $itemName = openPipelineGetFolderFromPath($fileName,0);
 					string $parentName = openPipelineGetFolderFromPath($fileName,2);
 					$versionFiles = `getFileList -folder ($fileName+$versionFolder+"/") -filespec ("*"+$itemName + "_version_*." + $mExt)`;
+					$versionFiles = `sort($versionFiles)`; // Sort alphabetically to ensure order is correct
 					int $numVersions = `size($versionFiles)`;
 					int $latestVersion = 0;
 					if ($numVersions)

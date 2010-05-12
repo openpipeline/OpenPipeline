@@ -34,6 +34,9 @@ global proc int openPipelineActivateProject(string $projName)
 		string $projWFormat = openPipelineGetXmlData($projXml, "workshopformat");
 		string $projMName = openPipelineGetXmlData($projXml, "mastername");
 		string $projWName = openPipelineGetXmlData($projXml, "workshopname");
+			
+		string $projUsers = openPipelineGetXmlData($projXml, "users");
+		
 		string $libPath = ($projPath + $projLib + "/");
 		string $shotPath = ($projPath + $projShots + "/");
 		string $scriptsPath = ($projPath + $projScripts + "/");
@@ -66,6 +69,9 @@ global proc int openPipelineActivateProject(string $projName)
 		optionVar -sv "op_workshopName" $projWName;
 		optionVar -sv "op_deletePath" $deletePath;
 		optionVar -sv "op_archivePath" $archivePath;
+
+		optionVar -sv "op_users" $projUsers;
+		
 		if (size($projScripts))
 		{
 			openPipelineSourceModule $scriptsPath;
@@ -101,8 +107,9 @@ global proc int openPipelineActivateProject(string $projName)
 global proc int openPipelineCreateOrEditProject(int $mode, string $oldName, string $newName, string $newPath, string $newDescription, 
 int $newStatus, string $newDate, string $newDeadline, string $newMasterName, string $newMasterFormat, string $newWorkshopName, 
 string $newWorkshopFormat, string $newLibraryLocation, string $newShotLocation, string $newRendersLocation, string $newScriptsLocation, 
-string $newTexturesLocation, string $newParticlesLocation, string $newArchiveLocation, string $newDeletedLocation)
+string $newTexturesLocation, string $newParticlesLocation, string $newArchiveLocation, string $newDeletedLocation, string $newUsers, string $userMode)
 {
+	string $projType = "default";
 	string $activeProjectName = `optionVar -q "op_currProjectName"`;
 	string $projData[] = openPipelineGetProjectsData();
 	//input validation
@@ -235,7 +242,9 @@ string $newTexturesLocation, string $newParticlesLocation, string $newArchiveLoc
     	                  "<scriptsfolder>" + $newScriptsLocation + "</scriptsfolder>"+
     	                  "<rendersfolder>" + $newRendersLocation + "</rendersfolder>"+
     	                  "<particlesfolder>" + $newParticlesLocation + "</particlesfolder>"+
-    	                  "<texturesfolder>" + $newTexturesLocation + "</texturesfolder>";
+    	                  "<texturesfolder>" + $newTexturesLocation + "</texturesfolder>"+
+    	                  "<users>" + $newUsers + "</users>"+
+    	                  "<userMode>" + $userMode + "</userMode>";
     	int $index;
     	//create new project mode
     	if (!$mode)
