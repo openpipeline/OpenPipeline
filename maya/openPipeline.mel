@@ -21,7 +21,7 @@ global proc sourceModule(string $path)
 
 //###########################################
 // Name: sourcePyModule
-// Description: Finds all the python files in a path (and potentially subpath) and sources them 
+// Description: Finds all the python files in a path and sources them 
 // Input: path - The path to look in (string)
 // Returns: none
 //###########################################
