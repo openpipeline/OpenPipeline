@@ -357,7 +357,7 @@ global proc openPipeline()
 		sourceModule($openPipeline_scriptPath+$scriptsFolderName+"/custom/"); 
         catch(`eval "openPipelineUI"`);
     }
-    //If paths are not valid, run openPipeline setup.
+    //If paths are not valid, run openPipeline setup
     else
     {
 		openPipelineSetup();
