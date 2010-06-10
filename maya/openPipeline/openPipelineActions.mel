@@ -139,6 +139,13 @@ string $newTexturesLocation, string $newParticlesLocation, string $newArchiveLoc
 	    $error += "Deadline exceeds 18 characters.\n";
 	if (size($newDescription)>250)
 	    $error += "Description exceeds 250 characters.\n";
+	    
+	$testPath = `python("'"+$newPath+"'.rstrip('"+$newName+"')")`;
+	print ("here is our test path '"+$testPath+"'");
+	python("import os\n");
+	if (!python("os.path.exists('"+$testPath+"')"))
+	   $error += "Project path is not valid (a valid path is required).\n";
+	
 	if (!isValidString($newName,"([a-zA-Z0-9_])*"))
 	    $error += "Project name is not valid (remove spaces and special characters ).\n";
 	if (!isValidString($newMasterName,"([a-zA-Z0-9_])*"))
